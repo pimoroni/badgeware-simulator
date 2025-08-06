@@ -1,32 +1,30 @@
 #include "image.hpp"
 
-#include "png.hpp"
 #include "span.hpp"
-
-#include "psram.hpp"
 
 #include <string.h>
 #include <math.h>
 
-size_t psram_offset = 0x11000000;
+using namespace std;
 
 image::image() {
 }
 
-image::image(int w, int h) {
+image::image(int w, int h) : managed_buffer(true) {
   b = rect(0, 0, w, h);
-  p = reinterpret_cast<uint32_t *>(psram_offset);
-  rs = w * sizeof(uint32_t);  
-  psram_offset += rs * h;
+  p = (uint32_t *)malloc(sizeof(uint32_t) * w * h);
+  rs = w * sizeof(uint32_t);
 }
 
-image::image(uint32_t *p, int w, int h) : p(p) {
+image::image(uint32_t *p, int w, int h) : p(p), managed_buffer(false) {
   b = rect(0, 0, w, h);
   rs = w * sizeof(uint32_t);
 }
 
-image::~image() {      
-  
+image::~image() {
+  if(managed_buffer) {
+    free(p);
+  }
 }
 
 image image::window(rect r) {
@@ -57,7 +55,7 @@ void image::blit(image &t, const point &p, int alpha) {
   if(tr.empty()) {return;}
 
   int sxo = p.x < 0 ? -p.x : 0;
-  int syo = p.y < 0 ? -p.y : 0;  
+  int syo = p.y < 0 ? -p.y : 0;
 
   for(int i = 0; i < tr.h; i++) {
     uint32_t *src = this->ptr(sxo, syo + i);
@@ -73,7 +71,7 @@ void image::blit(image &t, rect r, int alpha) {
   // determine source bounds for clipped area in fp16:16 coordinates
   int fprw = (b.w << 16) / r.w;
   int fprh = (b.h << 16) / r.h;
-  rect sr( 
+  rect sr(
     -min(r.x, 0) * fprw,
     -min(r.y, 0) * fprh,
     cr.w * fprw,
@@ -92,9 +90,9 @@ uint32_t* image::ptr(int x, int y) {
 }
 
 void image::rectangle(rect r, uint32_t c) {
-  r = r.intersection(b);  
+  r = r.intersection(b);
   for(int i = 0; i < r.h; i++) {
-    uint32_t *p = ptr(r.x, r.y + i);        
+    uint32_t *p = ptr(r.x, r.y + i);
     span_argb8(p, r.w, c);
   }
 }

@@ -8,6 +8,7 @@
 class image {
   public:
     uint32_t *p = nullptr;
+    bool managed_buffer = false;
 
     rect b;
     

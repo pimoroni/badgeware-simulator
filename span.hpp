@@ -1,7 +1,11 @@
 #pragma once
 
 #include <stdint.h>
+#ifdef PICO
 #include "hardware/interp.h"
+#else
+#define __not_in_flash_func(v) v
+#endif
 #include <cstring>
 
 inline uint32_t span_pixels_drawn = 0;
@@ -29,6 +33,7 @@ inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c
       *dst++ = c;
     }
   } else {
+#ifdef PICO
     interp0->accum[1] = ps[0]; // alpha    
     while(w--) {
       uint8_t *pd = (uint8_t *)dst;  
@@ -47,6 +52,15 @@ inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c
 
       dst++;
     }
+#else
+    while(w--) {
+        uint8_t *pd = (uint8_t *)dst;
+        pd[1] = ((pd[1] * (255 - ps[0])) + (ps[1] * ps[0])) / 255;
+        pd[2] = ((pd[2] * (255 - ps[0])) + (ps[2] * ps[0])) / 255;
+        pd[3] = ((pd[3] * (255 - ps[0])) + (ps[3] * ps[0])) / 255;
+        dst++;
+    }
+#endif
   }
 }
 
@@ -67,6 +81,7 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
       // full alpha copy pixel
       *dst = *src;
     } else {
+#ifdef PICO
       // alpha requires blending pixel
       interp0->accum[1] = ca;
     
@@ -81,6 +96,11 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
       interp0->base[0] = pd[3];
       interp0->base[1] = ps[3]; // blue
       pd[3] = (uint8_t)interp0->peek[1];
+#else
+      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
+      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
+      pd[3] = ((pd[3] * (255 - ca)) + (ps[3] * ca)) / 255;
+#endif
     }
 
     src++;
@@ -108,6 +128,7 @@ inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, i
       // full alpha copy pixel
       *dst = src[so];
     } else {
+#ifdef PICO
       // alpha requires blending pixel
       interp0->accum[1] = ca;
     
@@ -122,6 +143,11 @@ inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, i
       interp0->base[0] = pd[3];
       interp0->base[1] = ps[3]; // blue
       pd[3] = (uint8_t)interp0->peek[1];
+#else
+      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
+      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
+      pd[3] = ((pd[3] * (255 - ca)) + (ps[3] * ca)) / 255;
+#endif
     }
     
     dst++;

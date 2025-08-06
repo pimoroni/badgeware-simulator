@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <algorithm>
 
-using namespace std;
-
 class point {
 public:  
   int x;
@@ -60,10 +58,10 @@ public:
 
   rect intersection(const rect &r) {
     return rect(
-      max(x, r.x),
-      max(y, r.y),
-      min(x + w, r.x + r.w) - max(x, r.x),
-      min(y + h, r.y + r.h) - max(y, r.y)
+      std::max(x, r.x),
+      std::max(y, r.y),
+      std::min(x + w, r.x + r.w) - std::max(x, r.x),
+      std::min(y + h, r.y + r.h) - std::max(y, r.y)
     );
   }
 

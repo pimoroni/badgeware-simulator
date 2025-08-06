@@ -1,15 +1,36 @@
 #include "picovector.hpp"
 
+
+
+void * operator new(std::size_t n)// throw(std::bad_alloc)
+{
+    std::cout << "new: " << n << std::endl;
+    //return malloc(n);
+    return m_tracked_calloc(n, 1);
+}
+
+void operator delete(void * p)// throw()
+{
+    std::cout << "free: " << reinterpret_cast<void*>(p) << std::dec << std::endl;
+    //free(p);
+    m_tracked_free(p);
+}
+
+using namespace std;
+
+#define debug_printf(fmt, ...)
+//#define debug_printf(fmt, ...) printf(fmt, __VA_ARGS__)
+
 namespace picovector {
   struct _edgeinterp {
     point s;
     point e;
     float step;
-    
+
     _edgeinterp() {
 
     }
-    
+
     _edgeinterp(point p1, point p2) {
       if(p1.y < p2.y) { s = p1; e = p2; }else{ s = p2; e = p1; }
       step = (e.x - s.x) / (e.y - s.y);
@@ -22,7 +43,7 @@ namespace picovector {
   };
 
   inline void render(shape &shape, image &target, brush *mat) {
-    if(!shape.polygons.size()) {return;};    
+    if(!shape.polygons.size()) {return;};
 
     // determine the intersection between transformed polygon and target image
     rect b = shape.bounds();
@@ -30,10 +51,10 @@ namespace picovector {
     // setup interpolators for each edge of the polygon
     static _edgeinterp edge_interpolators[256];
     int edge_interpolator_count = 0;
-    for(polygon &path : shape.polygons) {
-      point last = path.points.back(); // start with last point to close loop
+    for(polygon *path : shape.polygons) {
+      point last = path->points.back(); // start with last point to close loop
       last = last.transform(&shape.transform);
-      for(point next : path.points) {
+      for(point next : path->points) {
         next = next.transform(&shape.transform);
         // add new edge interpolator
         edge_interpolators[edge_interpolator_count] = _edgeinterp(last, next);
@@ -44,19 +65,19 @@ namespace picovector {
 
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
-    static int nodes[128]; // up to 128 nodes (64 spans) per scanline   
+    static int nodes[128]; // up to 128 nodes (64 spans) per scanline
     static render_span spans[256];
     int span_count = 0;
     int sy = max(b.y, 0);
     int ey = min(b.y + b.h, target.b.h);
-    for(int y = sy; y <= ey; y++) {  
+    for(int y = sy; y <= ey; y++) {
       int node_count = 0;
       for(int i = 0; i < edge_interpolator_count; i++) {
         edge_interpolators[i].next(y, nodes, node_count);
       }
 
       // sort the nodes so that neighouring pairs represent render spans
-      sort(nodes, nodes + node_count); 
+      sort(nodes, nodes + node_count);
 
       // convert nodes into spans
       for(int i = 0; i < node_count; i += 2) {
@@ -66,12 +87,12 @@ namespace picovector {
         spans[span_count].x = x1;
         spans[span_count].y = y;
         spans[span_count].w = x2 - x1;
-        span_count++;        
+        span_count++;
       }
 
       // if span buffer full, or this is the final scanline then render
       if(span_count > 256 - 64 || y == ey) {
-        printf("render spans %d\n", span_count);
+        debug_printf("render spans %d\n", span_count);
         mat->render_spans(&target, &shape, spans, span_count);
         span_count = 0;
       }
@@ -121,7 +142,7 @@ namespace picovector {
     r.v12 = v10 * m.v02 + v11 * m.v12 + v12 * m.v22;
     r.v20 = v20 * m.v00 + v21 * m.v10 + v22 * m.v20;
     r.v21 = v20 * m.v01 + v21 * m.v11 + v22 * m.v21;
-    r.v22 = v20 * m.v02 + v21 * m.v12 + v22 * m.v22;    
+    r.v22 = v20 * m.v02 + v21 * m.v12 + v22 * m.v22;
     memcpy(this, &r, sizeof(mat3));
     return *this;
   }
@@ -131,7 +152,7 @@ namespace picovector {
   /* ==========================================================================
 
   POLYGON - polygon class
-  
+
   ========================================================================== */
 
   point::point() {}
@@ -149,14 +170,14 @@ namespace picovector {
     polygons.reserve(path_count);
   }
 
-  void shape::add_polygon(const polygon &path) {
+  void shape::add_polygon(polygon *path) {
     polygons.push_back(path);
   }
 
   rect shape::bounds() {
     float minx = FLT_MAX, miny = FLT_MAX, maxx = -FLT_MAX, maxy = -FLT_MAX;
-    for(const polygon &path : polygons) {
-      for(point point : path.points) {
+    for(const polygon *path : polygons) {
+      for(point point : path->points) {
         point = point.transform(&transform);
         minx = min(minx, point.x);
         miny = min(miny, point.y);
@@ -170,12 +191,12 @@ namespace picovector {
   void shape::draw(image &img) {
     if(style) {
       render(*this, img, style);
-    }    
+    }
   }
 
   void shape::stroke(float thickness) {
     for(int i = 0; i < this->polygons.size(); i++) {
-      this->polygons[i].stroke(thickness);
+      this->polygons[i]->stroke(thickness);
     }
 
     // std::vector<polygon> new_polygons(this->paths.size());
@@ -206,24 +227,24 @@ namespace picovector {
     // return the two points that make up an edge
     s = edge == -1 ? points.back() : points[edge];
     e = edge == points.size() - 1 ? points.front() : points[edge + 1];
-  }    
+  }
 
   void polygon::stroke(float offset) {
     int c = points.size();
-    vector<point> new_points(c);
+    vector<point, MPAllocator<point>> new_points(c);
 
     if(c == 2) {
-        point p1, p2; // edge 1 start and end                
+        point p1, p2; // edge 1 start and end
         edge_points(0, p1, p2);
         offset_line_segment(p1, p2, offset);
         points.push_back(p2);
         points.push_back(p1);
     }else{
       for(int i = 0; i < c; i++) {
-        point p1, p2; // edge 1 start and end                
+        point p1, p2; // edge 1 start and end
         edge_points(i - 1, p1, p2);
         offset_line_segment(p1, p2, offset);
-        
+
         point p3, p4; // edge 2 start and end
         edge_points(i, p3, p4);
         offset_line_segment(p3, p4, offset);
@@ -241,14 +262,14 @@ namespace picovector {
   }
 
   void polygon::inflate(float offset) {
-    vector<point> new_points(points.size());
+    vector<point, MPAllocator<point>> new_points(points.size());
 
     int edge_count = points.size();
     for(int i = 0; i < edge_count; i++) {
-      point p1, p2; // edge 1 start and end                
+      point p1, p2; // edge 1 start and end
       edge_points(i, p1, p2);
       offset_line_segment(p1, p2, offset);
-      
+
       point p3, p4; // edge 2 start and end
       edge_points(i + 1, p3, p4);
       offset_line_segment(p3, p4, offset);
@@ -265,7 +286,7 @@ namespace picovector {
   /* ==========================================================================
 
   HELPERS
-  
+
   ========================================================================== */
   void offset_line_segment(point &s, point &e, float offset) {
     // calculate normal of edge
@@ -297,7 +318,7 @@ namespace picovector {
 
     float determinant = a1 * b2 - a2 * b1;
 
-    if(determinant == 0) {        
+    if(determinant == 0) {
       return false; // lines parallel or coincident
     }
 
@@ -311,34 +332,34 @@ namespace picovector {
   PRIMITIVES
 
   helper functions for making primitive shapes
-  
+
   ========================================================================== */
 
   namespace shapes {
-    shape regular_polygon(float x, float y, float sides, float radius) {
-      shape result;
-      polygon poly(sides);  
+    shape * regular_polygon(float x, float y, float sides, float radius) {
+      shape *result = new shape(1);
+      polygon *poly = new polygon(sides);
       for(int i = 0; i < sides; i++) {
         float theta = ((M_PI * 2.0f) / (float)sides) * (float)i;
-        poly.add_point(sin(theta) * radius + x, cos(theta) * radius + y);
+        poly->add_point(sin(theta) * radius + x, cos(theta) * radius + y);
       }
-      result.add_polygon(poly);  
-      return result;    
+      result->add_polygon(poly);
+      return result;
     }
 
-    shape circle(float x, float y, float radius) {
+    shape * circle(float x, float y, float radius) {
       int sides = 32;
       return regular_polygon(x, y, sides, radius);
     }
 
-    shape rectangle(float x1, float y1, float x2, float y2) {
-      shape result;
-      polygon poly(4);
-      poly.add_point(x1, y2);
-      poly.add_point(x2, y2);
-      poly.add_point(x2, y1);
-      poly.add_point(x1, y1);
-      result.add_polygon(poly);
+    shape * rectangle(float x1, float y1, float x2, float y2) {
+      shape *result = new shape(1);
+      polygon *poly = new polygon(4);
+      poly->add_point(x1, y2);
+      poly->add_point(x2, y2);
+      poly->add_point(x2, y1);
+      poly->add_point(x1, y1);
+      result->add_polygon(poly);
       return result;
     }
 
@@ -392,26 +413,26 @@ namespace picovector {
       // static shape rounded_rectangle(float x1, float y1, float x2, float y2, float r1, float r2, float r3, float r4, float stroke=0.0f) {
       // }
 
-    shape squircle(float x, float y, float size, float n) {
-      shape result;
-      int points = 32;
-      polygon poly(points);
+    shape * squircle(float x, float y, float size, float n) {
+      shape *result = new shape(1);
+      constexpr int points = 32;
+      polygon *poly = new polygon(points);
       for(int i = 0; i < points; i++) {
           float t = 2 * M_PI * (points - i) / points;
           float ct = cos(t);
           float st = sin(t);
-          
-          poly.add_point(
-            x + copysign(pow(abs(ct), 2.0 / n), ct) * size, 
+
+          poly->add_point(
+            x + copysign(pow(abs(ct), 2.0 / n), ct) * size,
             y + copysign(pow(abs(st), 2.0 / n), st) * size
-          );        
+          );
       }
-      result.add_polygon(poly);
+      result->add_polygon(poly);
       return result;
     }
 
-    shape arc(float x, float y, float from, float to, float radius) {
-      shape result;    
+    shape * arc(float x, float y, float from, float to, float radius) {
+      shape *result = new shape(1);
 
       from = fmod(from, 360.0f);
       to = fmod(to, 360.0f);
@@ -419,24 +440,24 @@ namespace picovector {
       int steps = (int)(32.0f * (delta / 360.0f));
       from *= (M_PI / 180.0f);
       to *= (M_PI / 180.0f);
-      
-      polygon outline;
+
+      polygon *outline = new polygon(steps);
 
       float astep = (to - from) / (float)steps;
       float a = from;
 
       for(int i = 0; i <= steps; i++) {
-        outline.add_point(sin(a) * radius + x, cos(a) * radius + y);
+        outline->add_point(sin(a) * radius + x, cos(a) * radius + y);
         a += astep;
-      }    
+      }
 
-      result.add_polygon(outline);
+      result->add_polygon(outline);
 
       return result;
     }
 
-    shape pie(float x, float y, float from, float to, float radius) {
-      shape result;    
+    shape * pie(float x, float y, float from, float to, float radius) {
+      shape *result = new shape(1);
 
       from = fmod(from, 360.0f);
       to = fmod(to, 360.0f);
@@ -444,44 +465,44 @@ namespace picovector {
       int steps = (int)(32.0f * (delta / 360.0f));
       from *= (M_PI / 180.0f);
       to *= (M_PI / 180.0f);
-      
-      polygon outline;
+
+      polygon *outline = new polygon(steps + 1); // TODO: is this right?
 
       float astep = (to - from) / (float)steps;
       float a = from;
 
       for(int i = 0; i <= steps; i++) {
-        outline.add_point(sin(a) * radius + x, cos(a) * radius + y);
+        outline->add_point(sin(a) * radius + x, cos(a) * radius + y);
         a += astep;
-      }    
+      }
 
-      outline.add_point(x, y);
+      outline->add_point(x, y); // + 1 point?
 
-      result.add_polygon(outline);
+      result->add_polygon(outline);
 
       return result;
     }
 
 
-    shape star(float x, float y, int spikes, float outer_radius, float inner_radius) {
-      shape result;
-      polygon poly(spikes * 2);  
+    shape * star(float x, float y, int spikes, float outer_radius, float inner_radius) {
+      shape *result = new shape(1);
+      polygon *poly = new polygon(spikes * 2);
       for(int i = 0; i < spikes * 2; i++) {
         float step = ((M_PI * 2) / (float)(spikes * 2)) * (float)i;
-        float r = i % 2 == 0 ? outer_radius : inner_radius; 
-        poly.add_point(sin(step) * r + x, cos(step) * r + y);
+        float r = i % 2 == 0 ? outer_radius : inner_radius;
+        poly->add_point(sin(step) * r + x, cos(step) * r + y);
       }
-      result.add_polygon(poly);
+      result->add_polygon(poly);
       return result;
     }
 
-    shape line(float x1, float y1, float x2, float y2) {
-      shape result;
-      polygon poly(2);  
+    shape * line(float x1, float y1, float x2, float y2) {
+      shape *result = new shape(1);
+      polygon *poly = new polygon(2);
 
-      poly.add_point(x1, y1);
-      poly.add_point(x2, y2);
-      result.add_polygon(poly);
+      poly->add_point(x1, y1);
+      poly->add_point(x2, y2);
+      result->add_polygon(poly);
 
       return result;
     }
@@ -490,10 +511,10 @@ namespace picovector {
 
   namespace brushes {
 
-    void colour::render_spans(image *target, shape *shape, render_span *spans, int count) {      
-      printf("render colour\n");
+    void colour::render_spans(image *target, shape *shape, render_span *spans, int count) {
+      debug_printf("render colour\n");
       while(count--) {
-        printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+        debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
         uint32_t *dst = target->ptr(spans->x, spans->y);
         span_argb8(dst, spans->w, col);
@@ -502,20 +523,20 @@ namespace picovector {
     }
 
     void blur::render_spans(image *target, shape *shape, render_span *spans, int count) {
-      // printf("render colour\n");
+      // debug_printf("render colour\n");
       // while(count--) {
-      //   printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+      //   debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
       //   uint32_t *dst = target->ptr(spans->x, spans->y);
       //   for(int i = 0; i < spans->w; i++) {
-      //     uint8_t *pd = (uint8_t *)dst;  
-    
+      //     uint8_t *pd = (uint8_t *)dst;
+
       //     int r = pd[1];
-        
+
       //     int g = pd[2] + amount;
 
       //     int b = pd[3] + amount;
-        
+
       //     dst++;
       //   }
       //   spans++;
@@ -524,16 +545,16 @@ namespace picovector {
 
     void brightness::render_spans(image *target, shape *shape, render_span *spans, int count) {
       while(count--) {
-        printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+        debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
         uint32_t *dst = target->ptr(spans->x, spans->y);
         for(int i = 0; i < spans->w; i++) {
-          uint8_t *pd = (uint8_t *)dst;  
-    
+          uint8_t *pd = (uint8_t *)dst;
+
           int r = pd[1] + amount;
           r = max(0, min(r, 255));
           pd[1] = r;
-        
+
           int g = pd[2] + amount;
           g = max(0, min(g, 255));
           pd[2] = g;
@@ -541,7 +562,7 @@ namespace picovector {
           int b = pd[3] + amount;
           b = max(0, min(b, 255));
           pd[3] = b;
-        
+
           dst++;
         }
         spans++;
@@ -550,15 +571,15 @@ namespace picovector {
 
     // void xor::render_spans(image *target, shape *shape, render_span *spans, int count) {
     //   while(count--) {
-    //     printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+    //     debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
     //     uint32_t *dst = target->ptr(spans->x, spans->y);
     //     for(int i = 0; i < spans->w; i++) {
-    //       uint8_t *pd = (uint8_t *)dst;  
+    //       uint8_t *pd = (uint8_t *)dst;
     //       pd[1] = ^pd[1];
     //       pd[2] = ^pd[2];
     //       pd[3] = ^pd[3];
-        
+
     //       dst++;
     //     }
     //     spans++;
