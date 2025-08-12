@@ -56,17 +56,21 @@
 #include "input.h"
 #include "mpthreadport.h"
 
+#ifndef NO_QSTR
 #define SOKOL_ARGS_IMPL
 #define SOKOL_TIME_IMPL
+#define SOKOL_GL_IMPL
 
 #include "sokol_app.h"
 #include "sokol_args.h"
 #include "sokol_gfx.h"
+//#include "sokol_gl.h"
 #include "sokol_log.h"
 #include "sokol_glue.h"
 #include "sokol_time.h"
 #include "cimgui.h"
 #include "sokol_imgui.h"
+#endif
 
 
 
@@ -861,6 +865,11 @@ MP_NOINLINE int main_(int argc, char **argv) {
 
 static struct {
     sg_pass_action pass_action;
+    sg_image color_img;
+    struct {
+        sg_sampler nearest_clamp;
+        sg_sampler linear_clamp;
+    } smp;
 } state;
 
 mp_obj_t update_callback_obj = mp_const_none;
@@ -875,6 +884,8 @@ mp_obj_t _mp_load_global(qstr qst) {
     return elem->value;
 }
 
+extern uint32_t buffer[320 * 240];
+
 static void sokol_init(void) {
     stm_setup(); // sokol_time.h
     sg_setup(&(sg_desc){
@@ -882,6 +893,41 @@ static void sokol_init(void) {
         .logger.func = slog_func,
     });
     simgui_setup(&(simgui_desc_t){ 0 });
+    /*sgl_setup(&(sgl_desc_t){
+        .logger.func = slog_func,
+    });*/
+
+    printf("sg_make_image...\n");
+
+    for(int i = 0; i < sizeof(buffer) / 4; i++) {
+        buffer[i] = 0xFF0000FF;
+    }
+    state.color_img = sg_make_image(&(sg_image_desc){
+        .width = 320,
+        .height = 240,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(buffer)
+    });
+
+    for(int i = 0; i < sizeof(buffer) / 4; i++) {
+        buffer[i] = 0xFF00FF00;
+    }
+
+    printf("sg_make_sampler...\n");
+    state.smp.nearest_clamp = sg_make_sampler(&(sg_sampler_desc){
+        .min_filter = SG_FILTER_NEAREST,
+        .mag_filter = SG_FILTER_NEAREST,
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    });
+
+    printf("sg_make_sampler...\n");
+    state.smp.linear_clamp = sg_make_sampler(&(sg_sampler_desc){
+        .min_filter = SG_FILTER_LINEAR,
+        .mag_filter = SG_FILTER_LINEAR,
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    });
 
     // initial clear color
     state.pass_action = (sg_pass_action) {
@@ -1024,6 +1070,13 @@ static int repl_next() {
     return 0;
 }
 
+// from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
+// helper function to construct ImTextureRef from ImTextureID
+// FIXME: remove when Dear Bindings offers such helper
+static ImTextureRef imtexref(ImTextureID tex_id) {
+    return (ImTextureRef){ ._TexID = tex_id };
+}
+
 static void sokol_frame(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
@@ -1032,15 +1085,52 @@ static void sokol_frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
-    mp_call_function_1(update_callback_obj, mp_obj_new_int_from_ull(stm_ms(stm_now())));
+    //sgl_defaults();
+    sg_update_image(state.color_img, &(sg_image_data){
+        .subimage[0][0] = SG_RANGE(buffer)
+    });
+
+    /*sgl_enable_texture();
+    sgl_matrix_mode_projection();
+    const float aspect = sapp_heightf() / sapp_widthf();
+    sgl_ortho(-1.0f, +1.0f, aspect, -aspect, -1.0f, +1.0f);
+    sgl_matrix_mode_modelview();*/
+
+    //sg_color color = { 0.0f, 0.0f, 0.0f };
+
+    mp_obj_t result = mp_call_function_1(update_callback_obj, mp_obj_new_int_from_ull(stm_ms(stm_now())));
+
+    if(mp_obj_is_exact_type(result, &mp_type_tuple)) {
+        mp_obj_tuple_t *tuple =(mp_obj_tuple_t *)MP_OBJ_TO_PTR(result);
+        state.pass_action.colors[0].clear_value.r = mp_obj_get_float(tuple->items[0]);
+        state.pass_action.colors[0].clear_value.g = mp_obj_get_float(tuple->items[1]);
+        state.pass_action.colors[0].clear_value.b = mp_obj_get_float(tuple->items[2]);
+    }
 
     /*=== UI CODE STARTS HERE ===*/
     igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once);
     igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
     igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
-    igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    //igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+    //igColorEdit3("Color", &color.r, ImGuiColorEditFlags_None);
     igEnd();
+
+    igSetNextWindowPos((ImVec2){20, 20}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){640, 480}, ImGuiCond_Once);
+    if (igBegin("PicoVector Output", 0, 0)) {
+        const ImVec2 size = { 640, 480 };
+        const ImVec2 uv0 = { 0, 0 };
+        const ImVec2 uv1 = { 1, 1 };
+        sg_image img = state.color_img;
+        ImTextureID texid0 = simgui_imtextureid_with_sampler(img, state.smp.nearest_clamp);
+        igImageEx(imtexref(texid0), size, uv0, uv1);
+    }
+    igEnd();
+
+  
     /*=== UI CODE ENDS HERE ===*/
+
+    //printf("%f\n", color.r);
 
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();

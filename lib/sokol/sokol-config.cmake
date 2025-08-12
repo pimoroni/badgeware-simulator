@@ -22,6 +22,7 @@ if (NOT DEFINED SOKOL_ONCE)
         ${CMAKE_CURRENT_LIST_DIR}/sokol_args.h
         ${CMAKE_CURRENT_LIST_DIR}/sokol_imgui.h
         ${CMAKE_CURRENT_LIST_DIR}/sokol_glue.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/sokol_gl.h
     )
     
     add_library(sokol STATIC
@@ -44,5 +45,8 @@ if (NOT DEFINED SOKOL_ONCE)
         endif()
     endif()
     target_link_libraries(sokol PUBLIC cimgui)
-    target_include_directories(sokol INTERFACE ${CMAKE_CURRENT_LIST_DIR})
+    target_include_directories(sokol INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/util
+    )
 endif()

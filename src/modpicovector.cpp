@@ -27,6 +27,8 @@ typedef struct _modpicovector_obj_t {
 
 //std::vector<shape> shapelist(25);
 
+uint32_t buffer[320 * 240] = {0};
+
 mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
     enum {
         ARG_fb
@@ -42,7 +44,8 @@ mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 
     modpicovector_obj_t *self = mp_obj_malloc_with_finaliser(modpicovector_obj_t, type);
 
-    self->fb = new image((uint32_t *)(bufinfo.buf), 320, 240);
+    //self->fb = new image((uint32_t *)(bufinfo.buf), 320, 240);
+    self->fb = new image(buffer, 320, 240);
     self->j = 0;
 
     return MP_OBJ_FROM_PTR(self);

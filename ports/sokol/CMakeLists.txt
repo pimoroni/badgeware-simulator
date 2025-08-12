@@ -158,13 +158,13 @@ target_include_directories(${MICROPY_TARGET} PRIVATE
     "${CMAKE_BINARY_DIR}"
 )
 
+# Need these to make the QSTR parser happy
 list(APPEND MICROPY_CPP_FLAGS
     "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
     "-I${MICROPY_DIR}"
     "-I${MICROPY_VARIANT_DIR}"
     "-I${MICROPY_PORT_DIR}"
     "-I${CMAKE_BINARY_DIR}"
-    "-I${SOKOL_INCLUDE_DIR}"
     "-I${CIMGUI_INCLUDE_DIR}"
     "-DFFCONF_H=\"${MICROPY_DIR}/lib/oofatfs/ffconf.h\""
 )
@@ -172,6 +172,7 @@ list(APPEND MICROPY_CPP_FLAGS
 target_compile_options(${MICROPY_TARGET} PRIVATE
     -Wall
     -Werror
+    -Wno-missing-braces
     -g  # always include debug information in the ELF
 )
 
@@ -188,6 +189,7 @@ target_compile_options(${MICROPY_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 >)
 
 target_compile_definitions(${MICROPY_TARGET} PRIVATE
+    SOKOL_METAL
     UNIX
     MICROPY_PORT_DIR=${MICROPY_PORT_DIR}
     MICROPY_PY_TERMIOS=1
@@ -205,7 +207,6 @@ set_source_files_properties(
     PROPERTIES
     COMPILE_OPTIONS "-O2"
 )
-
 
 set(MICROPY_CPP_FLAGS_EXTRA ${PICO_COMMON_LANG_FLAGS})
 separate_arguments(MICROPY_CPP_FLAGS_EXTRA)
