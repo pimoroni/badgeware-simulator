@@ -1,6 +1,10 @@
 #include "picovector.hpp"
 
 
+/*
+
+// This will completely break imgui or sokol or something
+//because these will be called before the MicroPython heap is initialised.
 
 void * operator new(std::size_t n)// throw(std::bad_alloc)
 {
@@ -15,6 +19,8 @@ void operator delete(void * p)// throw()
     //free(p);
     m_tracked_free(p);
 }
+
+*/
 
 using namespace std;
 

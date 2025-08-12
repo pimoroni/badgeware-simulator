@@ -117,7 +117,7 @@ int main() {
     // corrupted and the device crashes when you attempt to write to those
     // pixels
         
-    image fb(fb_data, 240, 240);
+    image fb(fb_data, 320, 240);
 
     std::vector<shape> shapes(25);
 
@@ -177,7 +177,7 @@ int main() {
       shapes[9] = regular_polygon(0.0f, 0.0f, 6, 1.0f);
       shapes[9].style = &white;
       shapes[9].stroke(-stroke);
-      
+
       shapes[10] = star(0.0f, 0.0f, 9.0f, 1.0f, 0.5f);      
       shapes[10].style = &white;
       shapes[11] = star(0.0f, 0.0f, 9.0f, 1.0f, 0.5f);      
@@ -187,7 +187,7 @@ int main() {
       shapes[12] = line(-0.5f, -0.5f, 0.5f, 0.5f);      
       shapes[12].style = &white;
       shapes[12].stroke(-stroke);
-      
+
       shapes[13] = squircle(0.0f, 0.0f, 0.75f, 4.0f);
       shapes[13].style = &white;
       shapes[14] = squircle(0.0f, 0.0f, 0.75f, 4.0f);
