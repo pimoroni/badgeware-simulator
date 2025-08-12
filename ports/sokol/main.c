@@ -1077,6 +1077,12 @@ static ImTextureRef imtexref(ImTextureID tex_id) {
     return (ImTextureRef){ ._TexID = tex_id };
 }
 
+static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
+{
+    ImVec2 *aspect = (ImVec2 *)data->UserData;
+    data->DesiredSize.x = (data->DesiredSize.y / aspect->y) * aspect->x;
+}
+
 static void sokol_frame(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
@@ -1117,8 +1123,11 @@ static void sokol_frame(void) {
 
     igSetNextWindowPos((ImVec2){20, 20}, ImGuiCond_Once);
     igSetNextWindowSize((ImVec2){640, 480}, ImGuiCond_Once);
-    if (igBegin("PicoVector Output", 0, 0)) {
-        const ImVec2 size = { 640, 480 };
+    igSetNextWindowSizeConstraints((ImVec2){320, 240}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
+
+    igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
+    if (igBegin("PicoVector Output", 0, ImGuiWindowFlags_NoScrollbar)) {
+        const ImVec2 size = igGetWindowSize();
         const ImVec2 uv0 = { 0, 0 };
         const ImVec2 uv1 = { 1, 1 };
         sg_image img = state.color_img;
@@ -1126,6 +1135,7 @@ static void sokol_frame(void) {
         igImageEx(imtexref(texid0), size, uv0, uv1);
     }
     igEnd();
+    igPopStyleVar(); // ImGuiStyleVar_WindowPadding
 
   
     /*=== UI CODE ENDS HERE ===*/
