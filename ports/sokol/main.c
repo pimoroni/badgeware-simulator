@@ -143,26 +143,37 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
     mp_hal_set_interrupt_char(CHAR_CTRL_C);
 
     nlr_buf_t nlr;
+    fprintf(stdout, "nlr_push()\n");
     if (nlr_push(&nlr) == 0) {
         // create lexer based on source kind
+        fprintf(stdout, "create lexer...\n");
         mp_lexer_t *lex;
         if (source_kind == LEX_SRC_STR) {
+            fprintf(stdout, "LEX_SRC_STR...\n");
             const char *line = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, line, strlen(line), false);
         } else if (source_kind == LEX_SRC_VSTR) {
+            fprintf(stdout, "LEX_SRC_VSTR...\n");
             const vstr_t *vstr = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, vstr->buf, vstr->len, false);
         } else if (source_kind == LEX_SRC_FILENAME) {
+            fprintf(stdout, "LEX_SRC_FILENAME...\n");
             const char *filename = (const char *)source;
-            lex = mp_lexer_new_from_file(qstr_from_str(filename));
+            fprintf(stdout, "qstr_from_str(%s)...\n", filename);
+            qstr qfilename = qstr_from_str(filename);
+            fprintf(stdout, "mp_lexer_new_from_file(qfilename)...\n");
+            lex = mp_lexer_new_from_file(qfilename);
         } else { // LEX_SRC_STDIN
+            fprintf(stdout, "LEX_SRC_STDIN...\n");
             lex = mp_lexer_new_from_fd(MP_QSTR__lt_stdin_gt_, 0, false);
         }
+        fprintf(stdout, "lexer ok...\n");
 
         qstr source_name = lex->source_name;
 
         #if MICROPY_PY___FILE__
         if (input_kind == MP_PARSE_FILE_INPUT) {
+            fprintf(stdout, "set __file__..\n");
             mp_store_global(MP_QSTR___file__, MP_OBJ_NEW_QSTR(source_name));
         }
         #endif
@@ -178,18 +189,18 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         }
         #endif
 
-        //printf("mp_compile\n");
+        fprintf(stdout, "mp_compile\n");
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, is_repl);
 
         if (!compile_only) {
             // execute it
-            //printf("mp_call_function_0\n");
+            fprintf(stdout, "mp_call_function_0\n");
             mp_call_function_0(module_fun);
-            //printf("hello?\n");
+            fprintf(stdout, "hello?\n");
         }
 
         mp_hal_set_interrupt_char(-1);
-        //printf("mp_handle_pending\n");
+        fprintf(stdout, "mp_handle_pending\n");
         mp_handle_pending(true);
         nlr_pop();
         return 0;
@@ -244,7 +255,11 @@ static int run_file(const char* path) {
     
     fprintf(stdout, "do_file\n");
     gc_collect();
+
+    micropython_gc_enabled = true;
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
+    micropython_gc_enabled = false;
+
     fprintf(stdout, "done?\n");
 
     fprintf(stdout, "fetching update callback...\n");
@@ -258,6 +273,9 @@ static int run_file(const char* path) {
     return ret;
 }
 
+volatile bool hot_reload = false;
+char *hot_reload_code;
+
 static void watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
                            const char* filepath, const char* oldfilepath, void* user)
 {
@@ -270,7 +288,8 @@ static void watch_callback(dmon_watch_id watch_id, dmon_action action, const cha
             memcpy(path + strlen(rootdir), filepath, strlen(filepath));
             path[strlen(rootdir) + strlen(filepath)] = '\0';
             if(strcmp(path, watch_path) == 0) {
-                run_file(path);
+                //run_file(path);
+                hot_reload = true;
             } else {
                 fprintf(stdout, "Ignored change in %s\n", path);
             }
@@ -410,25 +429,25 @@ static void sokol_init(void) {
 
     const char *path = sargs_value("code");
     fprintf(stdout, "Running code: %s\n", path);
-    char *abspath = realpath(path, NULL);
+    hot_reload_code = realpath(path, NULL);
 
-    if (abspath == NULL) {
-        mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", abspath, errno, strerror(errno));
+    if (hot_reload_code == NULL) {
+        mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
         // TODO: Exit
     }
 
-    char *p = strrchr(abspath, '/');
+    char *p = strrchr(hot_reload_code, '/');
 
     fprintf(stdout, "mp_obj_list_store....?\n");
-    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(abspath, p - abspath));
+    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(hot_reload_code, p - hot_reload_code));
     
-    char *dname = dirname(abspath);
+    char *dname = dirname(hot_reload_code);
     int ret = -1;
     //while (ret != 255) {
 
         fprintf(stdout, "Watching directory %s\n", dname);
-        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)abspath); 
-        run_file(abspath);
+        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
+        hot_reload = true;
     //}
     (void)ret;
 
@@ -554,6 +573,11 @@ static void sokol_frame(void) {
         .delta_time = sapp_frame_duration(),
         .dpi_scale = sapp_dpi_scale(),
     });
+
+    if(hot_reload) {
+        run_file(hot_reload_code);
+        hot_reload = false;
+    }
 
     //sgl_defaults();
     sg_update_image(state.color_img, &(sg_image_data){
