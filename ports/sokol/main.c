@@ -56,6 +56,9 @@
 #include "input.h"
 #include "mpthreadport.h"
 
+// posix dirname/basename?
+#include <libgen.h>
+
 #ifndef NO_QSTR
 #define SOKOL_ARGS_IMPL
 #define SOKOL_TIME_IMPL
@@ -70,6 +73,9 @@
 #include "sokol_time.h"
 #include "cimgui.h"
 #include "sokol_imgui.h"
+
+#define DMON_IMPL
+#include "dmon/dmon.h"
 #endif
 
 
@@ -232,7 +238,50 @@ void smemtrack_free(void* ptr, void* user_data) {
     free(ptr);
 }
 
+static int run_file(const char* path) {
+    fprintf(stdout, "Running....%s?\n", path);
+    // Set base dir of the script as first entry in sys.path.
+    
+    fprintf(stdout, "do_file\n");
+    gc_collect();
+    int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
+    fprintf(stdout, "done?\n");
+
+    fprintf(stdout, "fetching update callback...\n");
+    update_callback_obj = _mp_load_global(qstr_from_str("update"));
+    if(update_callback_obj == mp_const_none) {
+        //TODO switch out this URL for the final one
+        fprintf(stdout, "WARNING: a function named 'update(ticks)' is not defined\n");
+        //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
+    }
+
+    return ret;
+}
+
+static void watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
+                           const char* filepath, const char* oldfilepath, void* user)
+{
+    // receive change events. type of event is stored in 'action' variable
+    char *watch_path = (char*)user;
+    char path[PATH_MAX] = {};
+    switch(action) {
+        case DMON_ACTION_MODIFY:
+            memcpy(path, rootdir, strlen(rootdir));
+            memcpy(path + strlen(rootdir), filepath, strlen(filepath));
+            path[strlen(rootdir) + strlen(filepath)] = '\0';
+            if(strcmp(path, watch_path) == 0) {
+                run_file(path);
+            } else {
+                fprintf(stdout, "Ignored change in %s\n", path);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 static void sokol_init(void) {
+    dmon_init();
     stm_setup(); // sokol_time.h
     sg_setup(&(sg_desc){
         .environment = sglue_environment(),
@@ -360,40 +409,32 @@ static void sokol_init(void) {
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
 
     const char *path = sargs_value("code");
-    printf("Running code: %s\n", path);
-    char *basedir = realpath(path, NULL);
+    fprintf(stdout, "Running code: %s\n", path);
+    char *abspath = realpath(path, NULL);
 
-    if (basedir == NULL) {
-        mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", basedir, errno, strerror(errno));
+    if (abspath == NULL) {
+        mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", abspath, errno, strerror(errno));
         // TODO: Exit
     }
 
+    char *p = strrchr(abspath, '/');
 
-    char *p = strrchr(basedir, '/');
-
-    printf("mp_obj_list_store....?\n");
-    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(basedir, p - basedir));
+    fprintf(stdout, "mp_obj_list_store....?\n");
+    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(abspath, p - abspath));
     
-    printf("free(basedir)\n");
-    free(basedir);
-
+    char *dname = dirname(abspath);
     int ret = -1;
     //while (ret != 255) {
-        printf("Running....?\n");
-        // Set base dir of the script as first entry in sys.path.
-        
-        printf("do_file\n");
-        ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-        printf("done?\n");
 
-        update_callback_obj = _mp_load_global(qstr_from_str("update"));
-        if(update_callback_obj == mp_const_none) {
-            //TODO switch out this URL for the final one
-            printf("WARNING: a function named 'update(ticks)' is not defined\n");
-            //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
-        }
+        fprintf(stdout, "Watching directory %s\n", dname);
+        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)abspath); 
+        run_file(abspath);
     //}
     (void)ret;
+
+    fprintf(stdout, "free(abspath)\n");
+    //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
+    free(dname);
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52

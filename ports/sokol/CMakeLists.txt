@@ -156,6 +156,7 @@ target_include_directories(${MICROPY_TARGET} PRIVATE
     ${MICROPY_VARIANT_DIR}
     "${MICROPY_PORT_DIR}"
     "${CMAKE_BINARY_DIR}"
+    "${LIB_DIR}"
 )
 
 # Need these to make the QSTR parser happy
