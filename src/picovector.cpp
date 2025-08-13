@@ -1,26 +1,35 @@
 #include "picovector.hpp"
 
 
-/*
 
 // This will completely break imgui or sokol or something
 //because these will be called before the MicroPython heap is initialised.
 
+bool micropython_gc_enabled = false;
+
 void * operator new(std::size_t n)// throw(std::bad_alloc)
 {
-    std::cout << "new: " << n << std::endl;
     //return malloc(n);
-    return m_tracked_calloc(n, 1);
+    if(micropython_gc_enabled) {
+      std::cout << "new: m_tracked_calloc(" << n << ")" << std::endl;
+      return m_tracked_calloc(n, 1);
+    } else {
+      return malloc(n);
+    }
 }
 
 void operator delete(void * p)// throw()
 {
-    std::cout << "free: " << reinterpret_cast<void*>(p) << std::dec << std::endl;
+    //std::cout << "free: " << reinterpret_cast<void*>(p) << std::dec << std::endl;
     //free(p);
-    m_tracked_free(p);
+    if(micropython_gc_enabled) {
+      std::cout << "free: m_tracked_free(" << reinterpret_cast<void*>(p) << std::dec << ")" << std::endl;
+      m_tracked_free(p);
+    } else {
+      free(p);
+    }
 }
 
-*/
 
 using namespace std;
 

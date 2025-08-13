@@ -79,6 +79,8 @@
 static bool compile_only = false;
 static uint emit_opt = MP_EMIT_OPT_NONE;
 
+extern bool micropython_gc_enabled;
+
 #if MICROPY_ENABLE_GC
 // Heap size of GC heap (if enabled)
 // Make it larger on a 64 bit machine, because pointers are larger.
@@ -98,12 +100,7 @@ long heap_size = 1024 * 1024 * (sizeof(mp_uint_t) / 4);
 #error "The unix port requires MICROPY_PY_SYS_ARGV=1"
 #endif
 
-static void stderr_print_strn(void *env, const char *str, size_t len) {
-    (void)env;
-    ssize_t ret;
-    MP_HAL_RETRY_SYSCALL(ret, write(STDERR_FILENO, str, len), {});
-    mp_os_dupterm_tx_strn(str, len);
-}
+static void stderr_print_strn(void *env, const char *str, size_t len);
 
 const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
 
@@ -175,18 +172,18 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         }
         #endif
 
-        printf("mp_compile\n");
+        //printf("mp_compile\n");
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, is_repl);
 
         if (!compile_only) {
             // execute it
-            printf("mp_call_function_0\n");
+            //printf("mp_call_function_0\n");
             mp_call_function_0(module_fun);
-            printf("hello?\n");
+            //printf("hello?\n");
         }
 
         mp_hal_set_interrupt_char(-1);
-        printf("mp_handle_pending\n");
+        //printf("mp_handle_pending\n");
         mp_handle_pending(true);
         nlr_pop();
         return 0;
@@ -199,669 +196,11 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
     }
 }
 
-#if MICROPY_USE_READLINE == 1
-#include "shared/readline/readline.h"
-#else
-static char *strjoin(const char *s1, int sep_char, const char *s2) {
-    int l1 = strlen(s1);
-    int l2 = strlen(s2);
-    char *s = malloc(l1 + l2 + 2);
-    memcpy(s, s1, l1);
-    if (sep_char != 0) {
-        s[l1] = sep_char;
-        l1 += 1;
-    }
-    memcpy(s + l1, s2, l2);
-    s[l1 + l2] = 0;
-    return s;
-}
-#endif
-
-static int do_repl(void) {
-    mp_hal_stdout_tx_str(MICROPY_BANNER_NAME_AND_VERSION);
-    mp_hal_stdout_tx_str("; " MICROPY_BANNER_MACHINE);
-    mp_hal_stdout_tx_str("\nUse Ctrl-D to exit, Ctrl-E for paste mode\n");
-
-    #if MICROPY_USE_READLINE == 1
-
-    // use MicroPython supplied readline
-
-    vstr_t line;
-    vstr_init(&line, 16);
-    for (;;) {
-        mp_hal_stdio_mode_raw();
-
-    input_restart:
-        vstr_reset(&line);
-        int ret = readline(&line, mp_repl_get_ps1());
-        mp_parse_input_kind_t parse_input_kind = MP_PARSE_SINGLE_INPUT;
-
-        if (ret == CHAR_CTRL_C) {
-            // cancel input
-            mp_hal_stdout_tx_str("\r\n");
-            goto input_restart;
-        } else if (ret == CHAR_CTRL_D) {
-            // EOF
-            printf("\n");
-            mp_hal_stdio_mode_orig();
-            vstr_clear(&line);
-            return 0;
-        } else if (ret == CHAR_CTRL_E) {
-            // paste mode
-            mp_hal_stdout_tx_str("\npaste mode; Ctrl-C to cancel, Ctrl-D to finish\n=== ");
-            vstr_reset(&line);
-            for (;;) {
-                char c = mp_hal_stdin_rx_chr();
-                if (c == CHAR_CTRL_C) {
-                    // cancel everything
-                    mp_hal_stdout_tx_str("\n");
-                    goto input_restart;
-                } else if (c == CHAR_CTRL_D) {
-                    // end of input
-                    mp_hal_stdout_tx_str("\n");
-                    break;
-                } else {
-                    // add char to buffer and echo
-                    vstr_add_byte(&line, c);
-                    if (c == '\r') {
-                        mp_hal_stdout_tx_str("\n=== ");
-                    } else {
-                        mp_hal_stdout_tx_strn(&c, 1);
-                    }
-                }
-            }
-            parse_input_kind = MP_PARSE_FILE_INPUT;
-        } else if (line.len == 0) {
-            if (ret != 0) {
-                printf("\n");
-            }
-            goto input_restart;
-        } else {
-            // got a line with non-zero length, see if it needs continuing
-            while (mp_repl_continue_with_input(vstr_null_terminated_str(&line))) {
-                vstr_add_byte(&line, '\n');
-                ret = readline(&line, mp_repl_get_ps2());
-                if (ret == CHAR_CTRL_C) {
-                    // cancel everything
-                    printf("\n");
-                    goto input_restart;
-                } else if (ret == CHAR_CTRL_D) {
-                    // stop entering compound statement
-                    break;
-                }
-            }
-        }
-
-        mp_hal_stdio_mode_orig();
-
-        ret = execute_from_lexer(LEX_SRC_VSTR, &line, parse_input_kind, true);
-        if (ret & FORCED_EXIT) {
-            return ret;
-        }
-    }
-
-    #else
-
-    // use simple readline
-
-    for (;;) {
-        char *line = prompt((char *)mp_repl_get_ps1());
-        if (line == NULL) {
-            // EOF
-            return 0;
-        }
-        while (mp_repl_continue_with_input(line)) {
-            char *line2 = prompt((char *)mp_repl_get_ps2());
-            if (line2 == NULL) {
-                break;
-            }
-            char *line3 = strjoin(line, '\n', line2);
-            free(line);
-            free(line2);
-            line = line3;
-        }
-
-        int ret = execute_from_lexer(LEX_SRC_STR, line, MP_PARSE_SINGLE_INPUT, true);
-        free(line);
-        if (ret & FORCED_EXIT) {
-            return ret;
-        }
-    }
-
-    #endif
-}
-
-static int do_file(const char *file) {
-    return execute_from_lexer(LEX_SRC_FILENAME, file, MP_PARSE_FILE_INPUT, false);
-}
-
-static int do_str(const char *str) {
-    return execute_from_lexer(LEX_SRC_STR, str, MP_PARSE_FILE_INPUT, false);
-}
-
-static void print_help(char **argv) {
-    printf(
-        "usage: %s [<opts>] [-X <implopt>] [-c <command> | -m <module> | <filename>]\n"
-        "Options:\n"
-        "--version : show version information\n"
-        "-h : print this help message\n"
-        "-i : enable inspection via REPL after running command/module/file\n"
-        #if MICROPY_DEBUG_PRINTERS
-        "-v : verbose (trace various operations); can be multiple\n"
-        #endif
-        "-O[N] : apply bytecode optimizations of level N\n"
-        "\n"
-        "Implementation specific options (-X):\n", argv[0]
-        );
-    int impl_opts_cnt = 0;
-    printf(
-        "  compile-only                 -- parse and compile only\n"
-        #if MICROPY_EMIT_NATIVE
-        "  emit={bytecode,native,viper} -- set the default code emitter\n"
-        #else
-        "  emit=bytecode                -- set the default code emitter\n"
-        #endif
-        );
-    impl_opts_cnt++;
-    #if MICROPY_ENABLE_GC
-    printf(
-        "  heapsize=<n>[w][K|M] -- set the heap size for the GC (default %ld)\n"
-        , heap_size);
-    impl_opts_cnt++;
-    #endif
-    #if defined(__APPLE__)
-    printf("  realtime -- set thread priority to realtime\n");
-    impl_opts_cnt++;
-    #endif
-
-    if (impl_opts_cnt == 0) {
-        printf("  (none)\n");
-    }
-}
-
-static int invalid_args(void) {
-    fprintf(stderr, "Invalid command line arguments. Use -h option for help.\n");
-    return 1;
-}
-
-// Process options which set interpreter init options
-static void pre_process_options(int argc, char **argv) {
-    for (int a = 1; a < argc; a++) {
-        if (argv[a][0] == '-') {
-            if (strcmp(argv[a], "-c") == 0 || strcmp(argv[a], "-m") == 0) {
-                break; // Everything after this is a command/module and arguments for it
-            }
-            if (strcmp(argv[a], "-h") == 0) {
-                print_help(argv);
-                exit(0);
-            }
-            if (strcmp(argv[a], "--version") == 0) {
-                printf(MICROPY_BANNER_NAME_AND_VERSION "; " MICROPY_BANNER_MACHINE "\n");
-                exit(0);
-            }
-            if (strcmp(argv[a], "-X") == 0) {
-                if (a + 1 >= argc) {
-                    exit(invalid_args());
-                }
-                if (0) {
-                } else if (strcmp(argv[a + 1], "compile-only") == 0) {
-                    compile_only = true;
-                } else if (strcmp(argv[a + 1], "emit=bytecode") == 0) {
-                    emit_opt = MP_EMIT_OPT_BYTECODE;
-                #if MICROPY_EMIT_NATIVE
-                } else if (strcmp(argv[a + 1], "emit=native") == 0) {
-                    emit_opt = MP_EMIT_OPT_NATIVE_PYTHON;
-                } else if (strcmp(argv[a + 1], "emit=viper") == 0) {
-                    emit_opt = MP_EMIT_OPT_VIPER;
-                #endif
-                #if MICROPY_ENABLE_GC
-                } else if (strncmp(argv[a + 1], "heapsize=", sizeof("heapsize=") - 1) == 0) {
-                    char *end;
-                    heap_size = strtol(argv[a + 1] + sizeof("heapsize=") - 1, &end, 0);
-                    // Don't bring unneeded libc dependencies like tolower()
-                    // If there's 'w' immediately after number, adjust it for
-                    // target word size. Note that it should be *before* size
-                    // suffix like K or M, to avoid confusion with kilowords,
-                    // etc. the size is still in bytes, just can be adjusted
-                    // for word size (taking 32bit as baseline).
-                    bool word_adjust = false;
-                    if ((*end | 0x20) == 'w') {
-                        word_adjust = true;
-                        end++;
-                    }
-                    if ((*end | 0x20) == 'k') {
-                        heap_size *= 1024;
-                    } else if ((*end | 0x20) == 'm') {
-                        heap_size *= 1024 * 1024;
-                    } else {
-                        // Compensate for ++ below
-                        --end;
-                    }
-                    if (*++end != 0) {
-                        goto invalid_arg;
-                    }
-                    if (word_adjust) {
-                        heap_size = heap_size * MP_BYTES_PER_OBJ_WORD / 4;
-                    }
-                    // If requested size too small, we'll crash anyway
-                    if (heap_size < 700) {
-                        goto invalid_arg;
-                    }
-                #endif
-                #if defined(__APPLE__)
-                } else if (strcmp(argv[a + 1], "realtime") == 0) {
-                    #if MICROPY_PY_THREAD
-                    mp_thread_is_realtime_enabled = true;
-                    #endif
-                    // main thread was already initialized before the option
-                    // was parsed, so we have to enable realtime here.
-                    mp_thread_set_realtime();
-                #endif
-                } else {
-                invalid_arg:
-                    exit(invalid_args());
-                }
-                a++;
-            }
-        } else {
-            break; // Not an option but a file
-        }
-    }
-}
-
-static void set_sys_argv(char *argv[], int argc, int start_arg) {
-    for (int i = start_arg; i < argc; i++) {
-        mp_obj_list_append(mp_sys_argv, MP_OBJ_NEW_QSTR(qstr_from_str(argv[i])));
-    }
-}
-
-#if MICROPY_PY_SYS_EXECUTABLE
-extern mp_obj_str_t mp_sys_executable_obj;
-static char *executable_path = NULL;
-
-static void sys_set_excecutable(char *argv0) {
-    if (executable_path == NULL) {
-        executable_path = realpath(argv0, NULL);
-    }
-    if (executable_path != NULL) {
-        mp_obj_str_set_data(&mp_sys_executable_obj, (byte *)executable_path, strlen(executable_path));
-    }
-}
-#endif
-
 #ifdef _WIN32
 #define PATHLIST_SEP_CHAR ';'
 #else
 #define PATHLIST_SEP_CHAR ':'
 #endif
-
-MP_NOINLINE int main_(int argc, char **argv);
-
-int real_main(int argc, char **argv) {
-    // Define a reasonable stack limit to detect stack overflow.
-    mp_uint_t stack_size = 40000 * (sizeof(void *) / 4);
-    #if defined(__arm__) && !defined(__thumb2__)
-    // ARM (non-Thumb) architectures require more stack.
-    stack_size *= 2;
-    #endif
-
-    // We should capture stack top ASAP after start, and it should be
-    // captured guaranteedly before any other stack variables are allocated.
-    // For this, actual main (renamed main_) should not be inlined into
-    // this function. main_() itself may have other functions inlined (with
-    // their own stack variables), that's why we need this main/main_ split.
-
-    //fenster_init();
-    int ret = 0;
-    while (true) {
-        char** _argv = malloc((argc + 1) * sizeof *_argv);
-        for(int i = 0; i < argc; ++i)
-        {
-            size_t length = strlen(argv[i])+1;
-            _argv[i] = malloc(length);
-            memcpy(_argv[i], argv[i], length);
-        }
-        _argv[argc] = NULL;
-        printf("Run...\n");
-
-        #if MICROPY_PY_THREAD
-        mp_thread_init();
-        #endif
-        mp_cstack_init_with_sp_here(stack_size);
-
-        ret = main_(argc, _argv);
-        printf("Exit: %d\n", ret);
-        if(ret != 255) break;
-    }
-    //fenster_deinit();
-
-    return ret;
-}
-
-MP_NOINLINE int main_(int argc, char **argv) {
-    #ifdef SIGPIPE
-    // Do not raise SIGPIPE, instead return EPIPE. Otherwise, e.g. writing
-    // to peer-closed socket will lead to sudden termination of MicroPython
-    // process. SIGPIPE is particularly nasty, because unix shell doesn't
-    // print anything for it, so the above looks like completely sudden and
-    // silent termination for unknown reason. Ignoring SIGPIPE is also what
-    // CPython does. Note that this may lead to problems using MicroPython
-    // scripts as pipe filters, but again, that's what CPython does. So,
-    // scripts which want to follow unix shell pipe semantics (where SIGPIPE
-    // means "pipe was requested to terminate, it's not an error"), should
-    // catch EPIPE themselves.
-    signal(SIGPIPE, SIG_IGN);
-    #endif
-
-    printf("pre_process_options\n");
-    pre_process_options(argc, argv);
-
-    #if MICROPY_ENABLE_GC
-    #if !MICROPY_GC_SPLIT_HEAP
-    char *heap = malloc(heap_size);
-    gc_init(heap, heap + heap_size);
-    #else
-    assert(MICROPY_GC_SPLIT_HEAP_N_HEAPS > 0);
-    char *heaps[MICROPY_GC_SPLIT_HEAP_N_HEAPS];
-    long multi_heap_size = heap_size / MICROPY_GC_SPLIT_HEAP_N_HEAPS;
-    for (size_t i = 0; i < MICROPY_GC_SPLIT_HEAP_N_HEAPS; i++) {
-        heaps[i] = malloc(multi_heap_size);
-        if (i == 0) {
-            gc_init(heaps[i], heaps[i] + multi_heap_size);
-        } else {
-            gc_add(heaps[i], heaps[i] + multi_heap_size);
-        }
-    }
-    #endif
-    #endif
-
-    #if MICROPY_ENABLE_PYSTACK
-    static mp_obj_t pystack[1024];
-    mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
-    #endif
-
-    printf("mp_init\n");
-    mp_init();
-
-    #if MICROPY_EMIT_NATIVE
-    // Set default emitter options
-    MP_STATE_VM(default_emit_opt) = emit_opt;
-    #else
-    (void)emit_opt;
-    #endif
-
-    #if MICROPY_VFS_POSIX
-    {
-        // Mount the host FS at the root of our internal VFS
-        mp_obj_t args[2] = {
-            MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 0, 0, NULL),
-            MP_OBJ_NEW_QSTR(MP_QSTR__slash_),
-        };
-        mp_vfs_mount(2, args, (mp_map_t *)&mp_const_empty_map);
-
-        // Make sure the root that was just mounted is the current VFS (it's always at
-        // the end of the linked list).  Can't use chdir('/') because that will change
-        // the current path within the VfsPosix object.
-        MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_mount_table);
-        while (MP_STATE_VM(vfs_cur)->next != NULL) {
-            MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_cur)->next;
-        }
-    }
-    #endif
-
-    {
-        // sys.path starts as [""]
-        mp_sys_path = mp_obj_new_list(0, NULL);
-        mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
-
-        // Add colon-separated entries from MICROPYPATH.
-        char *home = getenv("HOME");
-        char *path = getenv("MICROPYPATH");
-        if (path == NULL) {
-            path = MICROPY_PY_SYS_PATH_DEFAULT;
-        }
-        if (*path == PATHLIST_SEP_CHAR) {
-            // First entry is empty. We've already added an empty entry to sys.path, so skip it.
-            ++path;
-        }
-        // GCC targeting RISC-V 64 reports a warning about `path_remaining` being clobbered by
-        // either setjmp or vfork if that variable it is allocated on the stack.  This may
-        // probably be a compiler error as it occurs on a few recent GCC releases (up to 14.1.0)
-        // but LLVM doesn't report any warnings.
-        static bool path_remaining;
-        path_remaining = *path;
-        while (path_remaining) {
-            char *path_entry_end = strchr(path, PATHLIST_SEP_CHAR);
-            if (path_entry_end == NULL) {
-                path_entry_end = path + strlen(path);
-                path_remaining = false;
-            }
-            if (path[0] == '~' && path[1] == '/' && home != NULL) {
-                // Expand standalone ~ to $HOME
-                int home_l = strlen(home);
-                vstr_t vstr;
-                vstr_init(&vstr, home_l + (path_entry_end - path - 1) + 1);
-                vstr_add_strn(&vstr, home, home_l);
-                vstr_add_strn(&vstr, path + 1, path_entry_end - path - 1);
-                mp_obj_list_append(mp_sys_path, mp_obj_new_str_from_vstr(&vstr));
-            } else {
-                mp_obj_list_append(mp_sys_path, mp_obj_new_str_via_qstr(path, path_entry_end - path));
-            }
-            path = path_entry_end + 1;
-        }
-    }
-
-    printf("mp_obj_list_init\n");
-    mp_obj_list_init(MP_OBJ_TO_PTR(mp_sys_argv), 0);
-
-    #if defined(MICROPY_UNIX_COVERAGE)
-    {
-        MP_DECLARE_CONST_FUN_OBJ_0(extra_coverage_obj);
-        MP_DECLARE_CONST_FUN_OBJ_0(extra_cpp_coverage_obj);
-        mp_store_global(MP_QSTR_extra_coverage, MP_OBJ_FROM_PTR(&extra_coverage_obj));
-        mp_store_global(MP_QSTR_extra_cpp_coverage, MP_OBJ_FROM_PTR(&extra_cpp_coverage_obj));
-    }
-    #endif
-
-    // Here is some example code to create a class and instance of that class.
-    // First is the Python, then the C code.
-    //
-    // class TestClass:
-    //     pass
-    // test_obj = TestClass()
-    // test_obj.attr = 42
-    //
-    // mp_obj_t test_class_type, test_class_instance;
-    // test_class_type = mp_obj_new_type(qstr_from_str("TestClass"), mp_const_empty_tuple, mp_obj_new_dict(0));
-    // mp_store_name(qstr_from_str("test_obj"), test_class_instance = mp_call_function_0(test_class_type));
-    // mp_store_attr(test_class_instance, qstr_from_str("attr"), mp_obj_new_int(42));
-
-    /*
-    printf("bytes:\n");
-    printf("    total %d\n", m_get_total_bytes_allocated());
-    printf("    cur   %d\n", m_get_current_bytes_allocated());
-    printf("    peak  %d\n", m_get_peak_bytes_allocated());
-    */
-
-    #if MICROPY_PY_SYS_EXECUTABLE
-    sys_set_excecutable(argv[0]);
-    #endif
-
-    printf("parse argv\n");
-    const int NOTHING_EXECUTED = -2;
-    int ret = NOTHING_EXECUTED;
-    bool inspect = false;
-    for (int a = 1; a < argc; a++) {
-        if (argv[a][0] == '-') {
-            if (strcmp(argv[a], "-i") == 0) {
-                inspect = true;
-            } else if (strcmp(argv[a], "-c") == 0) {
-                if (a + 1 >= argc) {
-                    return invalid_args();
-                }
-                set_sys_argv(argv, a + 1, a); // The -c becomes first item of sys.argv, as in CPython
-                set_sys_argv(argv, argc, a + 2); // Then what comes after the command
-                ret = do_str(argv[a + 1]);
-                break;
-            } else if (strcmp(argv[a], "-m") == 0) {
-                if (a + 1 >= argc) {
-                    return invalid_args();
-                }
-                mp_obj_t import_args[4];
-                import_args[0] = mp_obj_new_str_from_cstr(argv[a + 1]);
-                import_args[1] = import_args[2] = mp_const_none;
-                // Ask __import__ to handle imported module specially - set its __name__
-                // to __main__, and also return this leaf module, not top-level package
-                // containing it.
-                import_args[3] = mp_const_false;
-                // TODO: https://docs.python.org/3/using/cmdline.html#cmdoption-m :
-                // "the first element of sys.argv will be the full path to
-                // the module file (while the module file is being located,
-                // the first element will be set to "-m")."
-                set_sys_argv(argv, argc, a + 1);
-
-                mp_obj_t mod;
-                nlr_buf_t nlr;
-
-                // Allocating subpkg_tried on the stack can lead to compiler warnings about this
-                // variable being clobbered when nlr is implemented using setjmp/longjmp.  Its
-                // value must be preserved across calls to setjmp/longjmp.
-                static bool subpkg_tried;
-                subpkg_tried = false;
-
-            reimport:
-                if (nlr_push(&nlr) == 0) {
-                    mod = mp_builtin___import__(MP_ARRAY_SIZE(import_args), import_args);
-                    nlr_pop();
-                } else {
-                    // uncaught exception
-                    return handle_uncaught_exception(nlr.ret_val) & 0xff;
-                }
-
-                // If this module is a package, see if it has a `__main__.py`.
-                mp_obj_t dest[2];
-                mp_load_method_protected(mod, MP_QSTR___path__, dest, true);
-                if (dest[0] != MP_OBJ_NULL && !subpkg_tried) {
-                    subpkg_tried = true;
-                    vstr_t vstr;
-                    int len = strlen(argv[a + 1]);
-                    vstr_init(&vstr, len + sizeof(".__main__"));
-                    vstr_add_strn(&vstr, argv[a + 1], len);
-                    vstr_add_strn(&vstr, ".__main__", sizeof(".__main__") - 1);
-                    import_args[0] = mp_obj_new_str_from_vstr(&vstr);
-                    goto reimport;
-                }
-
-                ret = 0;
-                break;
-            } else if (strcmp(argv[a], "-X") == 0) {
-                a += 1;
-            #if MICROPY_DEBUG_PRINTERS
-            } else if (strcmp(argv[a], "-v") == 0) {
-                mp_verbose_flag++;
-            #endif
-            } else if (strncmp(argv[a], "-O", 2) == 0) {
-                if (unichar_isdigit(argv[a][2])) {
-                    MP_STATE_VM(mp_optimise_value) = argv[a][2] & 0xf;
-                } else {
-                    MP_STATE_VM(mp_optimise_value) = 0;
-                    for (char *p = argv[a] + 1; *p && *p == 'O'; p++, MP_STATE_VM(mp_optimise_value)++) {;
-                    }
-                }
-            } else {
-                return invalid_args();
-            }
-        } else {
-            char *basedir = realpath(argv[a], NULL);
-            if (basedir == NULL) {
-                mp_printf(&mp_stderr_print, "%s: can't open file '%s': [Errno %d] %s\n", argv[0], argv[a], errno, strerror(errno));
-                // CPython exits with 2 in such case
-                ret = 2;
-                break;
-            }
-
-            // Set base dir of the script as first entry in sys.path.
-            char *p = strrchr(basedir, '/');
-            mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(basedir, p - basedir));
-            printf("free(basedir)\n");
-            free(basedir);
-
-            printf("set_sys_argv\n");
-            set_sys_argv(argv, argc, a);
-            printf("do_file\n");
-            ret = do_file(argv[a]);
-            break;
-        }
-    }
-
-    const char *inspect_env = getenv("MICROPYINSPECT");
-    if (inspect_env && inspect_env[0] != '\0') {
-        inspect = true;
-    }
-    if (ret == NOTHING_EXECUTED || inspect) {
-        if (isatty(0) || inspect) {
-            prompt_read_history();
-            ret = do_repl();
-            prompt_write_history();
-        } else {
-            ret = execute_from_lexer(LEX_SRC_STDIN, NULL, MP_PARSE_FILE_INPUT, false);
-        }
-    }
-
-    #if MICROPY_PY_SYS_SETTRACE
-    MP_STATE_THREAD(prof_trace_callback) = MP_OBJ_NULL;
-    #endif
-
-    #if MICROPY_PY_SYS_ATEXIT
-    // Beware, the sys.settrace callback should be disabled before running sys.atexit.
-    if (mp_obj_is_callable(MP_STATE_VM(sys_exitfunc))) {
-        mp_call_function_0(MP_STATE_VM(sys_exitfunc));
-    }
-    #endif
-
-    #if MICROPY_PY_MICROPYTHON_MEM_INFO
-    if (mp_verbose_flag) {
-        mp_micropython_mem_info(0, NULL);
-    }
-    #endif
-
-    #if MICROPY_PY_BLUETOOTH
-    int mp_bluetooth_deinit(void);
-    mp_bluetooth_deinit();
-    #endif
-
-    #if MICROPY_PY_THREAD
-    printf("mp_thread_deinit\n");
-    mp_thread_deinit();
-    #endif
-
-    #if defined(MICROPY_UNIX_COVERAGE)
-    gc_sweep_all();
-    #endif
-
-    printf("mp_deinit\n");
-    mp_deinit();
-
-    #if MICROPY_ENABLE_GC && !defined(NDEBUG)
-    // We don't really need to free memory since we are about to exit the
-    // process, but doing so helps to find memory leaks.
-    #if !MICROPY_GC_SPLIT_HEAP
-    free(heap);
-    #else
-    for (size_t i = 0; i < MICROPY_GC_SPLIT_HEAP_N_HEAPS; i++) {
-        free(heaps[i]);
-    }
-    #endif
-    #endif
-
-    #if MICROPY_PY_SYS_EXECUTABLE && !defined(NDEBUG)
-    // Again, make memory leak detector happy
-    free(executable_path);
-    #endif
-
-    // printf("total bytes = %d\n", m_get_total_bytes_allocated());
-    return ret & 0xff;
-}
 
 static struct {
     sg_pass_action pass_action;
@@ -886,13 +225,27 @@ mp_obj_t _mp_load_global(qstr qst) {
 
 extern uint32_t buffer[320 * 240];
 
+void* smemtrack_alloc(size_t size, void* user_data) {
+    return malloc(size);
+}
+void smemtrack_free(void* ptr, void* user_data) {
+    free(ptr);
+}
+
 static void sokol_init(void) {
     stm_setup(); // sokol_time.h
     sg_setup(&(sg_desc){
         .environment = sglue_environment(),
         .logger.func = slog_func,
+        .allocator = (sg_allocator) {
+            .alloc_fn = smemtrack_alloc,
+            .free_fn = smemtrack_free
+        }
     });
-    simgui_setup(&(simgui_desc_t){ 0 });
+    simgui_setup(&(simgui_desc_t){ .allocator = (simgui_allocator_t) {
+        .alloc_fn = smemtrack_alloc,
+        .free_fn = smemtrack_free
+    }});
     /*sgl_setup(&(sgl_desc_t){
         .logger.func = slog_func,
     });*/
@@ -1043,33 +396,6 @@ static void sokol_init(void) {
     (void)ret;
 }
 
-static int repl_next() {
-    return 0;
-    char *line = prompt((char *)mp_repl_get_ps1());
-    if (line == NULL) {
-        // EOF
-        return 0;
-    }
-    while (mp_repl_continue_with_input(line)) {
-        char *line2 = prompt((char *)mp_repl_get_ps2());
-        if (line2 == NULL) {
-            break;
-        }
-        char *line3 = strjoin(line, '\n', line2);
-        free(line);
-        free(line2);
-        line = line3;
-    }
-
-    int ret = execute_from_lexer(LEX_SRC_STR, line, MP_PARSE_SINGLE_INPUT, true);
-    free(line);
-    if (ret & FORCED_EXIT) {
-        return ret;
-    }
-
-    return 0;
-}
-
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
 // helper function to construct ImTextureRef from ImTextureID
 // FIXME: remove when Dear Bindings offers such helper
@@ -1081,6 +407,103 @@ static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
 {
     ImVec2 *aspect = (ImVec2 *)data->UserData;
     data->DesiredSize.x = (data->DesiredSize.y / aspect->y) * aspect->x;
+}
+
+
+int lastCursorPos = -1;
+int lastLineBreakPos = 0;
+static const int repl_max_k = 50;
+static char repl_buf[1024 * repl_max_k] = {};
+ImGuiInputTextCallbackData* active_callback = NULL;
+
+static void stderr_print_strn(void *env, const char *str, size_t len) {
+    (void)env;
+    if(active_callback) {
+        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
+    }
+}
+
+mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
+    if(active_callback) {
+        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
+    }
+    return len;
+}
+
+// cooked is same as uncooked because the terminal does some postprocessing
+void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
+    mp_hal_stdout_tx_strn(str, len);
+}
+
+void mp_hal_stdout_tx_str(const char *str) {
+    mp_hal_stdout_tx_strn(str, strlen(str));
+}
+
+char continuation_buffer[8192];
+int continuation_ptr = 0;
+
+const char* TAB = "    ";
+
+static int _igReplCallback(ImGuiInputTextCallbackData* data) {
+
+    if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
+        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, TAB, TAB + 4);
+    }
+
+    if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
+        if(lastCursorPos == data->CursorPos) {
+            return 0;
+        }
+        lastCursorPos = data->CursorPos;
+        if (data->CursorPos == 0) {
+            //strncpy(&data->Buf[data->CursorPos], pr, 1024);
+            //data->CursorPos += strnlen(pr, 1024);
+            char *pr = (char *)mp_repl_get_ps1();
+            ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
+            lastLineBreakPos = data->CursorPos;
+        }
+        char last = data->Buf[data->CursorPos - 1];
+        //printf("Last: %c\n", last);
+        if(last == '\n') {
+            char *line = &data->Buf[lastLineBreakPos];
+            int endline = data->CursorPos - 1 - lastLineBreakPos;
+            //printf("line: %s\n", line);
+            lastLineBreakPos = data->CursorPos - 1;
+
+            line[endline] = '\0';
+            size_t line_len = strlen(line) + 1;
+            line[endline] = '\n';
+    
+            memcpy(continuation_buffer + continuation_ptr, line, line_len);
+            continuation_ptr += line_len;
+
+            continuation_buffer[continuation_ptr - 1] = '\0';
+            bool continuation = mp_repl_continue_with_input(continuation_buffer);
+            continuation_buffer[continuation_ptr - 1] = '\n';
+
+            fprintf(stdout, "cont buf: %s\n", continuation_buffer);
+            
+            if (continuation) {
+                char *pr = (char *)mp_repl_get_ps2();
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
+                lastLineBreakPos = data->CursorPos;
+            } else {
+                active_callback = data;
+                micropython_gc_enabled = true;
+                int ret = execute_from_lexer(LEX_SRC_STR, continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
+                micropython_gc_enabled = false;
+                memset(continuation_buffer, 0, continuation_ptr);
+                continuation_ptr = 0;
+                (void)ret;
+                active_callback = NULL;
+
+                char *pr = (char *)mp_repl_get_ps1();
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
+                lastLineBreakPos = data->CursorPos;
+            }
+        }
+    }
+    return 0;
 }
 
 static void sokol_frame(void) {
@@ -1114,14 +537,24 @@ static void sokol_frame(void) {
     }
 
     /*=== UI CODE STARTS HERE ===*/
-    igSetNextWindowPos((ImVec2){10,10}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){400, 100}, ImGuiCond_Once);
-    igBegin("Hello Dear ImGui!", 0, ImGuiWindowFlags_None);
-    //igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-    //igColorEdit3("Color", &color.r, ImGuiColorEditFlags_None);
-    igEnd();
+    igSetNextWindowPos((ImVec2){0, 480}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){640, 240}, ImGuiCond_Once);
 
-    igSetNextWindowPos((ImVec2){20, 20}, ImGuiCond_Once);
+    igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
+    if (igBegin("MicroPython repl", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar )) {
+        const ImVec2 size = igGetWindowContentRegionMax();
+        
+        //static unsigned int cursor = 0;
+        //static char *pr = (char *)mp_repl_get_ps1();
+        igInputTextMultilineEx("", repl_buf, 1024 * repl_max_k, size, ImGuiInputTextFlags_CallbackAlways | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, _igReplCallback, NULL);
+
+        //igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
+        //igColorEdit3("Color", &color.r, ImGuiColorEditFlags_None);
+    }
+    igEnd();
+    igPopStyleVar(); // ImGuiStyleVar_WindowPadding
+
+    igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
     igSetNextWindowSize((ImVec2){640, 480}, ImGuiCond_Once);
     igSetNextWindowSizeConstraints((ImVec2){320, 240}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
 
@@ -1146,7 +579,6 @@ static void sokol_frame(void) {
     simgui_render();
     sg_end_pass();
     sg_commit();
-    (void)repl_next();
 }
 
 static void sokol_cleanup(void) {
@@ -1182,9 +614,9 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .frame_cb = sokol_frame,
         .cleanup_cb = sokol_cleanup,
         .event_cb = sokol_event,
-        .window_title = "Hello Sokol + Dear ImGui",
+        .window_title = "Badgeware Desktop",
         .width = 800,
-        .height = 600,
+        .height = 720,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };
@@ -1197,22 +629,3 @@ void nlr_jump_fail(void *val) {
     fprintf(stderr, "FATAL: uncaught NLR (You probably raised a MicroPython exception, dummy!) %p\n", val);
     exit(1);
 }
-
-#if MICROPY_VFS_ROM_IOCTL
-
-static uint8_t romfs_buf[4] = { 0xd2, 0xcd, 0x31, 0x00 }; // empty ROMFS
-static const MP_DEFINE_MEMORYVIEW_OBJ(romfs_obj, 'B', 0, sizeof(romfs_buf), romfs_buf);
-
-mp_obj_t mp_vfs_rom_ioctl(size_t n_args, const mp_obj_t *args) {
-    switch (mp_obj_get_int(args[0])) {
-        case MP_VFS_ROM_IOCTL_GET_NUMBER_OF_SEGMENTS:
-            return MP_OBJ_NEW_SMALL_INT(1);
-
-        case MP_VFS_ROM_IOCTL_GET_SEGMENT:
-            return MP_OBJ_FROM_PTR(&romfs_obj);
-    }
-
-    return MP_OBJ_NEW_SMALL_INT(-MP_EINVAL);
-}
-
-#endif

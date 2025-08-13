@@ -45,7 +45,7 @@ mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t
     modpicovector_obj_t *self = mp_obj_malloc_with_finaliser(modpicovector_obj_t, type);
 
     //self->fb = new image((uint32_t *)(bufinfo.buf), 320, 240);
-    self->fb = new image(buffer, 320, 240);
+    self->fb = new(m_tracked_calloc(sizeof(image), 1)) image(buffer, 320, 240);
     self->j = 0;
 
     return MP_OBJ_FROM_PTR(self);
@@ -287,10 +287,16 @@ mp_obj_t modpicovector_draw(mp_obj_t self_in, mp_obj_t shape_in) {
     self(self_in, modpicovector_obj_t);
     shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(shape_in);
 
+    std::cout << "white = colour()" << std::endl;
     colour white = colour();
+    std::cout << "white.col = ..." << std::endl;
     white.col = self->fb->pen(255, 255, 255, 32);
 
     shape->shape->style = &white;
+
+    std::cout << "shape->shape->draw(..." << std::endl;
+    std::cout << "shape->shape = " << reinterpret_cast<void*>(shape->shape) << std::hex << std::endl;
+    std::cout << "self->fb = " << reinterpret_cast<void*>(self->fb) << std::hex << std::endl;
     shape->shape->draw(*self->fb); // :/
 }
 

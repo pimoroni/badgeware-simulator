@@ -184,6 +184,7 @@ main_term:;
     return c;
 }
 
+/*
 mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
     ssize_t ret;
     MP_HAL_RETRY_SYSCALL(ret, write(STDOUT_FILENO, str, len), {});
@@ -203,6 +204,7 @@ void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
 void mp_hal_stdout_tx_str(const char *str) {
     mp_hal_stdout_tx_strn(str, strlen(str));
 }
+    */
 
 #ifndef mp_hal_ticks_ms
 mp_uint_t mp_hal_ticks_ms(void) {
