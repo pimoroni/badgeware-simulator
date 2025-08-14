@@ -75,11 +75,11 @@ mp_obj_t modpicovector_regular_polygon(size_t n_args, const mp_obj_t *pos_args, 
     int e = args[ARG_sides].u_int;
     float s = args[ARG_stroke].u_obj == mp_const_none ? 0 : mp_obj_get_float(args[ARG_stroke].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "regular_polygon" << std::endl;
+    //std::cerr << "regular_polygon" << std::endl;
     shape->shape = regular_polygon(x, y, e, r);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -101,11 +101,11 @@ mp_obj_t modpicovector_circle(size_t n_args, const mp_obj_t *pos_args, mp_map_t 
     float y = mp_obj_get_float(args[ARG_y].u_obj);
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "circle" << std::endl;
+    //std::cerr << "circle" << std::endl;
     shape->shape = circle(x, y, radius);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -129,11 +129,11 @@ mp_obj_t modpicovector_rectangle(size_t n_args, const mp_obj_t *pos_args, mp_map
     float x2 = mp_obj_get_float(args[ARG_x2].u_obj);
     float y2 = mp_obj_get_float(args[ARG_y2].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "rectangle" << std::endl;
+    //std::cerr << "rectangle" << std::endl;
     shape->shape = rectangle(x1, y1, x2, y2);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -157,11 +157,11 @@ mp_obj_t modpicovector_squircle(size_t n_args, const mp_obj_t *pos_args, mp_map_
     float size = mp_obj_get_float(args[ARG_size].u_obj);
     float n = mp_obj_get_float(args[ARG_n].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "squircle" << std::endl;
+    //std::cerr << "squircle" << std::endl;
     shape->shape = squircle(x, y, size, n);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -187,11 +187,11 @@ mp_obj_t modpicovector_arc(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw
     float to = mp_obj_get_float(args[ARG_to].u_obj);
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "arc" << std::endl;
+    //std::cerr << "arc" << std::endl;
     shape->shape = arc(x, y, from, to, radius);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -217,11 +217,11 @@ mp_obj_t modpicovector_pie(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw
     float to = mp_obj_get_float(args[ARG_to].u_obj);
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "pie" << std::endl;
+    //std::cerr << "pie" << std::endl;
     shape->shape = pie(x, y, from, to, radius);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -247,11 +247,11 @@ mp_obj_t modpicovector_star(size_t n_args, const mp_obj_t *pos_args, mp_map_t *k
     float outer_radius = mp_obj_get_float(args[ARG_outer_radius].u_obj);
     float inner_radius = mp_obj_get_float(args[ARG_inner_radius].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "star" << std::endl;
+    //std::cerr << "star" << std::endl;
     shape->shape = star(x, y, spikes, outer_radius, inner_radius);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -275,11 +275,11 @@ mp_obj_t modpicovector_line(size_t n_args, const mp_obj_t *pos_args, mp_map_t *k
     float x2 = mp_obj_get_float(args[ARG_x2].u_obj);
     float y2 = mp_obj_get_float(args[ARG_y2].u_obj);
 
-    std::cout << "mp_obj_malloc(shape" << std::endl;
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
-    std::cout << "line" << std::endl;
+    //std::cerr << "line" << std::endl;
     shape->shape = line(x1, y1, x2, y2);
-    std::cout << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -287,16 +287,16 @@ mp_obj_t modpicovector_draw(mp_obj_t self_in, mp_obj_t shape_in) {
     self(self_in, modpicovector_obj_t);
     shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(shape_in);
 
-    std::cout << "white = colour()" << std::endl;
+    //std::cerr << "white = colour()" << std::endl;
     colour white = colour();
-    std::cout << "white.col = ..." << std::endl;
+    //std::cerr << "white.col = ..." << std::endl;
     white.col = self->fb->pen(255, 255, 255, 32);
 
     shape->shape->style = &white;
 
-    std::cout << "shape->shape->draw(..." << std::endl;
-    std::cout << "shape->shape = " << reinterpret_cast<void*>(shape->shape) << std::hex << std::endl;
-    std::cout << "self->fb = " << reinterpret_cast<void*>(self->fb) << std::hex << std::endl;
+    //std::cerr << "shape->shape->draw(..." << std::endl;
+    //std::cerr << "shape->shape = " << reinterpret_cast<void*>(shape->shape) << std::hex << std::endl;
+    //std::cerr << "self->fb = " << reinterpret_cast<void*>(self->fb) << std::hex << std::endl;
     shape->shape->draw(*self->fb); // :/
 }
 

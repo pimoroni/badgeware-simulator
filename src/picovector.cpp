@@ -6,7 +6,7 @@
 //because these will be called before the MicroPython heap is initialised.
 
 bool micropython_gc_enabled = false;
-
+/*
 void * operator new(std::size_t n)// throw(std::bad_alloc)
 {
     //return malloc(n);
@@ -29,12 +29,13 @@ void operator delete(void * p)// throw()
       free(p);
     }
 }
-
+*/
 
 using namespace std;
 
 #define debug_printf(fmt, ...)
 //#define debug_printf(fmt, ...) printf(fmt, __VA_ARGS__)
+//#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 namespace picovector {
   struct _edgeinterp {
@@ -63,6 +64,7 @@ namespace picovector {
     // determine the intersection between transformed polygon and target image
     rect b = shape.bounds();
 
+    debug_printf("setup interpolators\n");
     // setup interpolators for each edge of the polygon
     static _edgeinterp edge_interpolators[256];
     int edge_interpolator_count = 0;
@@ -78,6 +80,7 @@ namespace picovector {
       }
     }
 
+    debug_printf("get nodes\n");
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static int nodes[128]; // up to 128 nodes (64 spans) per scanline
@@ -112,6 +115,7 @@ namespace picovector {
         span_count = 0;
       }
     }
+    debug_printf("render done\n");
   }
 
   mat3::mat3() {
@@ -529,7 +533,7 @@ namespace picovector {
     void colour::render_spans(image *target, shape *shape, render_span *spans, int count) {
       debug_printf("render colour\n");
       while(count--) {
-        debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+        //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
         uint32_t *dst = target->ptr(spans->x, spans->y);
         span_argb8(dst, spans->w, col);

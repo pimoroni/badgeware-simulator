@@ -79,6 +79,12 @@
 #endif
 
 
+// TODO: I think normal `printf` is overriden *somewhere* so we must explicitly print to stdout
+#define debug_printf(fmt, ...)
+//#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+
+#define warning_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+
 
 
 // Command line options, with their defaults
@@ -115,6 +121,7 @@ const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
 // and lower 8 bits are SystemExit value. For all other exceptions,
 // return 1.
 static int handle_uncaught_exception(mp_obj_base_t *exc) {
+    debug_printf("handle_uncaught_exception(...\n");
     // check for SystemExit
     if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(exc->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {
         // None is an exit value of 0; an int is its value; anything else is 1
@@ -143,37 +150,38 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
     mp_hal_set_interrupt_char(CHAR_CTRL_C);
 
     nlr_buf_t nlr;
-    fprintf(stdout, "nlr_push()\n");
+    debug_printf("nlr_push()\n");
     if (nlr_push(&nlr) == 0) {
+        micropython_gc_enabled = true;
         // create lexer based on source kind
-        fprintf(stdout, "create lexer...\n");
+        debug_printf("create lexer...\n");
         mp_lexer_t *lex;
         if (source_kind == LEX_SRC_STR) {
-            fprintf(stdout, "LEX_SRC_STR...\n");
+            debug_printf("LEX_SRC_STR...\n");
             const char *line = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, line, strlen(line), false);
         } else if (source_kind == LEX_SRC_VSTR) {
-            fprintf(stdout, "LEX_SRC_VSTR...\n");
+            debug_printf("LEX_SRC_VSTR...\n");
             const vstr_t *vstr = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, vstr->buf, vstr->len, false);
         } else if (source_kind == LEX_SRC_FILENAME) {
-            fprintf(stdout, "LEX_SRC_FILENAME...\n");
+            debug_printf("LEX_SRC_FILENAME...\n");
             const char *filename = (const char *)source;
-            fprintf(stdout, "qstr_from_str(%s)...\n", filename);
+            debug_printf("qstr_from_str(%s)...\n", filename);
             qstr qfilename = qstr_from_str(filename);
-            fprintf(stdout, "mp_lexer_new_from_file(qfilename)...\n");
+            debug_printf("mp_lexer_new_from_file(qfilename)...\n");
             lex = mp_lexer_new_from_file(qfilename);
         } else { // LEX_SRC_STDIN
-            fprintf(stdout, "LEX_SRC_STDIN...\n");
+            debug_printf("LEX_SRC_STDIN...\n");
             lex = mp_lexer_new_from_fd(MP_QSTR__lt_stdin_gt_, 0, false);
         }
-        fprintf(stdout, "lexer ok...\n");
+        debug_printf("lexer ok...\n");
 
         qstr source_name = lex->source_name;
 
         #if MICROPY_PY___FILE__
         if (input_kind == MP_PARSE_FILE_INPUT) {
-            fprintf(stdout, "set __file__..\n");
+            debug_printf("set __file__..\n");
             mp_store_global(MP_QSTR___file__, MP_OBJ_NEW_QSTR(source_name));
         }
         #endif
@@ -189,20 +197,22 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         }
         #endif
 
-        fprintf(stdout, "mp_compile\n");
+        debug_printf("mp_compile\n");
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, is_repl);
 
         if (!compile_only) {
             // execute it
-            fprintf(stdout, "mp_call_function_0\n");
+            debug_printf("mp_call_function_0\n");
             mp_call_function_0(module_fun);
-            fprintf(stdout, "hello?\n");
+            debug_printf("hello?\n");
         }
 
+        debug_printf("mp_hal_set_interrupt_char(-1)\n");
         mp_hal_set_interrupt_char(-1);
-        fprintf(stdout, "mp_handle_pending\n");
+        debug_printf("mp_handle_pending\n");
         mp_handle_pending(true);
         nlr_pop();
+        micropython_gc_enabled = false;
         return 0;
 
     } else {
@@ -250,23 +260,21 @@ void smemtrack_free(void* ptr, void* user_data) {
 }
 
 static int run_file(const char* path) {
-    fprintf(stdout, "Running....%s?\n", path);
+    debug_printf("Running....%s?\n", path);
     // Set base dir of the script as first entry in sys.path.
     
-    fprintf(stdout, "do_file\n");
+    debug_printf("do_file\n");
     gc_collect();
 
-    micropython_gc_enabled = true;
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-    micropython_gc_enabled = false;
 
-    fprintf(stdout, "done?\n");
+    debug_printf("done?\n");
 
-    fprintf(stdout, "fetching update callback...\n");
+    debug_printf("fetching update callback...\n");
     update_callback_obj = _mp_load_global(qstr_from_str("update"));
     if(update_callback_obj == mp_const_none) {
         //TODO switch out this URL for the final one
-        fprintf(stdout, "WARNING: a function named 'update(ticks)' is not defined\n");
+        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
         //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
     }
 
@@ -289,9 +297,10 @@ static void watch_callback(dmon_watch_id watch_id, dmon_action action, const cha
             path[strlen(rootdir) + strlen(filepath)] = '\0';
             if(strcmp(path, watch_path) == 0) {
                 //run_file(path);
+                warning_printf("WARNING: Hot reload triggered by %s\n", path);
                 hot_reload = true;
             } else {
-                fprintf(stdout, "Ignored change in %s\n", path);
+                warning_printf("WARNING: Ignored change in %s\n", path);
             }
             break;
         default:
@@ -318,8 +327,6 @@ static void sokol_init(void) {
         .logger.func = slog_func,
     });*/
 
-    printf("sg_make_image...\n");
-
     for(int i = 0; i < sizeof(buffer) / 4; i++) {
         buffer[i] = 0xFF0000FF;
     }
@@ -334,7 +341,6 @@ static void sokol_init(void) {
         buffer[i] = 0xFF00FF00;
     }
 
-    printf("sg_make_sampler...\n");
     state.smp.nearest_clamp = sg_make_sampler(&(sg_sampler_desc){
         .min_filter = SG_FILTER_NEAREST,
         .mag_filter = SG_FILTER_NEAREST,
@@ -342,7 +348,6 @@ static void sokol_init(void) {
         .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
     });
 
-    printf("sg_make_sampler...\n");
     state.smp.linear_clamp = sg_make_sampler(&(sg_sampler_desc){
         .min_filter = SG_FILTER_LINEAR,
         .mag_filter = SG_FILTER_LINEAR,
@@ -395,7 +400,7 @@ static void sokol_init(void) {
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
     #endif
 
-    printf("mp_init\n");
+    debug_printf("mp_init\n");
     mp_init();
 
     #if MICROPY_EMIT_NATIVE
@@ -428,7 +433,7 @@ static void sokol_init(void) {
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
 
     const char *path = sargs_value("code");
-    fprintf(stdout, "Running code: %s\n", path);
+    debug_printf("Running code: %s\n", path);
     hot_reload_code = realpath(path, NULL);
 
     if (hot_reload_code == NULL) {
@@ -438,20 +443,20 @@ static void sokol_init(void) {
 
     char *p = strrchr(hot_reload_code, '/');
 
-    fprintf(stdout, "mp_obj_list_store....?\n");
+    debug_printf("mp_obj_list_store....?\n");
     mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(hot_reload_code, p - hot_reload_code));
     
     char *dname = dirname(hot_reload_code);
     int ret = -1;
     //while (ret != 255) {
 
-        fprintf(stdout, "Watching directory %s\n", dname);
+        debug_printf("Watching directory %s\n", dname);
         dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
         hot_reload = true;
     //}
     (void)ret;
 
-    fprintf(stdout, "free(abspath)\n");
+    debug_printf("free(abspath)\n");
     //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
     free(dname);
 }
@@ -470,23 +475,41 @@ static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
 }
 
 
-int lastCursorPos = -1;
-int lastLineBreakPos = 0;
-static const int repl_max_k = 50;
-static char repl_buf[1024 * repl_max_k] = {};
+int bw_repl_cursor_pos = 0;
+int bw_repl_last_cursor_pos = -1;
+int bw_repl_last_linebreak_pos = 0;
+#define BW_REPL_SIZE (1024 * 50)
+static char bw_repl_buf[BW_REPL_SIZE] = {};
+char bw_repl_continuation_buffer[8192];
+int bw_repl_continuation_ptr = 0;
+const char* BW_REPL_TAB = "    ";
+bool bw_repl_exec = false;
+
+
 ImGuiInputTextCallbackData* active_callback = NULL;
 
+static void bw_repl_print_strn(const char *str, size_t len) {
+    /*if(active_callback) {
+        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
+    }*/
+    memcpy(bw_repl_buf + bw_repl_cursor_pos, str, len);
+    bw_repl_cursor_pos += len;
+}
+
+/*
+static void bw_repl_print_str(const char *str) {
+    bw_repl_print_strn(str, strlen(str));
+}
+*/
 static void stderr_print_strn(void *env, const char *str, size_t len) {
     (void)env;
-    if(active_callback) {
-        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
-    }
+    warning_printf("%s", str);
+    bw_repl_print_strn(str, len);
 }
 
 mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
-    if(active_callback) {
-        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
-    }
+    warning_printf("%s", str);
+    bw_repl_print_strn(str, len);
     return len;
 }
 
@@ -499,70 +522,95 @@ void mp_hal_stdout_tx_str(const char *str) {
     mp_hal_stdout_tx_strn(str, strlen(str));
 }
 
-char continuation_buffer[8192];
-int continuation_ptr = 0;
-
-const char* TAB = "    ";
 
 static int _igReplCallback(ImGuiInputTextCallbackData* data) {
-
-    if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
-        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, TAB, TAB + 4);
+    if(bw_repl_exec) {
+        ImGuiInputTextCallbackData_SelectAll(data);
+        ImGuiInputTextCallbackData_ClearSelection(data);
+        memset(data->Buf, 0, data->BufSize);
+        memset(bw_repl_continuation_buffer, 0, sizeof(bw_repl_continuation_buffer));
+        data->CursorPos = 0;
+        data->BufTextLen = 0;
+        bw_repl_exec = false;
     }
 
+    if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
+        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
+        //bw_repl_print_str(BW_REPL_TAB);
+    }
     if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
-        if(lastCursorPos == data->CursorPos) {
+        char last = data->Buf[data->CursorPos - 1];
+        if (last == '\n') {
+            data->Buf[data->CursorPos - 1] = '\0';
+            bool cont = mp_repl_continue_with_input(data->Buf);
+            data->Buf[data->CursorPos - 1] = '\n';
+            if(!cont) {
+                bw_repl_exec = true;
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    /*
+    if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
+        if(bw_repl_last_cursor_pos == bw_repl_cursor_pos) {
             return 0;
         }
-        lastCursorPos = data->CursorPos;
-        if (data->CursorPos == 0) {
+        bw_repl_last_cursor_pos = bw_repl_cursor_pos;
+        if (bw_repl_cursor_pos == 0) {
             //strncpy(&data->Buf[data->CursorPos], pr, 1024);
             //data->CursorPos += strnlen(pr, 1024);
             char *pr = (char *)mp_repl_get_ps1();
-            ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
-            lastLineBreakPos = data->CursorPos;
+            //ImGuiInputTextCallbackData_InsertChars(data, bw_repl_cursor_pos, pr, pr + strnlen(pr, 1024));
+            //bw_repl_cursor_pos = data->CursorPos;
+            bw_repl_print_str(pr);
+            bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
         }
-        char last = data->Buf[data->CursorPos - 1];
+        char last = bw_repl_buf[data->CursorPos - 1];
         //printf("Last: %c\n", last);
         if(last == '\n') {
-            char *line = &data->Buf[lastLineBreakPos];
-            int endline = data->CursorPos - 1 - lastLineBreakPos;
+            char *line = &bw_repl_buf[bw_repl_last_linebreak_pos];
+            int endline = bw_repl_cursor_pos - 1 - bw_repl_last_linebreak_pos;
             //printf("line: %s\n", line);
-            lastLineBreakPos = data->CursorPos - 1;
+            bw_repl_last_linebreak_pos = bw_repl_cursor_pos - 1;
 
             line[endline] = '\0';
             size_t line_len = strlen(line) + 1;
             line[endline] = '\n';
     
-            memcpy(continuation_buffer + continuation_ptr, line, line_len);
-            continuation_ptr += line_len;
+            memcpy(bw_repl_continuation_buffer + bw_repl_continuation_ptr, line, line_len);
+            bw_repl_continuation_ptr += line_len;
 
-            continuation_buffer[continuation_ptr - 1] = '\0';
-            bool continuation = mp_repl_continue_with_input(continuation_buffer);
-            continuation_buffer[continuation_ptr - 1] = '\n';
+            bw_repl_continuation_buffer[bw_repl_continuation_ptr - 1] = '\0';
+            bool continuation = mp_repl_continue_with_input(bw_repl_continuation_buffer);
+            bw_repl_continuation_buffer[bw_repl_continuation_ptr - 1] = '\n';
 
-            fprintf(stdout, "cont buf: %s\n", continuation_buffer);
+            warning_printf("cont buf: %s\n", bw_repl_continuation_buffer);
+            warning_printf("repl buf: %s\n", bw_repl_buf);
             
             if (continuation) {
                 char *pr = (char *)mp_repl_get_ps2();
                 ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
-                lastLineBreakPos = data->CursorPos;
+                bw_repl_print_str(pr);
+                bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
             } else {
-                active_callback = data;
-                micropython_gc_enabled = true;
-                int ret = execute_from_lexer(LEX_SRC_STR, continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
-                micropython_gc_enabled = false;
-                memset(continuation_buffer, 0, continuation_ptr);
-                continuation_ptr = 0;
+                //active_callback = data;
+                int ret = execute_from_lexer(LEX_SRC_STR, bw_repl_continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
+                memset(bw_repl_continuation_buffer, 0, bw_repl_continuation_ptr);
+                bw_repl_continuation_ptr = 0;
                 (void)ret;
-                active_callback = NULL;
+                //active_callback = NULL;
 
                 char *pr = (char *)mp_repl_get_ps1();
                 ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
-                lastLineBreakPos = data->CursorPos;
+                //bw_repl_cursor_pos = data->CursorPos;
+                //bw_repl_print_str(pr);
+                //bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
             }
         }
     }
+        */
     return 0;
 }
 
@@ -591,33 +639,47 @@ static void sokol_frame(void) {
     sgl_matrix_mode_modelview();*/
 
     //sg_color color = { 0.0f, 0.0f, 0.0f };
+    mp_handle_pending(true);
 
-    mp_obj_t result = mp_call_function_1(update_callback_obj, mp_obj_new_int_from_ull(stm_ms(stm_now())));
-
-    if(mp_obj_is_exact_type(result, &mp_type_tuple)) {
-        mp_obj_tuple_t *tuple =(mp_obj_tuple_t *)MP_OBJ_TO_PTR(result);
-        state.pass_action.colors[0].clear_value.r = mp_obj_get_float(tuple->items[0]);
-        state.pass_action.colors[0].clear_value.g = mp_obj_get_float(tuple->items[1]);
-        state.pass_action.colors[0].clear_value.b = mp_obj_get_float(tuple->items[2]);
+    if(update_callback_obj != mp_const_none) {
+        nlr_buf_t nlr;
+        // We need to be able to handle any exception
+        if (nlr_push(&nlr) == 0) {
+            mp_obj_t result = mp_call_function_1(update_callback_obj, mp_obj_new_int_from_ull(stm_ms(stm_now())));
+            // If the update function returns false, stop calling it... I dunno why. Useful, maybe?
+            if(result == mp_const_false) {
+                update_callback_obj = mp_const_none;
+            }
+            nlr_pop();
+        } else {
+            update_callback_obj = mp_const_none;
+            handle_uncaught_exception(nlr.ret_val);
+        }
     }
 
     /*=== UI CODE STARTS HERE ===*/
     igSetNextWindowPos((ImVec2){0, 480}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){640, 240}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){640, 120}, ImGuiCond_Once);
 
-    igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
-    if (igBegin("MicroPython repl", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar )) {
-        const ImVec2 size = igGetWindowContentRegionMax();
-        
-        //static unsigned int cursor = 0;
-        //static char *pr = (char *)mp_repl_get_ps1();
-        igInputTextMultilineEx("", repl_buf, 1024 * repl_max_k, size, ImGuiInputTextFlags_CallbackAlways | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, _igReplCallback, NULL);
-
-        //igColorEdit3("Background", &state.pass_action.colors[0].clear_value.r, ImGuiColorEditFlags_None);
-        //igColorEdit3("Color", &color.r, ImGuiColorEditFlags_None);
+    //igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
+    if (igBegin("MicroPython Output", 0, ImGuiWindowFlags_NoTitleBar )) {
+        igText("%s", bw_repl_buf);
     }
     igEnd();
-    igPopStyleVar(); // ImGuiStyleVar_WindowPadding
+
+    igSetNextWindowPos((ImVec2){0, 600}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){640, 120}, ImGuiCond_Once);
+    if (igBegin("MicroPython Input", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar )) {
+        const ImVec2 size = igGetWindowContentRegionMax();
+        if(igInputTextMultilineEx("", bw_repl_continuation_buffer, BW_REPL_SIZE, size, ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackAlways, _igReplCallback, NULL)){
+            if(bw_repl_exec) {
+                int ret = execute_from_lexer(LEX_SRC_STR, bw_repl_continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
+                (void)ret;
+            }
+        }
+    }
+    igEnd();
+    //igPopStyleVar(); // ImGuiStyleVar_WindowPadding
 
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
     igSetNextWindowSize((ImVec2){640, 480}, ImGuiCond_Once);
