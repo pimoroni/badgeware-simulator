@@ -432,35 +432,45 @@ static void sokol_init(void) {
     mp_sys_path = mp_obj_new_list(0, NULL);
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
 
-    const char *path = sargs_value("code");
-    debug_printf("Running code: %s\n", path);
-    hot_reload_code = realpath(path, NULL);
-
-    if (hot_reload_code == NULL) {
-        mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
-        // TODO: Exit
-    }
-
-    char *p = strrchr(hot_reload_code, '/');
-
-    debug_printf("mp_obj_list_store....?\n");
-    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(hot_reload_code, p - hot_reload_code));
-    
-    char *dname = dirname(hot_reload_code);
-    int ret = -1;
-    //while (ret != 255) {
-
-        debug_printf("Watching directory %s\n", dname);
-        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
-        hot_reload = true;
-    //}
-    (void)ret;
-
-    debug_printf("free(abspath)\n");
-    //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
-    free(dname);
 
     bw_repl_print_str("Hello BadgeWare!\n");
+
+    if(sargs_exists("code")) {
+        const char *path = sargs_value("code");
+        debug_printf("Running code: %s\n", path);
+        hot_reload_code = realpath(path, NULL);
+
+        if (hot_reload_code == NULL) {
+            mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
+            // TODO: Exit
+        }
+
+        char *p = strrchr(hot_reload_code, '/');
+
+        debug_printf("mp_obj_list_store....?\n");
+        mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(hot_reload_code, p - hot_reload_code));
+        
+        char *dname = dirname(hot_reload_code);
+        int ret = -1;
+        //while (ret != 255) {
+
+            debug_printf("Watching directory %s\n", dname);
+            dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
+            hot_reload = true;
+        //}
+        (void)ret;
+
+        debug_printf("free(abspath)\n");
+        //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
+        free(dname);
+    } else {
+        // TODO: Why does one single char array cause a syntax error!?
+        const char* init_code_0 = "from picovector import PicoVector\n";
+        int ret = execute_from_lexer(LEX_SRC_STR, init_code_0, MP_PARSE_SINGLE_INPUT, true);
+        const char* init_code_1 = "v = PicoVector()\n";
+        ret = execute_from_lexer(LEX_SRC_STR, init_code_1, MP_PARSE_SINGLE_INPUT, true);
+        (void)ret;
+    }
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
@@ -497,6 +507,11 @@ void mp_hal_stdout_tx_str(const char *str) {
     mp_hal_stdout_tx_strn(str, strlen(str));
 }
 
+// TODO: Make this good
+const char *autocomplete_squircle = "squircle(x, y, radius, corners)";
+const char *autocomplete_circle = "circle(x, y, radius)";
+const char *autocomplete_regular_polygon = "regular_polygon(x, y, radius, sides)";
+const char *autocomplete_star = "star(x, y, points, inner, outer)";
 
 static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     if(bw_repl_exec) {
@@ -509,13 +524,30 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
         }
         bw_repl_exec = false;
     }
+    
+    char last = data->Buf[data->CursorPos - 1];
 
     if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
-        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
         //bw_repl_print_str(BW_REPL_TAB);
+        switch(last) {
+            case 's':
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_squircle + 1, autocomplete_squircle + strlen(autocomplete_squircle));
+                break;
+            case 'c':
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_circle + 1, autocomplete_circle + strlen(autocomplete_circle));
+                break;
+            case 'r':
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_regular_polygon + 1, autocomplete_regular_polygon + strlen(autocomplete_regular_polygon));
+                break;
+            /*case 's': // Oh no
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_star + 1, autocomplete_star + strlen(autocomplete_star));
+                break;*/
+            default:
+                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
+                break;
+        }
     }
     if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
-        char last = data->Buf[data->CursorPos - 1];
         if (last == '\n') {
             data->Buf[data->CursorPos - 1] = '\0';
             bool cont = mp_repl_continue_with_input(data->Buf);

@@ -4282,8 +4282,8 @@ _SOKOL_PRIVATE void _sapp_macos_frame(void) {
     const NSUInteger style =
         NSWindowStyleMaskTitled |
         NSWindowStyleMaskClosable |
-        NSWindowStyleMaskMiniaturizable |
-        NSWindowStyleMaskResizable;
+        NSWindowStyleMaskMiniaturizable;/* |
+        NSWindowStyleMaskResizable;*/ // HACK: SOKOL does not have a way to configure this
     NSRect window_rect = NSMakeRect(0, 0, _sapp.window_width, _sapp.window_height);
     _sapp.macos.window = [[_sapp_macos_window alloc]
         initWithContentRect:window_rect

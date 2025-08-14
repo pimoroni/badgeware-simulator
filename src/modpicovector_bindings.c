@@ -54,7 +54,7 @@ static MP_DEFINE_CONST_DICT(modpicovector_locals_dict, modpicovector_locals_dict
 
 MP_DEFINE_CONST_OBJ_TYPE(
     type_PicoVector,
-    MP_QSTR_Fenster,
+    MP_QSTR_PicoVector,
     MP_TYPE_FLAG_NONE,
     make_new, modpicovector_make_new,
     locals_dict, &modpicovector_locals_dict
