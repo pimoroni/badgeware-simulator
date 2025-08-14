@@ -19,5 +19,5 @@ set_source_files_properties(
     ${CMAKE_CURRENT_LIST_DIR}/image.cpp
     PROPERTIES COMPILE_FLAGS
     #"-Wno-discarded-qualifiers"
-    "-Wno-unused-variable -Wno-return-type"
+    "-Wno-unused-variable"
 )

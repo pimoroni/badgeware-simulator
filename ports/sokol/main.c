@@ -86,12 +86,30 @@
 #define warning_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 
-
-// Command line options, with their defaults
-static bool compile_only = false;
-static uint emit_opt = MP_EMIT_OPT_NONE;
-
 extern bool micropython_gc_enabled;
+extern uint32_t picovector_buffer[320 * 240];
+
+// Various repl stuff
+int bw_repl_cursor_pos = 0;
+int bw_repl_last_cursor_pos = -1;
+int bw_repl_last_linebreak_pos = 0;
+#define BW_REPL_SIZE (1024 * 50)
+static char bw_repl_buf[BW_REPL_SIZE] = {};
+char bw_repl_continuation_buffer[8192];
+int bw_repl_continuation_ptr = 0;
+const char* BW_REPL_TAB = "    ";
+bool bw_repl_exec = false;
+bool bw_repl_exec_error_maybe = false;
+
+static void bw_repl_print_strn(const char *str, size_t len) {
+    memcpy(bw_repl_buf + bw_repl_cursor_pos, str, len);
+    bw_repl_cursor_pos += len;
+}
+
+
+static void bw_repl_print_str(const char *str) {
+    bw_repl_print_strn(str, strlen(str));
+}
 
 #if MICROPY_ENABLE_GC
 // Heap size of GC heap (if enabled)
@@ -121,6 +139,7 @@ const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
 // and lower 8 bits are SystemExit value. For all other exceptions,
 // return 1.
 static int handle_uncaught_exception(mp_obj_base_t *exc) {
+    bw_repl_exec_error_maybe = true;
     debug_printf("handle_uncaught_exception(...\n");
     // check for SystemExit
     if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(exc->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {
@@ -200,12 +219,10 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         debug_printf("mp_compile\n");
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, is_repl);
 
-        if (!compile_only) {
-            // execute it
-            debug_printf("mp_call_function_0\n");
-            mp_call_function_0(module_fun);
-            debug_printf("hello?\n");
-        }
+        // execute it
+        debug_printf("mp_call_function_0\n");
+        mp_call_function_0(module_fun);
+        debug_printf("hello?\n");
 
         debug_printf("mp_hal_set_interrupt_char(-1)\n");
         mp_hal_set_interrupt_char(-1);
@@ -250,13 +267,21 @@ mp_obj_t _mp_load_global(qstr qst) {
     return elem->value;
 }
 
-extern uint32_t buffer[320 * 240];
-
 void* smemtrack_alloc(size_t size, void* user_data) {
     return malloc(size);
 }
 void smemtrack_free(void* ptr, void* user_data) {
     free(ptr);
+}
+
+void fetch_badgeware_update_callback() {
+    debug_printf("fetching update callback...\n");
+    update_callback_obj = _mp_load_global(qstr_from_str("update"));
+    if(update_callback_obj == mp_const_none) {
+        //TODO switch out this URL for the final one
+        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
+        //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
+    }
 }
 
 static int run_file(const char* path) {
@@ -270,13 +295,7 @@ static int run_file(const char* path) {
 
     debug_printf("done?\n");
 
-    debug_printf("fetching update callback...\n");
-    update_callback_obj = _mp_load_global(qstr_from_str("update"));
-    if(update_callback_obj == mp_const_none) {
-        //TODO switch out this URL for the final one
-        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
-        //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
-    }
+    fetch_badgeware_update_callback();
 
     return ret;
 }
@@ -323,23 +342,6 @@ static void sokol_init(void) {
         .alloc_fn = smemtrack_alloc,
         .free_fn = smemtrack_free
     }});
-    /*sgl_setup(&(sgl_desc_t){
-        .logger.func = slog_func,
-    });*/
-
-    for(int i = 0; i < sizeof(buffer) / 4; i++) {
-        buffer[i] = 0xFF0000FF;
-    }
-    state.color_img = sg_make_image(&(sg_image_desc){
-        .width = 320,
-        .height = 240,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .data.subimage[0][0] = SG_RANGE(buffer)
-    });
-
-    for(int i = 0; i < sizeof(buffer) / 4; i++) {
-        buffer[i] = 0xFF00FF00;
-    }
 
     state.smp.nearest_clamp = sg_make_sampler(&(sg_sampler_desc){
         .min_filter = SG_FILTER_NEAREST,
@@ -405,9 +407,7 @@ static void sokol_init(void) {
 
     #if MICROPY_EMIT_NATIVE
     // Set default emitter options
-    MP_STATE_VM(default_emit_opt) = emit_opt;
-    #else
-    (void)emit_opt;
+    MP_STATE_VM(default_emit_opt) = MP_EMIT_OPT_NONE;
     #endif
 
     #if MICROPY_VFS_POSIX
@@ -459,6 +459,8 @@ static void sokol_init(void) {
     debug_printf("free(abspath)\n");
     //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
     free(dname);
+
+    bw_repl_print_str("Hello BadgeWare!\n");
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
@@ -474,33 +476,6 @@ static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
     data->DesiredSize.x = (data->DesiredSize.y / aspect->y) * aspect->x;
 }
 
-
-int bw_repl_cursor_pos = 0;
-int bw_repl_last_cursor_pos = -1;
-int bw_repl_last_linebreak_pos = 0;
-#define BW_REPL_SIZE (1024 * 50)
-static char bw_repl_buf[BW_REPL_SIZE] = {};
-char bw_repl_continuation_buffer[8192];
-int bw_repl_continuation_ptr = 0;
-const char* BW_REPL_TAB = "    ";
-bool bw_repl_exec = false;
-
-
-ImGuiInputTextCallbackData* active_callback = NULL;
-
-static void bw_repl_print_strn(const char *str, size_t len) {
-    /*if(active_callback) {
-        ImGuiInputTextCallbackData_InsertChars(active_callback, active_callback->CursorPos, str, str + len);
-    }*/
-    memcpy(bw_repl_buf + bw_repl_cursor_pos, str, len);
-    bw_repl_cursor_pos += len;
-}
-
-/*
-static void bw_repl_print_str(const char *str) {
-    bw_repl_print_strn(str, strlen(str));
-}
-*/
 static void stderr_print_strn(void *env, const char *str, size_t len) {
     (void)env;
     warning_printf("%s", str);
@@ -525,12 +500,13 @@ void mp_hal_stdout_tx_str(const char *str) {
 
 static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     if(bw_repl_exec) {
-        ImGuiInputTextCallbackData_SelectAll(data);
-        ImGuiInputTextCallbackData_ClearSelection(data);
-        memset(data->Buf, 0, data->BufSize);
-        memset(bw_repl_continuation_buffer, 0, sizeof(bw_repl_continuation_buffer));
-        data->CursorPos = 0;
-        data->BufTextLen = 0;
+        if(bw_repl_exec_error_maybe) {
+            // Remove the trailing \n
+            ImGuiInputTextCallbackData_DeleteChars(data, data->BufTextLen - 1, 1);
+            bw_repl_exec_error_maybe = false;
+        } else {
+            ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+        }
         bw_repl_exec = false;
     }
 
@@ -551,66 +527,6 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
         }
         return 0;
     }
-
-    /*
-    if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
-        if(bw_repl_last_cursor_pos == bw_repl_cursor_pos) {
-            return 0;
-        }
-        bw_repl_last_cursor_pos = bw_repl_cursor_pos;
-        if (bw_repl_cursor_pos == 0) {
-            //strncpy(&data->Buf[data->CursorPos], pr, 1024);
-            //data->CursorPos += strnlen(pr, 1024);
-            char *pr = (char *)mp_repl_get_ps1();
-            //ImGuiInputTextCallbackData_InsertChars(data, bw_repl_cursor_pos, pr, pr + strnlen(pr, 1024));
-            //bw_repl_cursor_pos = data->CursorPos;
-            bw_repl_print_str(pr);
-            bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
-        }
-        char last = bw_repl_buf[data->CursorPos - 1];
-        //printf("Last: %c\n", last);
-        if(last == '\n') {
-            char *line = &bw_repl_buf[bw_repl_last_linebreak_pos];
-            int endline = bw_repl_cursor_pos - 1 - bw_repl_last_linebreak_pos;
-            //printf("line: %s\n", line);
-            bw_repl_last_linebreak_pos = bw_repl_cursor_pos - 1;
-
-            line[endline] = '\0';
-            size_t line_len = strlen(line) + 1;
-            line[endline] = '\n';
-    
-            memcpy(bw_repl_continuation_buffer + bw_repl_continuation_ptr, line, line_len);
-            bw_repl_continuation_ptr += line_len;
-
-            bw_repl_continuation_buffer[bw_repl_continuation_ptr - 1] = '\0';
-            bool continuation = mp_repl_continue_with_input(bw_repl_continuation_buffer);
-            bw_repl_continuation_buffer[bw_repl_continuation_ptr - 1] = '\n';
-
-            warning_printf("cont buf: %s\n", bw_repl_continuation_buffer);
-            warning_printf("repl buf: %s\n", bw_repl_buf);
-            
-            if (continuation) {
-                char *pr = (char *)mp_repl_get_ps2();
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
-                bw_repl_print_str(pr);
-                bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
-            } else {
-                //active_callback = data;
-                int ret = execute_from_lexer(LEX_SRC_STR, bw_repl_continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
-                memset(bw_repl_continuation_buffer, 0, bw_repl_continuation_ptr);
-                bw_repl_continuation_ptr = 0;
-                (void)ret;
-                //active_callback = NULL;
-
-                char *pr = (char *)mp_repl_get_ps1();
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, pr, pr + strnlen(pr, 1024));
-                //bw_repl_cursor_pos = data->CursorPos;
-                //bw_repl_print_str(pr);
-                //bw_repl_last_linebreak_pos = bw_repl_cursor_pos;
-            }
-        }
-    }
-        */
     return 0;
 }
 
@@ -628,9 +544,10 @@ static void sokol_frame(void) {
     }
 
     //sgl_defaults();
-    sg_update_image(state.color_img, &(sg_image_data){
+
+    /*sg_update_image(state.color_img, &(sg_image_data){
         .subimage[0][0] = SG_RANGE(buffer)
-    });
+    });*/
 
     /*sgl_enable_texture();
     sgl_matrix_mode_projection();
@@ -657,23 +574,46 @@ static void sokol_frame(void) {
         }
     }
 
+    // TODO: Why don't sapp_width and sapp_height update on window resize?
+    //ImVec2 window_size = {sapp_width(), sapp_height()};
+
     /*=== UI CODE STARTS HERE ===*/
-    igSetNextWindowPos((ImVec2){0, 480}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){640, 120}, ImGuiCond_Once);
+    igSetNextWindowPos((ImVec2){0, 720}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){960, 120}, ImGuiCond_Once);
 
     //igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
-    if (igBegin("MicroPython Output", 0, ImGuiWindowFlags_NoTitleBar )) {
+    if (igBegin("MicroPython Output", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize )) {
         igText("%s", bw_repl_buf);
+        if(!igIsWindowHovered(ImGuiHoveredFlags_RootWindow)) {
+            igSetScrollY(igGetScrollMaxY());
+        }
     }
     igEnd();
 
-    igSetNextWindowPos((ImVec2){0, 600}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){640, 120}, ImGuiCond_Once);
-    if (igBegin("MicroPython Input", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar )) {
-        const ImVec2 size = igGetWindowContentRegionMax();
-        if(igInputTextMultilineEx("", bw_repl_continuation_buffer, BW_REPL_SIZE, size, ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackAlways, _igReplCallback, NULL)){
+    igSetNextWindowPos((ImVec2){0, 720 + 120}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){960, 120}, ImGuiCond_Once);
+    if (igBegin("MicroPython Input", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize )) {
+        const ImVec2 size = igGetContentRegionAvail();
+        // ImGuiInputTextFlags_CallbackHistory does not work with multiline :(
+        if(igInputTextMultilineEx("##TextInput", bw_repl_continuation_buffer, BW_REPL_SIZE, size, ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackAlways, _igReplCallback, NULL)){
             if(bw_repl_exec) {
+                char *bw_repl_cont_p = bw_repl_continuation_buffer;
+                size_t bw_repl_cont_len = strlen(bw_repl_continuation_buffer);
+                size_t bw_repl_line_len = 0;
+                for(int i = 0; i < bw_repl_cont_len; i++) {
+                    const char c = bw_repl_cont_p[bw_repl_line_len];
+                    if(c == '\n') {
+                        bw_repl_print_strn(">>> ", 4);
+                        bw_repl_print_strn(bw_repl_cont_p, bw_repl_line_len + 1);
+                        bw_repl_cont_p += bw_repl_line_len + 1;
+                        bw_repl_line_len = 0;
+                    }
+                    bw_repl_line_len += 1;
+                }
+                //bw_repl_print_strn(bw_repl_continuation_buffer, strlen(bw_repl_continuation_buffer));
                 int ret = execute_from_lexer(LEX_SRC_STR, bw_repl_continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
+                // The user might have deleted or replaced the update callback via the repl....
+                fetch_badgeware_update_callback();
                 (void)ret;
             }
         }
@@ -682,20 +622,33 @@ static void sokol_frame(void) {
     //igPopStyleVar(); // ImGuiStyleVar_WindowPadding
 
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){640, 480}, ImGuiCond_Once);
-    igSetNextWindowSizeConstraints((ImVec2){320, 240}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
+    igSetNextWindowSize((ImVec2){960, 720}, ImGuiCond_Once);
+    // TODO: bring this back when we figure out parent window resizing...
+    (void)_igWindowMaintainAspect;
+    //igSetNextWindowSizeConstraints((ImVec2){960, 720}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
+
+    // Create the image just in time... sokol was not happy about me trying to update an existing image!?
+    sg_destroy_image(state.color_img);
+    state.color_img = sg_make_image(&(sg_image_desc){
+        .width = 320,
+        .height = 240,
+        .type = SG_IMAGETYPE_2D,
+        .pixel_format = SG_PIXELFORMAT_RGBA8,
+        .data.subimage[0][0] = SG_RANGE(picovector_buffer)
+    });
 
     igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
-    if (igBegin("PicoVector Output", 0, ImGuiWindowFlags_NoScrollbar)) {
+    if (igBegin("PicoVector Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
         const ImVec2 size = igGetWindowSize();
         const ImVec2 uv0 = { 0, 0 };
         const ImVec2 uv1 = { 1, 1 };
-        sg_image img = state.color_img;
-        ImTextureID texid0 = simgui_imtextureid_with_sampler(img, state.smp.nearest_clamp);
+        ImTextureID texid0 = simgui_imtextureid_with_sampler(state.color_img, state.smp.nearest_clamp);
         igImageEx(imtexref(texid0), size, uv0, uv1);
     }
     igEnd();
     igPopStyleVar(); // ImGuiStyleVar_WindowPadding
+
+    //sg_destroy_image(color_img);
 
   
     /*=== UI CODE ENDS HERE ===*/
@@ -717,6 +670,7 @@ static void sokol_cleanup(void) {
 static void sokol_event(const sapp_event* ev) {
     simgui_handle_event(ev);
 }
+
 sapp_desc sokol_main(int argc, char* argv[]) {
     // Define a reasonable stack limit to detect stack overflow.
     mp_uint_t stack_size = 40000 * (sizeof(void *) / 4);
@@ -742,8 +696,8 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .cleanup_cb = sokol_cleanup,
         .event_cb = sokol_event,
         .window_title = "Badgeware Desktop",
-        .width = 800,
-        .height = 720,
+        .width = 960,
+        .height = 960,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };

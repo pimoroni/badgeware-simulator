@@ -22,31 +22,33 @@ typedef struct _shape_obt_t {
 typedef struct _modpicovector_obj_t {
     mp_obj_base_t base;
     image *fb;
-    float j;
 } modpicovector_obj_t;
 
-//std::vector<shape> shapelist(25);
 
-uint32_t buffer[320 * 240] = {0};
+#define PICOVECTOR_WIDTH 320
+#define PICOVECTOR_HEIGHT 240
+
+uint32_t picovector_buffer[PICOVECTOR_WIDTH * PICOVECTOR_HEIGHT] = {0};
 
 mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    enum {
+    /*enum {
         ARG_fb
-    };
+    };*/
     static const mp_arg_t allowed_args[] = {
-        { MP_QSTR_fb, MP_ARG_REQUIRED | MP_ARG_OBJ }
+        //{ MP_QSTR_fb, MP_ARG_REQUIRED | MP_ARG_OBJ }
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
 
-    mp_buffer_info_t bufinfo;
-    mp_get_buffer_raise(args[ARG_fb].u_obj, &bufinfo, MP_BUFFER_RW);
+    //mp_buffer_info_t bufinfo;
+    //mp_get_buffer_raise(args[ARG_fb].u_obj, &bufinfo, MP_BUFFER_RW);
 
     modpicovector_obj_t *self = mp_obj_malloc_with_finaliser(modpicovector_obj_t, type);
 
     //self->fb = new image((uint32_t *)(bufinfo.buf), 320, 240);
-    self->fb = new(m_tracked_calloc(sizeof(image), 1)) image(buffer, 320, 240);
-    self->j = 0;
+    self->fb = new(m_tracked_calloc(sizeof(image), 1)) image(picovector_buffer, PICOVECTOR_WIDTH, PICOVECTOR_HEIGHT);
+
+    self->fb->clear(self->fb->pen(20, 30, 40));
 
     return MP_OBJ_FROM_PTR(self);
 }
@@ -298,92 +300,14 @@ mp_obj_t modpicovector_draw(mp_obj_t self_in, mp_obj_t shape_in) {
     //std::cerr << "shape->shape = " << reinterpret_cast<void*>(shape->shape) << std::hex << std::endl;
     //std::cerr << "self->fb = " << reinterpret_cast<void*>(self->fb) << std::hex << std::endl;
     shape->shape->draw(*self->fb); // :/
+
+    return mp_const_none; // It took fifteen years to figure out this was missing.
 }
 
 mp_obj_t modpicovector_loop(mp_obj_t self_in) {
     self(self_in, modpicovector_obj_t);
     self->fb->clear(self->fb->pen(20, 30, 40));
-    /*
-    float stroke = sin(self->j / 50.0f) * 0.1f + 0.15f;
 
-    colour white = colour();
-    brightness lighten = brightness();
-    lighten.amount = 30;
-    white.col = self->fb->pen(255, 255, 255, 100);
-    shapelist[0] = circle(0.0f, 0.0f, 1.0f);      
-    shapelist[0].style = &white;
-    shapelist[1] = circle(0.0f, 0.0f, 1.0f);      
-    shapelist[1].style = &lighten;
-    shapelist[1].stroke(-stroke);
-
-    shapelist[2] = regular_polygon(0.0f, 0.0f, 3, 1.0f);
-    shapelist[2].style = &white;
-    shapelist[3] = regular_polygon(0.0f, 0.0f, 3, 1.0f);
-    shapelist[3].style = &white;
-    shapelist[3].stroke(-stroke);
-
-    shapelist[4] = regular_polygon(0.0f, 0.0f, 4, 1.0f);
-    shapelist[4].style = &white;
-    shapelist[5] = regular_polygon(0.0f, 0.0f, 4, 1.0f);
-    shapelist[5].style = &white;
-    shapelist[5].stroke(-stroke);
-
-    shapelist[6] = regular_polygon(0.0f, 0.0f, 5, 1.0f);
-    shapelist[6].style = &white;
-    shapelist[7] = regular_polygon(0.0f, 0.0f, 5, 1.0f);
-    shapelist[7].style = &white;
-    shapelist[7].stroke(-stroke);
-
-    shapelist[8] = regular_polygon(0.0f, 0.0f, 6, 1.0f);
-    shapelist[8].style = &white;
-    shapelist[9] = regular_polygon(0.0f, 0.0f, 6, 1.0f);
-    shapelist[9].style = &white;
-    shapelist[9].stroke(-stroke);
-
-    shapelist[10] = star(0.0f, 0.0f, 9.0f, 1.0f, 0.5f);      
-    shapelist[10].style = &white;
-    shapelist[11] = star(0.0f, 0.0f, 9.0f, 1.0f, 0.5f);      
-    shapelist[11].style = &white;
-    shapelist[11].stroke(-stroke);
-
-    shapelist[12] = line(-0.5f, -0.5f, 0.5f, 0.5f);      
-    shapelist[12].style = &white;
-    shapelist[12].stroke(-stroke);
-
-    shapelist[13] = squircle(0.0f, 0.0f, 0.75f, 4.0f);
-    shapelist[13].style = &white;
-    shapelist[14] = squircle(0.0f, 0.0f, 0.75f, 4.0f);
-    shapelist[14].style = &white;
-    shapelist[14].stroke(-stroke);
-
-    shapelist[15] = pie(0.0f, 0.0f, 0.0f, 180.0f + (sin(self->j / 25.0f) * 75.0f), 1.0f);
-    shapelist[15].style = &white;
-    shapelist[16] = pie(0.0f, 0.0f, 0.0f, 180.0f + (sin(self->j / 25.0f) * 75.0f), 1.0f);
-    shapelist[16].style = &white;
-    shapelist[16].stroke(-stroke);
-
-    shapelist[17] = rectangle(-0.75f, -0.75f, 0.75f, 0.75f);
-    shapelist[17].style = &white;
-    shapelist[18] = rectangle(-0.75f, -0.75f, 0.75f, 0.75f);
-    shapelist[18].style = &white;
-    shapelist[18].stroke(-stroke);
-
-    self->fb->clear(self->fb->pen(20, 30, 40));
-
-    for(int i = 0; i < shapelist.size(); i++) {
-        shape shape = shapelist[i];
-
-        int x = (i % 5) * 48 + 24;
-        int y = (i / 5) * 48 + 24;
-
-        mat3 transform;
-        transform.translate(x, y).rotate(self->j / 5.0f).scale(20);
-        shape.transform = transform;
-        shape.draw(*self->fb);
-    }
-
-    self->j += 1.0f;
-    */
     return mp_const_none;
 }
 

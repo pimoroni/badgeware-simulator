@@ -29,6 +29,7 @@ struct MPAllocator
             report(p, n);
             return p;
         }
+        return NULL;
  
         //throw std::bad_alloc();
     }

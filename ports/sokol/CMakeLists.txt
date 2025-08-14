@@ -14,7 +14,7 @@ get_filename_component(USER_C_MODULES ${USER_C_MODULES} ABSOLUTE)
 
 # Set build type to reduce firmware size
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE MinSizeRel)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
 # Set main target and component locations
