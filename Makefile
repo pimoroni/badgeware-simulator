@@ -4,6 +4,8 @@ all: submodules cmake_build_dir cmake_configure cmake_build
 
 submodules:
 	git submodule update --init
+	cd lib/micropython
+	git submodule update --init lib/micropython-lib
 
 cmake_build_dir:
 	mkdir -p "${CMAKE_BUILD_DIR}"
