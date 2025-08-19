@@ -665,16 +665,19 @@ static void sokol_frame(void) {
     //igPopStyleVar(); // ImGuiStyleVar_WindowPadding
 
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){960, 720}, ImGuiCond_Once);
+    igSetNextWindowSize((ImVec2){960,  720}, ImGuiCond_Once);
     // TODO: bring this back when we figure out parent window resizing...
     (void)_igWindowMaintainAspect;
     //igSetNextWindowSizeConstraints((ImVec2){960, 720}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
 
     // Create the image just in time... sokol was not happy about me trying to update an existing image!?
     if(picovector_buffer && picovector_width && picovector_height) {
-        fprintf(stdout, "%i x %i -> %p\n", picovector_width, picovector_height, picovector_buffer);
+        //fprintf(stdout, "%i x %i -> %p\n", picovector_width, picovector_height, picovector_buffer);
 
         // If we ever change the output side we need to deinit state.color_img
+        if(sg_query_image_width(state.color_img) != picovector_width || sg_query_image_height(state.color_img) != picovector_height) {
+            sg_uninit_image(state.color_img);
+        }
         if(sg_query_image_state(state.color_img) == SG_RESOURCESTATE_ALLOC) {
             sg_init_image(state.color_img, &(sg_image_desc){
                 .width = picovector_width,
@@ -693,7 +696,7 @@ static void sokol_frame(void) {
 
         igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
         if (igBegin("PicoVector Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-            const ImVec2 size = igGetWindowSize();
+            const ImVec2 size = {960, 960 / picovector_width * picovector_height};
             const ImVec2 uv0 = { 0, 0 };
             const ImVec2 uv1 = { 1, 1 };
 
