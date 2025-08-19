@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libsokol.a "CMakeFiles/sokol.dir/Users/gadgetoid/Development/micropython-web/picovector/lib/sokol/sokol.c.o"
+/Library/Developer/CommandLineTools/usr/bin/ranlib libsokol.a

@@ -22,20 +22,22 @@ typedef struct _shape_obt_t {
 typedef struct _modpicovector_obj_t {
     mp_obj_base_t base;
     image *fb;
+    void *buffer;
+    int width;
+    int height;
 } modpicovector_obj_t;
 
-
-#define PICOVECTOR_WIDTH 320
-#define PICOVECTOR_HEIGHT 240
-
-uint32_t picovector_buffer[PICOVECTOR_WIDTH * PICOVECTOR_HEIGHT] = {0};
+void *picovector_buffer;
+int picovector_width = 0;
+int picovector_height = 0;
 
 mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {
-    /*enum {
-        ARG_fb
-    };*/
+    enum {
+        ARG_width, ARG_height
+    };
     static const mp_arg_t allowed_args[] = {
-        //{ MP_QSTR_fb, MP_ARG_REQUIRED | MP_ARG_OBJ }
+        {MP_QSTR_width, MP_ARG_REQUIRED | MP_ARG_INT },
+        {MP_QSTR_height, MP_ARG_REQUIRED | MP_ARG_INT }
     };
     mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
     mp_arg_parse_all_kw_array(n_args, n_kw, all_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
@@ -45,8 +47,17 @@ mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 
     modpicovector_obj_t *self = mp_obj_malloc_with_finaliser(modpicovector_obj_t, type);
 
+    self->width = args[ARG_width].u_int;
+    self->height = args[ARG_height].u_int;
+
+    self->buffer = m_tracked_calloc(self->width * self->height, sizeof(uint32_t));
+
+    picovector_width = self->width;
+    picovector_height = self->height;
+    picovector_buffer = self->buffer;
+
     //self->fb = new image((uint32_t *)(bufinfo.buf), 320, 240);
-    self->fb = new(m_tracked_calloc(sizeof(image), 1)) image(picovector_buffer, PICOVECTOR_WIDTH, PICOVECTOR_HEIGHT);
+    self->fb = new(m_tracked_calloc(sizeof(image), 1)) image((uint32_t *)self->buffer, self->width, self->height);
 
     self->fb->clear(self->fb->pen(20, 30, 40));
 

@@ -1,0 +1,7 @@
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/sokol.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/cimgui.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/micropython.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/BUILD_VERSION_HEADER.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/BUILD_FROZEN_CONTENT.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/edit_cache.dir
+/Users/gadgetoid/Development/micropython-web/picovector/ports/sokol/build/CMakeFiles/rebuild_cache.dir

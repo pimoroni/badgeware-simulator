@@ -1,0 +1,18 @@
+# Hashes of file build rules.
+d44a03a78aad5b04294cdc0f6a2518b3 /Users/gadgetoid/Development/micropython-web/picovector/lib/micropython/mpy-cross/build/mpy-cross
+d57bbcf7412ff371c6842fcf47df780a CMakeFiles/BUILD_FROZEN_CONTENT
+0e192c3c252429fdf4133855ebacfb66 CMakeFiles/BUILD_VERSION_HEADER
+b49b3789b8b5d4b9bfb936c3ca2d6712 genhdr/compressed.collected
+c6226e17be37801ecb947dbca52f0b3d genhdr/compressed.data.h
+fd7e7595c9ef896db854c6149f338147 genhdr/compressed.split
+eac877e4a789e633290891690eeb7fa2 genhdr/moduledefs.collected
+bfbd188ad7b806b0d356dc978f1bd500 genhdr/moduledefs.h
+ba3a260d48f4cd0588de895415ab3ca7 genhdr/moduledefs.split
+648607ec15859df39ec231b09c591ac4 genhdr/qstr.i.last
+76ac38f50a5d2d888d9b43a414498dc1 genhdr/qstr.split
+4ba236ff2741f00d9a9a66b1621d8485 genhdr/qstrdefs.collected.h
+fa51eb62b030fcf173194f30db11488f genhdr/qstrdefs.generated.h
+4d3b2a514085024f1c74a415f353af48 genhdr/qstrdefs.preprocessed.h
+c57e66193dcb16658c1fbd0bca7c7240 genhdr/root_pointers.collected
+8652e43d67f7080779f1aa960ba13849 genhdr/root_pointers.h
+f85c1a5bb1cd8bf7c3dbe695fefbea55 genhdr/root_pointers.split
