@@ -4,4 +4,4 @@
 	branch = tags/v1.26.0
 [submodule "lib/dmon"]
 	path = lib/dmon
-	url = https://github.com/gadgeotid/dmon
+	url = https://github.com/gadgetoid/dmon
