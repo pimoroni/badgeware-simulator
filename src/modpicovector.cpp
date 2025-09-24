@@ -353,7 +353,7 @@ mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_m
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
 
-    brush->brush = new color_brush(r, g, b, a);
+    brush->brush = m_new_class(color_brush, r, g, b, a);
 
     self->fb->brush = brush->brush;
     // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
@@ -384,7 +384,7 @@ mp_obj_t modpicovector_xor_brush(size_t n_args, const mp_obj_t *pos_args, mp_map
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
 
-    brush->brush = new xor_brush(r, g, b);
+    brush->brush = m_new_class(xor_brush, r, g, b);
 
     self->fb->brush = brush->brush;
     // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
@@ -412,7 +412,7 @@ mp_obj_t modpicovector_brighten_brush(size_t n_args, const mp_obj_t *pos_args, m
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
 
-    brush->brush = new brighten_brush(amount);
+    brush->brush = m_new_class(brighten_brush, amount);
 
     self->fb->brush = brush->brush;
     // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
