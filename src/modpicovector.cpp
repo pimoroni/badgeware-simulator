@@ -322,7 +322,7 @@ mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
 
 
 mp_obj_t modpicovector_brush(mp_obj_t self_in, mp_obj_t brush_in) {
-    self(brush_in, modpicovector_obj_t);
+    self(self_in, modpicovector_obj_t);
     if(!mp_obj_is_exact_type(brush_in, &type_Brush)) {
         mp_raise_ValueError(MP_ERROR_TEXT("brush: Must be a valid brush!"));
     }
