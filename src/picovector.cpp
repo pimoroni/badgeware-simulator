@@ -37,8 +37,8 @@ void operator delete(void * p)// throw()
 
 using namespace std;
 
-//#define debug_printf(fmt, ...)
-#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+#define debug_printf(fmt, ...)
+//#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 namespace picovector {
   struct _edgeinterp {

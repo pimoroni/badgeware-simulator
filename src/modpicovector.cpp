@@ -13,17 +13,18 @@ extern "C" {
 
 extern const mp_obj_type_t type_PicoVector;
 extern const mp_obj_type_t type_Shape;
-extern const mp_obj_type_t type_ColorBrush;
+extern const mp_obj_type_t type_Brush;
+//extern const mp_obj_type_t type_XORBrush;
 
 typedef struct _shape_obt_t {
     mp_obj_base_t base;
     shape *shape;
 } shape_obj_t;
 
-typedef struct _color_brush_obt_t {
+typedef struct _brush_obt_t {
     mp_obj_base_t base;
     brush *brush;
-} color_brush_obj_t;
+} brush_obj_t;
 
 typedef struct _modpicovector_obj_t {
     mp_obj_base_t base;
@@ -320,6 +321,15 @@ mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
 }
 
 
+mp_obj_t modpicovector_brush(mp_obj_t self_in, mp_obj_t brush_in) {
+    self(brush_in, modpicovector_obj_t);
+    brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(brush_in);
+
+    self->fb->brush = brush->brush;
+
+    return mp_const_none; // It took fifteen years to figure out this was missing.
+}
+
 mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_self, ARG_r, ARG_g, ARG_b, ARG_a };
     static const mp_arg_t allowed_args[] = {
@@ -341,9 +351,68 @@ mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_m
     int a = mp_obj_get_float(args[ARG_a].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    color_brush_obj_t *brush = mp_obj_malloc(color_brush_obj_t, &type_ColorBrush);
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
 
     brush->brush = new color_brush(r, g, b, a);
+
+    self->fb->brush = brush->brush;
+    // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    // //std::cerr << "line" << std::endl;
+    // shape->shape = line(x1, y1, x2, y2);
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    return MP_OBJ_FROM_PTR(brush);
+}
+
+mp_obj_t modpicovector_xor_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_self, ARG_r, ARG_g, ARG_b };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_r, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_g, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_b, MP_ARG_REQUIRED | MP_ARG_OBJ },
+    };
+
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    self(args[ARG_self].u_obj, modpicovector_obj_t);
+
+    int r = mp_obj_get_float(args[ARG_r].u_obj);
+    int g = mp_obj_get_float(args[ARG_g].u_obj);
+    int b = mp_obj_get_float(args[ARG_b].u_obj);
+
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
+
+    brush->brush = new xor_brush(r, g, b);
+
+    self->fb->brush = brush->brush;
+    // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    // //std::cerr << "line" << std::endl;
+    // shape->shape = line(x1, y1, x2, y2);
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    return MP_OBJ_FROM_PTR(brush);
+}
+
+
+mp_obj_t modpicovector_brighten_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_self, ARG_amount };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { ARG_amount, MP_ARG_REQUIRED | MP_ARG_OBJ },
+    };
+
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    self(args[ARG_self].u_obj, modpicovector_obj_t);
+
+    int amount = mp_obj_get_float(args[ARG_amount].u_obj);
+
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
+
+    brush->brush = new brighten_brush(amount);
 
     self->fb->brush = brush->brush;
     // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);

@@ -12,6 +12,9 @@ static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector__del___obj, modpicovector__del__)
 extern mp_obj_t modpicovector_draw(mp_obj_t self_in, mp_obj_t shape_in);
 static MP_DEFINE_CONST_FUN_OBJ_2(modpicovector_draw_obj, modpicovector_draw);
 
+extern mp_obj_t modpicovector_brush(mp_obj_t self_in, mp_obj_t brush_in);
+static MP_DEFINE_CONST_FUN_OBJ_2(modpicovector_brush_obj, modpicovector_brush);
+
 extern mp_obj_t modpicovector_regular_polygon(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
 static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_regular_polygon_obj, 5, modpicovector_regular_polygon);
 
@@ -39,13 +42,20 @@ static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_line_obj, 5, modpicovector_line)
 extern mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
 static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_color_brush_obj, 5, modpicovector_color_brush);
 
+extern mp_obj_t modpicovector_xor_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_xor_brush_obj, 4, modpicovector_xor_brush);
+
+extern mp_obj_t modpicovector_brighten_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_brighten_brush_obj, 2, modpicovector_brighten_brush);
+
 extern mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
-static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_clear_obj, 1, modpicovector_color_brush);
+static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_clear_obj, 1, modpicovector_clear);
 
 
 static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_loop), MP_ROM_PTR(&modpicovector_loop_obj) },
     { MP_ROM_QSTR(MP_QSTR_draw), MP_ROM_PTR(&modpicovector_draw_obj) },
+    { MP_ROM_QSTR(MP_QSTR_brush), MP_ROM_PTR(&modpicovector_brush_obj) },
     { MP_ROM_QSTR(MP_QSTR_regular_polygon), MP_ROM_PTR(&modpicovector_regular_polygon_obj) },
     { MP_ROM_QSTR(MP_QSTR_circle), MP_ROM_PTR(&modpicovector_circle_obj) },
     { MP_ROM_QSTR(MP_QSTR_rectangle), MP_ROM_PTR(&modpicovector_rectangle_obj) },
@@ -55,6 +65,8 @@ static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_star), MP_ROM_PTR(&modpicovector_star_obj) },
     { MP_ROM_QSTR(MP_QSTR_line), MP_ROM_PTR(&modpicovector_line_obj) },
     { MP_ROM_QSTR(MP_QSTR_color_brush), MP_ROM_PTR(&modpicovector_color_brush_obj) },
+    { MP_ROM_QSTR(MP_QSTR_xor_brush), MP_ROM_PTR(&modpicovector_xor_brush_obj) },
+    { MP_ROM_QSTR(MP_QSTR_brighten_brush), MP_ROM_PTR(&modpicovector_brighten_brush_obj) },
     { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&modpicovector_clear_obj) },
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&modpicovector__del___obj) },
 };
@@ -75,8 +87,8 @@ MP_DEFINE_CONST_OBJ_TYPE(
 );
 
 MP_DEFINE_CONST_OBJ_TYPE(
-    type_ColorBrush,
-    MP_QSTR_ColorBrush,
+    type_Brush,
+    MP_QSTR_Brush,
     MP_TYPE_FLAG_NONE
 );
 

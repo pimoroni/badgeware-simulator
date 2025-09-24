@@ -8,12 +8,12 @@ namespace picovector {
   #define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
   color_brush::color_brush(int r, int g, int b, int a) {
-    this->color = (a << 24) | (r << 16) | (g << 8) | (b);
+    this->color = (r << 24) | (g << 16) | (b << 8) | a;
   }
 
   void color_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
     for(const _rspan &span : spans) {
-      debug_printf("%d, %d (%d) [%x]\n", span.x, span.y, span.w, color);
+      //debug_printf("%d, %d (%d) [%x]\n", span.x, span.y, span.w, color);
 
       uint32_t *dst = target->ptr(span.x, span.y);
       span_argb8(dst, span.w, color);      
@@ -41,7 +41,9 @@ namespace picovector {
     // }
   }
 
-  void brightness_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+  brighten_brush::brighten_brush(int amount) : amount(amount) {}
+  
+  void brighten_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
     for(const _rspan &span : spans) {
       //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
@@ -65,6 +67,28 @@ namespace picovector {
       }
     }
   }
+
+  xor_brush::xor_brush(int r, int g, int b) {
+    this->color = (r << 24) | (g << 16) | (b << 8);
+  }
+
+  void xor_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+    for(const _rspan &span : spans) {
+      //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+
+      uint32_t *dst = target->ptr(span.x, span.y); 
+      uint8_t *src = (uint8_t*)&color;
+      for(int i = 0; i < span.w; i++) {
+        uint8_t *pd = (uint8_t *)dst;
+
+        pd[1] ^= src[1];
+        pd[2] ^= src[2];
+        pd[3] ^= src[3];
+
+        dst++;
+      }
+    }
+  }  
 
   // void xor::render_spans(image *target, shape *shape, render_span *spans, int count) {
   //   while(count--) {
