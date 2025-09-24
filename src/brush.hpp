@@ -8,7 +8,7 @@
 namespace picovector {
 
   struct brush {
-    virtual void render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans);
+    virtual void render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) = 0;
   };
   
   struct color_brush : public brush {
