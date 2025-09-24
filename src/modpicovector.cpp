@@ -323,8 +323,10 @@ mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
 
 mp_obj_t modpicovector_brush(mp_obj_t self_in, mp_obj_t brush_in) {
     self(brush_in, modpicovector_obj_t);
+    if(!mp_obj_is_exact_type(brush_in, &type_Brush)) {
+        mp_raise_ValueError(MP_ERROR_TEXT("brush: Must be a valid brush!"));
+    }
     brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(brush_in);
-
     self->fb->brush = brush->brush;
 
     return mp_const_none; // It took fifteen years to figure out this was missing.
