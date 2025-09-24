@@ -1,0 +1,85 @@
+#include "brush.hpp"
+#include "span.hpp"
+
+using namespace std;
+
+namespace picovector {
+
+  #define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+
+  color_brush::color_brush(int r, int g, int b, int a) {
+    this->color = (a << 24) | (r << 16) | (g << 8) | (b);
+  }
+
+  void color_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+    for(const _rspan &span : spans) {
+      debug_printf("%d, %d (%d) [%x]\n", span.x, span.y, span.w, color);
+
+      uint32_t *dst = target->ptr(span.x, span.y);
+      span_argb8(dst, span.w, color);      
+    }
+  }
+
+  void blur_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+    // debug_printf("render colour\n");
+    // while(count--) {
+    //   debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+
+    //   uint32_t *dst = target->ptr(spans->x, spans->y);
+    //   for(int i = 0; i < spans->w; i++) {
+    //     uint8_t *pd = (uint8_t *)dst;
+
+    //     int r = pd[1];
+
+    //     int g = pd[2] + amount;
+
+    //     int b = pd[3] + amount;
+
+    //     dst++;
+    //   }
+    //   spans++;
+    // }
+  }
+
+  void brightness_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+    for(const _rspan &span : spans) {
+      //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+
+      uint32_t *dst = target->ptr(span.x, span.y);    
+      for(int i = 0; i < span.w; i++) {
+        uint8_t *pd = (uint8_t *)dst;
+
+        int r = pd[1] + amount;
+        r = max(0, min(r, 255));
+        pd[1] = r;
+
+        int g = pd[2] + amount;
+        g = max(0, min(g, 255));
+        pd[2] = g;
+
+        int b = pd[3] + amount;
+        b = max(0, min(b, 255));
+        pd[3] = b;
+
+        dst++;
+      }
+    }
+  }
+
+  // void xor::render_spans(image *target, shape *shape, render_span *spans, int count) {
+  //   while(count--) {
+  //     debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+
+  //     uint32_t *dst = target->ptr(spans->x, spans->y);
+  //     for(int i = 0; i < spans->w; i++) {
+  //       uint8_t *pd = (uint8_t *)dst;
+  //       pd[1] = ^pd[1];
+  //       pd[2] = ^pd[2];
+  //       pd[3] = ^pd[3];
+
+  //       dst++;
+  //     }
+  //     spans++;
+  //   }
+  // }
+}

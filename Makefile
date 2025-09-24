@@ -13,7 +13,7 @@ cmake_configure:
 	cmake -S micropython -B "${CMAKE_BUILD_DIR}"
 
 cmake_build:
-	cmake --build "${CMAKE_BUILD_DIR}" -j
+	cmake --build "${CMAKE_BUILD_DIR}"
 
 run:
 	"./${CMAKE_BUILD_DIR}/micropython" code=test/main.py

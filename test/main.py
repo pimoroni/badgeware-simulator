@@ -1,3 +1,4 @@
+import math
 
 from picovector import PicoVector
 
@@ -9,21 +10,35 @@ v = PicoVector(WIDTH, HEIGHT)
 
 cx = WIDTH / 2
 cy = HEIGHT / 2
-r1 = HEIGHT / 3
-r2 = HEIGHT / 4
+r1 = HEIGHT / 6
+r2 = HEIGHT / 6
 
-regular_polygon = v.regular_polygon(cx, cy, r1, 5)
-squircle = v.squircle(cx, cy, r1, 5)
-circle = v.circle(cx, cy, r1)
-star = v.star(cx, cy, 24, r2, r1)
-pie = v.pie(cx, cy, 0, 270, r1)
+regular_polygon = v.regular_polygon(60, 60, r1, 5)
+
+circle = v.circle(240, 60, r1)
+squircle = v.squircle(150, 60, r1, 5)
+star = v.star(60, 150, 24, r2, r1)
+pie = v.pie(150, 150, 0, 270, r1)
 
 def update(ticks):
-    v.loop()
-    v.draw(squircle)
-    v.draw(regular_polygon)
-    v.draw(circle)
-    v.draw(star)
-    v.draw(pie)
-    # print(ticks)
-    return True
+  print(ticks)
+  v.loop()
+
+  brush = v.color_brush(20, 40, 60, 255)
+  v.clear()
+
+  brush = v.color_brush(255, 255, 100, 100)
+  
+  x = math.sin(ticks / 1000) * 20
+  y = math.cos(ticks / 1000) * 20
+
+  squircle = v.squircle(x + 160, y + 120, r1, 5)
+
+  v.draw(squircle)
+
+#  v.draw(regular_polygon)
+#  v.draw(circle)  
+  #v.draw(pie)
+##  v.draw(star)
+  #print(ticks)
+  return True

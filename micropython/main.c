@@ -80,8 +80,8 @@
 
 
 // TODO: I think normal `printf` is overriden *somewhere* so we must explicitly print to stdout
-#define debug_printf(fmt, ...)
-//#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+//#define debug_printf(fmt, ...)
+#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 #define warning_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 

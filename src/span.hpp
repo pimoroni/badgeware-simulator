@@ -1,5 +1,3 @@
-#pragma once
-
 #include <stdint.h>
 #ifdef PICO
 #include "hardware/interp.h"
@@ -54,11 +52,11 @@ inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c
     }
 #else
     while(w--) {
-        uint8_t *pd = (uint8_t *)dst;
-        pd[1] = ((pd[1] * (255 - ps[0])) + (ps[1] * ps[0])) / 255;
-        pd[2] = ((pd[2] * (255 - ps[0])) + (ps[2] * ps[0])) / 255;
-        pd[3] = ((pd[3] * (255 - ps[0])) + (ps[3] * ps[0])) / 255;
-        dst++;
+      uint8_t *pd = (uint8_t *)dst;
+      pd[1] = ((pd[1] * (255 - ps[0])) + (ps[1] * ps[0])) / 255;
+      pd[2] = ((pd[2] * (255 - ps[0])) + (ps[2] * ps[0])) / 255;
+      pd[3] = ((pd[3] * (255 - ps[0])) + (ps[3] * ps[0])) / 255;
+      dst++;
     }
 #endif
   }

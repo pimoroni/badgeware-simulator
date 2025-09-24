@@ -3,6 +3,9 @@
 #include <new>
 #include <iostream>
 
+#ifndef MMALLOCATOR_H
+#define MMALLOCATOR_H
+
 extern "C" {
     extern void *m_tracked_calloc(size_t nmemb, size_t size);
     extern void m_tracked_free(void *ptr_in);
@@ -44,9 +47,9 @@ struct MPAllocator
 private:
     void report(T* p, std::size_t n, bool alloc = true) const
     {
-        std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
-                  << " bytes at " << std::hex << std::showbase
-                  << reinterpret_cast<void*>(p) << std::dec << std::endl;
+        // std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
+        //           << " bytes at " << std::hex << std::showbase
+        //           << reinterpret_cast<void*>(p) << std::dec << std::endl;
     }
 };
 
@@ -55,3 +58,5 @@ bool operator==(const MPAllocator <T>&, const MPAllocator <U>&) { return true; }
  
 template<class T, class U>
 bool operator!=(const MPAllocator <T>&, const MPAllocator <U>&) { return false; }
+
+#endif // MMALLOCATOR_H

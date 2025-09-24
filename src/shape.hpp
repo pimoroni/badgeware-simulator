@@ -1,0 +1,36 @@
+#pragma once
+
+#include <vector>
+#include "mmallocator.hpp"
+#include "matrix.hpp"
+#include "rect.hpp"
+#include "point.hpp"
+
+namespace picovector {
+
+  class path {
+  public:
+    std::vector<point, MPAllocator<point>> points;
+
+    path(int point_count = 0);
+    void add_point(const point &point);
+    void add_point(float x, float y);
+    void edge_points(int edge, point &s, point &e); 
+    void offset_edge(point &s, point &e, float offset);
+    void stroke(float offset);
+    void inflate(float offset);
+  };
+
+  class shape {
+  public:
+    std::vector<path *, MPAllocator<path *>> paths;
+    mat3 transform;
+
+    shape(int path_count = 0);
+    void add_path(path *path);
+    rect bounds();
+    /*void draw(image &img); // methods should be on image perhaps? with style/brush and transform passed in?
+    void stroke(float thickness);*/
+  };
+
+}

@@ -36,6 +36,12 @@ static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_star_obj, 6, modpicovector_star)
 extern mp_obj_t modpicovector_line(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
 static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_line_obj, 5, modpicovector_line);
 
+extern mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_color_brush_obj, 5, modpicovector_color_brush);
+
+extern mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args);
+static MP_DEFINE_CONST_FUN_OBJ_KW(modpicovector_clear_obj, 1, modpicovector_color_brush);
+
 
 static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_loop), MP_ROM_PTR(&modpicovector_loop_obj) },
@@ -48,6 +54,8 @@ static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_pie), MP_ROM_PTR(&modpicovector_pie_obj) },
     { MP_ROM_QSTR(MP_QSTR_star), MP_ROM_PTR(&modpicovector_star_obj) },
     { MP_ROM_QSTR(MP_QSTR_line), MP_ROM_PTR(&modpicovector_line_obj) },
+    { MP_ROM_QSTR(MP_QSTR_color_brush), MP_ROM_PTR(&modpicovector_color_brush_obj) },
+    { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&modpicovector_clear_obj) },
     { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&modpicovector__del___obj) },
 };
 static MP_DEFINE_CONST_DICT(modpicovector_locals_dict, modpicovector_locals_dict_table);
@@ -63,6 +71,12 @@ MP_DEFINE_CONST_OBJ_TYPE(
 MP_DEFINE_CONST_OBJ_TYPE(
     type_Shape,
     MP_QSTR_Shape,
+    MP_TYPE_FLAG_NONE
+);
+
+MP_DEFINE_CONST_OBJ_TYPE(
+    type_ColorBrush,
+    MP_QSTR_ColorBrush,
     MP_TYPE_FLAG_NONE
 );
 

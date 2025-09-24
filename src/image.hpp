@@ -3,32 +3,36 @@
 #include <stdint.h>
 #include <string>
 
+#include "brush.hpp"
+#include "shape.hpp"
 #include "rect.hpp"
+#include "matrix.hpp"
 
-class image {
-  public:
-    uint32_t *p = nullptr;
-    bool managed_buffer = false;
+namespace picovector {
 
-    rect b;
-    
-    size_t rs; // row stride
+  class image {
+    public:
+      uint32_t *p = nullptr;
+      bool managed_buffer = false;
 
-    image();
-    image(int w, int h);
-    image(uint32_t *p, int w, int h);
-    ~image();
+      rect bounds;
+      brush *brush;          
+      
+      size_t _rowstride; // row stride
 
-    image window(rect r);
+      image(int w, int h);
+      image(uint32_t *p, int w, int h);
+      ~image();
 
-    void clear(uint32_t c = 0);
-    void blit(image &t, const point &p, int alpha = 255);
-    void blit(image &t, rect tr, int alpha = 255);
+      image window(rect r);
+      uint32_t* ptr(int x, int y);
 
-    uint32_t* ptr(int x, int y);
-    
-    void rectangle(rect r, uint32_t c);
-    void circle(point p, int r, uint32_t c);
+      void clear();
+      void rectangle(const rect &r);
+      void circle(const point &p, const int &r);
+      void draw(shape *shape);
+      void blit(image &t, const point &p, int alpha = 255);
+      void blit(image &t, rect tr, int alpha = 255);    
+  };
 
-    uint32_t pen(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
-};
+}

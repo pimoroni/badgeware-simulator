@@ -1,90 +1,83 @@
+#pragma once
+
 #include <stdint.h>
 #include <algorithm>
 
-class point {
-public:  
-  int x;
-  int y;
+#include "point.hpp"
 
-  point() : x(0), y(0) {}
-  point(int x, int y) : x(x), y(y) {}
+namespace picovector {
 
-  bool operator==(const point &rhs) const {
-    return x == rhs.x && y == rhs.y;
-  }
-};
+  class rect {
+  public:
+    float x;
+    float y;
+    float w;
+    float h;
+    
+    rect() {}
+    
+    rect(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {}
 
-class rect {
-public:
-  int x;
-  int y;
-  int w;
-  int h;
-  
-  rect() {}
-  
-  rect(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {
+    rect(const point &p1, const point &p2) {
+      x = p1.x; y = p1. y; w = p2.x - p1.x; h = p2.y - p1.y;
+    }
 
-  }
+    point tl() {return point(x, y);}
+    point br() {return point(x + w, y + h);}
 
-  rect(const point &p1, const point &p2) {
-    x = p1.x; y = p1. y; w = p2.x - p1.x; h = p2.y - p1.y;
-  }
+    void offset(point p) {
+      x += p.x;
+      y += p.y;
+    }
 
-  point tl() {return point(x, y);}
-  point br() {return point(x + w, y + h);}
+    void offset(int ox, int oy) {
+      x += ox;
+      y += oy;
+    }
 
-  void offset(point p) {
-    x += p.x;
-    y += p.y;
-  }
+    bool operator==(const rect &rhs) const {
+      return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
+    }
 
-  void offset(int ox, int oy) {
-    x += ox;
-    y += oy;
-  }
+    bool empty() {
+      return w <= 0 || h <= 0;
+    }
 
-  bool operator==(const rect &rhs) const {
-    return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
-  }
+    bool contains(const point &p) {
+      return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
+    }
 
-  bool empty() {
-    return w <= 0 || h <= 0;
-  }
+    rect intersection(const rect &r) {
+      return rect(
+        std::max(x, r.x),
+        std::max(y, r.y),
+        std::min(x + w, r.x + r.w) - std::max(x, r.x),
+        std::min(y + h, r.y + r.h) - std::max(y, r.y)
+      );
+    }
 
-  bool contains(const point &p) {
-    return p.x >= x && p.x <= x + w && p.y >= y && p.y <= y + h;
-  }
+    bool intersects(const rect &r) {
+      rect i = this->intersection(r);
+      return !i.empty();
+    }
 
-  rect intersection(const rect &r) {
-    return rect(
-      std::max(x, r.x),
-      std::max(y, r.y),
-      std::min(x + w, r.x + r.w) - std::max(x, r.x),
-      std::min(y + h, r.y + r.h) - std::max(y, r.y)
-    );
-  }
+    void shrink(int a) {
+      x += a;
+      y += a;
+      w -= a + a;
+      h -= a + a;
+    }
 
-  bool intersects(const rect &r) {
-    rect i = this->intersection(r);
-    return !i.empty();
-  }
+    void shrink(float left, float top, float right, float bottom) {
+      x += left;
+      y += top;
+      w -= left + right;
+      h -= top + bottom;
+    }
 
-  void shrink(int a) {
-    x += a;
-    y += a;
-    w -= a + a;
-    h -= a + a;
-  }
+    void debug(std::string l = "?") {
+      printf("%s: %f, %f (%f x %f)\n", l.c_str(), x, y, w, h);
+    }
+  };
 
-  void shrink(int left, int top, int right, int bottom) {
-    x += left;
-    y += top;
-    w -= left + right;
-    h -= top + bottom;
-  }
-
-  void debug(std::string l = "?") {
-    printf("%s: %d, %d (%d x %d)\n", l.c_str(), x, y, w, h);
-  }
-};
+}
