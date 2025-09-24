@@ -676,7 +676,10 @@ static void sokol_frame(void) {
 
         // If we ever change the output side we need to deinit state.color_img
         if(sg_query_image_width(state.color_img) != picovector_width || sg_query_image_height(state.color_img) != picovector_height) {
-            sg_uninit_image(state.color_img);
+            sg_resource_state img_state = sg_query_image_state(state.color_img);
+            if(img_state == SG_RESOURCESTATE_VALID || img_state == SG_RESOURCESTATE_FAILED) {
+                sg_uninit_image(state.color_img);
+            }
         }
         if(sg_query_image_state(state.color_img) == SG_RESOURCESTATE_ALLOC) {
             sg_init_image(state.color_img, &(sg_image_desc){
