@@ -37,7 +37,7 @@ void operator delete(void * p)// throw()
 
 using namespace std;
 
-#define debug_printf(fmt, ...)
+//#define debug_printf(fmt, ...)
 //#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 namespace picovector {
@@ -67,15 +67,15 @@ namespace picovector {
     // determine the intersection between transformed polygon and target image
     rect b = shape->bounds();
 
-    debug_printf("rendering shape %p with %d paths\n", (void*)shape, int(shape->paths.size()));
-    debug_printf("setup interpolators\n");
+    //debug_printf("rendering shape %p with %d paths\n", (void*)shape, int(shape->paths.size()));
+    //debug_printf("setup interpolators\n");
     // setup interpolators for each edge of the polygon
     static _edgeinterp edge_interpolators[256];
     int edge_interpolator_count = 0;
     for(path &path : shape->paths) {
       point last = path.points.back(); // start with last point to close loop
       last = last.transform(transform);
-      debug_printf("- adding path with %d points\n", int(path->points.size()));
+      //debug_printf("- adding path with %d points\n", int(path.points.size()));
       for(point next : path.points) {
         next = next.transform(transform);
         // add new edge interpolator
@@ -85,7 +85,7 @@ namespace picovector {
       }
     }
 
-    debug_printf("get nodes\n");
+    //debug_printf("get nodes\n");
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
@@ -118,14 +118,14 @@ namespace picovector {
         node_count -= 2;
 
         if(span_idx == SPAN_BUFFER_SIZE || node_count == 0) {
-          debug_printf("render spans %d\n", int(spans.size()));
+          //debug_printf("render spans %d\n", span_idx);
           brush->render_spans(target, spans, span_idx);
           span_idx = 0;
         }
       }
     }
 
-    debug_printf("render done\n");
+    //debug_printf("render done\n");
   }
 
   

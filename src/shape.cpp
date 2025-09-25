@@ -48,6 +48,7 @@ namespace picovector {
 
 
   shape::shape(int path_count) {
+    //debug_printf("shape constructed\n");
     paths.reserve(path_count);
   }
 

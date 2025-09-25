@@ -3,6 +3,10 @@
 
 #define PICOVECTOR_STD_ALLOCATOR MPAllocator
 
+#define PV_MALLOC m_malloc_with_finaliser
+#define PV_FREE m_free
+#define PV_REALLOC m_realloc
+
 #include "picovector.hpp"
 #include "primitive.hpp"
 #include "image.hpp"
@@ -327,6 +331,12 @@ mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
     return mp_const_none;
 }
 
+
+mp_obj_t modpicovector_shape__del__(mp_obj_t self_in) {
+    self(self_in, shape_obj_t);
+    delete self->shape;
+    return mp_const_none;
+}
 
 mp_obj_t modpicovector_brush(mp_obj_t self_in, mp_obj_t brush_in) {
     self(self_in, modpicovector_obj_t);

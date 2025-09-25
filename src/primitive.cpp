@@ -1,3 +1,4 @@
+#include "picovector.hpp"
 #include "primitive.hpp"
 
 namespace picovector {
@@ -80,7 +81,9 @@ namespace picovector {
     // }
 
   shape* squircle(float x, float y, float size, float n) {    
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
+    
+    //shape *result = new shape(1);
     constexpr int points = 32;
     path poly(points);
     for(int i = 0; i < points; i++) {

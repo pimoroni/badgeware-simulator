@@ -4,9 +4,12 @@
 extern mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args);
 extern mp_obj_t modpicovector_loop(mp_obj_t self_in);
 extern mp_obj_t modpicovector__del__(mp_obj_t self_in);
+extern mp_obj_t modpicovector_shape__del__(mp_obj_t self_in);
+
 
 static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector_loop_obj, modpicovector_loop);
 static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector__del___obj, modpicovector__del__);
+static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector_shape__del___obj, modpicovector_shape__del__);
 
 
 extern mp_obj_t modpicovector_draw(mp_obj_t self_in, mp_obj_t shape_in);
@@ -72,6 +75,12 @@ static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
 };
 static MP_DEFINE_CONST_DICT(modpicovector_locals_dict, modpicovector_locals_dict_table);
 
+static const mp_rom_map_elem_t modpicovector_shape_locals_dict_table[] = {
+    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&modpicovector_shape__del___obj) },
+};
+static MP_DEFINE_CONST_DICT(modpicovector_shape_locals_dict, modpicovector_shape_locals_dict_table);
+
+
 MP_DEFINE_CONST_OBJ_TYPE(
     type_PicoVector,
     MP_QSTR_PicoVector,
@@ -83,7 +92,8 @@ MP_DEFINE_CONST_OBJ_TYPE(
 MP_DEFINE_CONST_OBJ_TYPE(
     type_Shape,
     MP_QSTR_Shape,
-    MP_TYPE_FLAG_NONE
+    MP_TYPE_FLAG_NONE,
+    locals_dict, &modpicovector_shape_locals_dict
 );
 
 MP_DEFINE_CONST_OBJ_TYPE(

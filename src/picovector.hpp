@@ -13,11 +13,25 @@
 #define PICOVECTOR_STD_ALLOCATOR std::allocator
 #endif
 
+#ifndef PV_MALLOC
+#define PV_MALLOC malloc
+#endif
+
+#ifndef PV_FREE
+#define PV_FREE free
+#endif
+
+#ifndef PV_REALLOC
+#define PV_REALLOC realloc
+#endif
+
 
 // TODO: bring back AA support
 
 namespace picovector {
   
+  #define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+
   struct brush;
   class image;
   class shape;
