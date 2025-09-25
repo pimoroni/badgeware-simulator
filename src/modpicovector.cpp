@@ -73,6 +73,8 @@ mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t
 }
 
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
+#define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
+
 
 mp_obj_t modpicovector_regular_polygon(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_self, ARG_x, ARG_y, ARG_radius, ARG_sides, ARG_stroke };
@@ -178,11 +180,9 @@ mp_obj_t modpicovector_squircle(size_t n_args, const mp_obj_t *pos_args, mp_map_
     float size = mp_obj_get_float(args[ARG_size].u_obj);
     float n = mp_obj_get_float(args[ARG_n].u_obj);
 
-    //std::cerr << "mp_obj_malloc(shape" << std::endl;
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
-    //std::cerr << "squircle" << std::endl;
     shape->shape = squircle(x, y, size, n);
-    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
+
     return MP_OBJ_FROM_PTR(shape);
 }
 
@@ -323,7 +323,11 @@ mp_obj_t modpicovector_clear(size_t n_args, const mp_obj_t *pos_args, mp_map_t *
 
 mp_obj_t modpicovector_shape__del__(mp_obj_t self_in) {
     self(self_in, shape_obj_t);
-    delete self->shape;
+    
+    //mp_obj_malloc()
+    m_del_class(shape, self->shape);
+    //m_free(self->shape, sizeof(self->shape));
+    //delete self->shape;
     return mp_const_none;
 }
 

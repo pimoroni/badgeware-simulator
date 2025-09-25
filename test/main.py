@@ -23,6 +23,7 @@ pie = v.pie(150, 150, 0, 270, r1)
 
 
 def update(ticks):
+  print(gc.mem_free())
   print(ticks)
   v.loop()
 
