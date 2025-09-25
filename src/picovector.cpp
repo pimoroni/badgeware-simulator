@@ -72,11 +72,11 @@ namespace picovector {
     // setup interpolators for each edge of the polygon
     static _edgeinterp edge_interpolators[256];
     int edge_interpolator_count = 0;
-    for(path *path : shape->paths) {
-      point last = path->points.back(); // start with last point to close loop
+    for(path &path : shape->paths) {
+      point last = path.points.back(); // start with last point to close loop
       last = last.transform(transform);
       debug_printf("- adding path with %d points\n", int(path->points.size()));
-      for(point next : path->points) {
+      for(point next : path.points) {
         next = next.transform(transform);
         // add new edge interpolator
         edge_interpolators[edge_interpolator_count] = _edgeinterp(last, next);
@@ -89,13 +89,11 @@ namespace picovector {
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
-    std::vector<_rspan, MPAllocator<_rspan>> spans;
-    // reserve at least enough span storage for a basic convex polygon to 
-    // reduce small allocations later
-    spans.reserve(b.h);
+    const size_t SPAN_BUFFER_SIZE = 256;
+    static _rspan spans[SPAN_BUFFER_SIZE];
 
     int sy = max(b.y, 0.0f);
-    int ey = min(b.y + b.h, target->bounds.h);
+    int ey = min(floor(b.y) + ceil(b.h), target->bounds.h);
     for(int y = sy; y <= ey; y++) {
       int node_count = 0;
       for(int i = 0; i < edge_interpolator_count; i++) {
@@ -105,18 +103,28 @@ namespace picovector {
       // sort the nodes so that neighouring pairs represent render spans
       sort(nodes, nodes + node_count);
 
-      // convert nodes into spans
-      for(int i = 0; i < node_count; i += 2) {
-        int x1 = min(max(0.0f, nodes[i + 0]), target->bounds.w);
-        int x2 = min(max(0.0f, nodes[i + 1]), target->bounds.w);
-        //debug_printf("> adding span %d -> %d (%d)\n", x1, x2, y);
-        spans.push_back(_rspan(x1, y, x2 - x1));
+      float *current_node = nodes;
+      int span_idx = 0;
+      while(node_count > 0) {
+        int x1 = min(max(0.0f, current_node[0]), target->bounds.w);
+        int x2 = min(max(0.0f, current_node[1]), target->bounds.w);
+
+        spans[span_idx].x = x1;
+        spans[span_idx].y = y;
+        spans[span_idx].w = x2 - x1;
+        spans[span_idx].o = 255;
+        span_idx++;
+        current_node += 2;
+        node_count -= 2;
+
+        if(span_idx == SPAN_BUFFER_SIZE || node_count == 0) {
+          debug_printf("render spans %d\n", int(spans.size()));
+          brush->render_spans(target, spans, span_idx);
+          span_idx = 0;
+        }
       }
     }
 
-    debug_printf("render spans %d\n", int(spans.size()));
-    brush->render_spans(target, spans);
-    
     debug_printf("render done\n");
   }
 

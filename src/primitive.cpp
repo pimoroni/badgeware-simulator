@@ -2,29 +2,29 @@
 
 namespace picovector {
 
-  shape * regular_polygon(float x, float y, float sides, float radius) {
+  shape* regular_polygon(float x, float y, float sides, float radius) {
     shape *result = new shape(1);
-    path *poly = new path(sides);
+    path poly(sides);
     for(int i = 0; i < sides; i++) {
       float theta = ((M_PI * 2.0f) / (float)sides) * (float)i;
-      poly->add_point(sin(theta) * radius + x, cos(theta) * radius + y);
+      poly.add_point(sin(theta) * radius + x, cos(theta) * radius + y);
     }
     result->add_path(poly);
     return result;
   }
 
-  shape * circle(float x, float y, float radius) {
+  shape* circle(float x, float y, float radius) {
     int sides = 32;
     return regular_polygon(x, y, sides, radius);
   }
 
-  shape * rectangle(float x1, float y1, float x2, float y2) {
+  shape* rectangle(float x1, float y1, float x2, float y2) {
     shape *result = new shape(1);
-    path *poly = new path(4);
-    poly->add_point(x1, y2);
-    poly->add_point(x2, y2);
-    poly->add_point(x2, y1);
-    poly->add_point(x1, y1);
+    path poly(4);
+    poly.add_point(x1, y2);
+    poly.add_point(x2, y2);
+    poly.add_point(x2, y1);
+    poly.add_point(x1, y1);
     result->add_path(poly);
     return result;
   }
@@ -79,16 +79,16 @@ namespace picovector {
     // static shape rounded_rectangle(float x1, float y1, float x2, float y2, float r1, float r2, float r3, float r4, float stroke=0.0f) {
     // }
 
-  shape * squircle(float x, float y, float size, float n) {    
+  shape* squircle(float x, float y, float size, float n) {    
     shape *result = new shape(1);
     constexpr int points = 32;
-    path *poly = new path(points);
+    path poly(points);
     for(int i = 0; i < points; i++) {
         float t = 2 * M_PI * (points - i) / points;
         float ct = cos(t);
         float st = sin(t);
 
-        poly->add_point(
+        poly.add_point(
           x + copysign(pow(abs(ct), 2.0 / n), ct) * size,
           y + copysign(pow(abs(st), 2.0 / n), st) * size
         );
@@ -97,7 +97,7 @@ namespace picovector {
     return result;
   }
 
-  shape * arc(float x, float y, float from, float to, float radius) {
+  shape* arc(float x, float y, float from, float to, float radius) {
     shape *result = new shape(1);
 
     from = fmod(from, 360.0f);
@@ -107,13 +107,13 @@ namespace picovector {
     from *= (M_PI / 180.0f);
     to *= (M_PI / 180.0f);
 
-    path *outline = new path(steps);
+    path outline(steps);
 
     float astep = (to - from) / (float)steps;
     float a = from;
 
     for(int i = 0; i <= steps; i++) {
-      outline->add_point(sin(a) * radius + x, cos(a) * radius + y);
+      outline.add_point(sin(a) * radius + x, cos(a) * radius + y);
       a += astep;
     }
 
@@ -122,7 +122,7 @@ namespace picovector {
     return result;
   }
 
-  shape * pie(float x, float y, float from, float to, float radius) {
+  shape* pie(float x, float y, float from, float to, float radius) {
     shape *result = new shape(1);
 
     from = fmod(from, 360.0f);
@@ -132,17 +132,17 @@ namespace picovector {
     from *= (M_PI / 180.0f);
     to *= (M_PI / 180.0f);
 
-    path *outline = new path(steps + 1); // TODO: is this right?
+    path outline(steps + 1); // TODO: is this right?
 
     float astep = (to - from) / (float)steps;
     float a = from;
 
     for(int i = 0; i <= steps; i++) {
-      outline->add_point(sin(a) * radius + x, cos(a) * radius + y);
+      outline.add_point(sin(a) * radius + x, cos(a) * radius + y);
       a += astep;
     }
 
-    outline->add_point(x, y); // + 1 point?
+    outline.add_point(x, y); // + 1 point?
 
     result->add_path(outline);
 
@@ -150,24 +150,24 @@ namespace picovector {
   }
 
 
-  shape * star(float x, float y, int spikes, float outer_radius, float inner_radius) {
+  shape* star(float x, float y, int spikes, float outer_radius, float inner_radius) {
     shape *result = new shape(1);
-    path *poly = new path(spikes * 2);
+    path poly(spikes * 2);
     for(int i = 0; i < spikes * 2; i++) {
       float step = ((M_PI * 2) / (float)(spikes * 2)) * (float)i;
       float r = i % 2 == 0 ? outer_radius : inner_radius;
-      poly->add_point(sin(step) * r + x, cos(step) * r + y);
+      poly.add_point(sin(step) * r + x, cos(step) * r + y);
     }
     result->add_path(poly);
     return result;
   }
 
-  shape * line(float x1, float y1, float x2, float y2) {
+  shape* line(float x1, float y1, float x2, float y2) {
     shape *result = new shape(1);
-    path *poly = new path(2);
+    path poly(2);
 
-    poly->add_point(x1, y1);
-    poly->add_point(x2, y2);
+    poly.add_point(x1, y1);
+    poly.add_point(x2, y2);
     result->add_path(poly);
 
     return result;

@@ -11,16 +11,15 @@ namespace picovector {
     this->color = (r << 24) | (g << 16) | (b << 8) | a;
   }
 
-  void color_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
-    for(const _rspan &span : spans) {
-      //debug_printf("%d, %d (%d) [%x]\n", span.x, span.y, span.w, color);
-
-      uint32_t *dst = target->ptr(span.x, span.y);
-      span_argb8(dst, span.w, color);      
+  void color_brush::render_spans(image *target, _rspan *spans, int count) {
+    while(count--) {
+      uint32_t *dst = target->ptr(spans->x, spans->y);
+      span_argb8(dst, spans->w, color);      
+      spans++;
     }
   }
 
-  void blur_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
+  void blur_brush::render_spans(image *target, _rspan *spans, int count) {
     // debug_printf("render colour\n");
     // while(count--) {
     //   debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
@@ -42,13 +41,11 @@ namespace picovector {
   }
 
   brighten_brush::brighten_brush(int amount) : amount(amount) {}
-  
-  void brighten_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
-    for(const _rspan &span : spans) {
-      //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
-      uint32_t *dst = target->ptr(span.x, span.y);    
-      for(int i = 0; i < span.w; i++) {
+  void brighten_brush::render_spans(image *target, _rspan *spans, int count) {
+    while(count--) {
+      uint32_t *dst = target->ptr(spans->x, spans->y);
+      for(int i = 0; i < spans->w; i++) {
         uint8_t *pd = (uint8_t *)dst;
 
         int r = pd[1] + amount;
@@ -65,6 +62,7 @@ namespace picovector {
 
         dst++;
       }
+      spans++;
     }
   }
 
@@ -72,13 +70,12 @@ namespace picovector {
     this->color = (r << 24) | (g << 16) | (b << 8);
   }
 
-  void xor_brush::render_spans(image *target, const std::vector<_rspan, MPAllocator<_rspan>> &spans) {
-    for(const _rspan &span : spans) {
-      //debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
+  void xor_brush::render_spans(image *target, _rspan *spans, int count) {
+    while(count--) {
+      uint32_t *dst = target->ptr(spans->x, spans->y);
 
-      uint32_t *dst = target->ptr(span.x, span.y); 
       uint8_t *src = (uint8_t*)&color;
-      for(int i = 0; i < span.w; i++) {
+      for(int i = 0; i < spans->w; i++) {
         uint8_t *pd = (uint8_t *)dst;
 
         pd[1] ^= src[1];

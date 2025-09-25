@@ -51,14 +51,14 @@ namespace picovector {
     paths.reserve(path_count);
   }
 
-  void shape::add_path(path *path) {
+  void shape::add_path(path path) {
     paths.push_back(path);
   }
 
   rect shape::bounds() {
     float minx = FLT_MAX, miny = FLT_MAX, maxx = -FLT_MAX, maxy = -FLT_MAX;
-    for(const path *path : paths) {
-      for(point point : path->points) {
+    for(const path &path : paths) {
+      for(point point : path.points) {
         point = point.transform(&transform);
         minx = min(minx, point.x);
         miny = min(miny, point.y);
@@ -104,7 +104,7 @@ namespace picovector {
 
   void path::stroke(float offset) {
     int c = points.size();
-    vector<point, MPAllocator<point>> new_points(c);
+    vector<point, PICOVECTOR_STD_ALLOCATOR<point>> new_points(c);
 
     if(c == 2) {
         point p1, p2; // edge 1 start and end
@@ -135,7 +135,7 @@ namespace picovector {
   }
 
   void path::inflate(float offset) {
-    vector<point, MPAllocator<point>> new_points(points.size());
+    vector<point, PICOVECTOR_STD_ALLOCATOR<point>> new_points(points.size());
 
     int edge_count = points.size();
     for(int i = 0; i < edge_count; i++) {

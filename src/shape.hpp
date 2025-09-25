@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "mmallocator.hpp"
+#include "picovector.hpp"
 #include "matrix.hpp"
 #include "rect.hpp"
 #include "point.hpp"
@@ -10,7 +10,7 @@ namespace picovector {
 
   class path {
   public:
-    std::vector<point, MPAllocator<point>> points;
+    std::vector<point, PICOVECTOR_STD_ALLOCATOR<point>> points;
 
     path(int point_count = 0);
     void add_point(const point &point);
@@ -23,11 +23,11 @@ namespace picovector {
 
   class shape {
   public:
-    std::vector<path *, MPAllocator<path *>> paths;
+    std::vector<path, PICOVECTOR_STD_ALLOCATOR<path>> paths;
     mat3 transform;
 
     shape(int path_count = 0);
-    void add_path(path *path);
+    void add_path(path path);
     rect bounds();
     /*void draw(image &img); // methods should be on image perhaps? with style/brush and transform passed in?
     void stroke(float thickness);*/

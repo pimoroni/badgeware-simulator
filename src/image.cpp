@@ -93,11 +93,10 @@ namespace picovector {
   }
 
   void image::rectangle(const rect &r) {
-    std::vector<_rspan, MPAllocator<_rspan>> spans;
     for(int y = 0; y < r.h; y++) {
-      spans.push_back(_rspan(0, y, r.w));
+      _rspan span(r.x, y, r.w, 255);
+      this->brush->render_spans(this, &span, 1);
     }
-    brush->render_spans(this, spans);
   }
 
 

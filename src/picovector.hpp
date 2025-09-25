@@ -9,7 +9,9 @@
 #include <algorithm>
 #include <optional>
 
-#include "mmallocator.hpp"
+#ifndef PICOVECTOR_STD_ALLOCATOR
+#define PICOVECTOR_STD_ALLOCATOR std::allocator
+#endif
 
 
 // TODO: bring back AA support
@@ -27,6 +29,7 @@ namespace picovector {
     int w; // span width in pixels
     int o; // opacity of the span for blending (used for AA only)
 
+    _rspan() : x(0), y(0), w(0), o(0) {}
     _rspan(int x, int y, int w, int o = 255) : x(x), y(y), w(w), o(o) {}
   };
 

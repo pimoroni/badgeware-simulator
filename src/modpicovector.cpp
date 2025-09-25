@@ -1,7 +1,14 @@
 
+#include "mmallocator.hpp"
+
+#define PICOVECTOR_STD_ALLOCATOR MPAllocator
+
 #include "picovector.hpp"
 #include "primitive.hpp"
 #include "image.hpp"
+
+
+
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 

@@ -1,4 +1,5 @@
 import math, time
+import gc
 
 from picovector import PicoVector
 
@@ -32,7 +33,7 @@ def update(ticks):
 
   
   brushes = [
-    v.color_brush(0, 0, 0, 255),
+    v.color_brush(60, 80, 100, 255),
     v.brighten_brush(100),
     v.xor_brush(255, 255, 255)
   ]
@@ -56,10 +57,12 @@ def update(ticks):
           lx = math.sin(radians) * 10
           ly = math.cos(radians) * 10
           squircle = v.squircle(xo + lx, yo + ly, s, 5)
+          #squircle = v.rectangle(xo + lx - s, yo + ly - s, xo + lx + s, yo + ly + s)
+
           v.draw(squircle)
 
 
-  time.sleep(0.1)
+  #time.sleep(0.1)
 
   
 #  squircle = v.squircle(160 - x, 120 - y, s, 5)
