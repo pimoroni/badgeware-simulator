@@ -3,7 +3,7 @@
 
 #define PICOVECTOR_STD_ALLOCATOR MPAllocator
 
-#define PV_MALLOC m_malloc_with_finaliser
+#define PV_MALLOC m_malloc
 #define PV_FREE m_free
 #define PV_REALLOC m_realloc
 
@@ -190,7 +190,7 @@ mp_obj_t modpicovector_squircle(size_t n_args, const mp_obj_t *pos_args, mp_map_
     float n = mp_obj_get_float(args[ARG_n].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "squircle" << std::endl;
     shape->shape = squircle(x, y, size, n);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
