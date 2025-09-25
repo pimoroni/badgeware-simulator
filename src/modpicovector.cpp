@@ -1,18 +1,7 @@
-
 #include "mmallocator.hpp"
-
-#define PICOVECTOR_STD_ALLOCATOR MPAllocator
-
-#define PV_MALLOC m_malloc
-#define PV_FREE m_free
-#define PV_REALLOC m_realloc
-
 #include "picovector.hpp"
 #include "primitive.hpp"
 #include "image.hpp"
-
-
-
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 

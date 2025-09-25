@@ -105,7 +105,7 @@ namespace picovector {
 
   void path::stroke(float offset) {
     int c = points.size();
-    vector<point, PICOVECTOR_STD_ALLOCATOR<point>> new_points(c);
+    vector<point, PV_STD_ALLOCATOR<point>> new_points(c);
 
     if(c == 2) {
         point p1, p2; // edge 1 start and end
@@ -136,7 +136,7 @@ namespace picovector {
   }
 
   void path::inflate(float offset) {
-    vector<point, PICOVECTOR_STD_ALLOCATOR<point>> new_points(points.size());
+    vector<point, PV_STD_ALLOCATOR<point>> new_points(points.size());
 
     int edge_count = points.size();
     for(int i = 0; i < edge_count; i++) {

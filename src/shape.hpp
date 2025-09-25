@@ -10,7 +10,7 @@ namespace picovector {
 
   class path {
   public:
-    std::vector<point, PICOVECTOR_STD_ALLOCATOR<point>> points;
+    std::vector<point, PV_STD_ALLOCATOR<point>> points;
 
     path(int point_count = 0);
     void add_point(const point &point);
@@ -23,11 +23,11 @@ namespace picovector {
 
   class shape {
   public:
-    std::vector<path, PICOVECTOR_STD_ALLOCATOR<path>> paths;
+    std::vector<path, PV_STD_ALLOCATOR<path>> paths;
     mat3 transform;
 
     shape(int path_count = 0);
-    ~shape() {
+    ~shape() {      
       debug_printf("shape destructed\n");
     }
     void add_path(path path);

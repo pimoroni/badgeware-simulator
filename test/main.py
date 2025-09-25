@@ -48,7 +48,7 @@ def update(ticks):
       if brush_idx < len(brushes):
         v.brush(brushes[brush_idx])
 
-        print(xo, yo, brush_idx)
+        #print(xo, yo, brush_idx)
         steps = 5
         for i in range(0, steps):
           angle = (360 / steps) * i

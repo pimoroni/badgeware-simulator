@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "mmallocator.hpp"
+#include "picovector.config.hpp"
 #include <stdint.h>
 #include <cassert>
 #include <string.h>
@@ -9,8 +11,8 @@
 #include <algorithm>
 #include <optional>
 
-#ifndef PICOVECTOR_STD_ALLOCATOR
-#define PICOVECTOR_STD_ALLOCATOR std::allocator
+#ifndef PV_STD_ALLOCATOR
+#define PV_STD_ALLOCATOR std::allocator
 #endif
 
 #ifndef PV_MALLOC
@@ -24,7 +26,6 @@
 #ifndef PV_REALLOC
 #define PV_REALLOC realloc
 #endif
-
 
 // TODO: bring back AA support
 

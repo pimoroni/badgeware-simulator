@@ -47,9 +47,9 @@ struct MPAllocator
 private:
     void report(T* p, std::size_t n, bool alloc = true) const
     {
-        // std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
-        //           << " bytes at " << std::hex << std::showbase
-        //           << reinterpret_cast<void*>(p) << std::dec << std::endl;
+        std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
+                  << " bytes at " << std::hex << std::showbase
+                  << reinterpret_cast<void*>(p) << std::dec << std::endl;
     }
 };
 
