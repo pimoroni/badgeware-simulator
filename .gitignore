@@ -42,6 +42,7 @@
 
 # build output
 build/
+build-debug/
 
 # noise
 .vscode/

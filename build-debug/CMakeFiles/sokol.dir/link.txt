@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsokol.a "CMakeFiles/sokol.dir/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/lib/sokol/sokol.c.o"
-/usr/bin/ranlib libsokol.a
