@@ -251,6 +251,7 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
 static struct {
     sg_pass_action pass_action;
     sg_image color_img;
+    sg_view color_img_view;
     struct {
         sg_sampler nearest_clamp;
         sg_sampler linear_clamp;
@@ -679,6 +680,7 @@ static void sokol_frame(void) {
             sg_resource_state img_state = sg_query_image_state(state.color_img);
             if(img_state == SG_RESOURCESTATE_VALID || img_state == SG_RESOURCESTATE_FAILED) {
                 sg_uninit_image(state.color_img);
+                sg_destroy_view(state.color_img_view);
             }
         }
         if(sg_query_image_state(state.color_img) == SG_RESOURCESTATE_ALLOC) {
@@ -688,10 +690,11 @@ static void sokol_frame(void) {
                 .pixel_format = SG_PIXELFORMAT_RGBA8,
                 .usage.dynamic_update = true
             });
+            state.color_img_view = sg_make_view(&(sg_view_desc){ .texture.image = state.color_img });
         }
 
         sg_update_image(state.color_img, &(sg_image_data){
-            .subimage[0][0] = {
+            .mip_levels[0] = {
                 .ptr = picovector_buffer,
                 .size = picovector_width * picovector_height * sizeof(uint32_t),
             }
@@ -703,7 +706,7 @@ static void sokol_frame(void) {
             const ImVec2 uv0 = { 0, 0 };
             const ImVec2 uv1 = { 1, 1 };
 
-            ImTextureID texid0 = simgui_imtextureid_with_sampler(state.color_img, state.smp.nearest_clamp);
+            ImTextureID texid0 = simgui_imtextureid_with_sampler(state.color_img_view, state.smp.nearest_clamp);
             igImageEx(imtexref(texid0), size, uv0, uv1);
         }
         igEnd();
@@ -716,7 +719,6 @@ static void sokol_frame(void) {
     /*=== UI CODE ENDS HERE ===*/
 
     //printf("%f\n", color.r);
-
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();
     sg_end_pass();
