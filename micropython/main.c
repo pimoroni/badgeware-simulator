@@ -104,6 +104,9 @@ bool bw_repl_exec = false;
 bool bw_repl_exec_error_maybe = false;
 
 static void bw_repl_print_strn(const char *str, size_t len) {
+    if (bw_repl_cursor_pos + len >= BW_REPL_SIZE) {
+        bw_repl_cursor_pos = 0;
+    }
     memcpy(bw_repl_buf + bw_repl_cursor_pos, str, len);
     bw_repl_cursor_pos += len;
 }
