@@ -4,7 +4,7 @@
 namespace picovector {
 
   shape* regular_polygon(float x, float y, float sides, float radius) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
     path poly(sides);
     for(int i = 0; i < sides; i++) {
       float theta = ((M_PI * 2.0f) / (float)sides) * (float)i;
@@ -20,7 +20,7 @@ namespace picovector {
   }
 
   shape* rectangle(float x1, float y1, float x2, float y2) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
     path poly(4);
     poly.add_point(x1, y2);
     poly.add_point(x2, y2);
@@ -82,7 +82,7 @@ namespace picovector {
 
   shape* squircle(float x, float y, float size, float n) {    
     shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
-    
+
     //shape *result = new shape(1);
     constexpr int points = 32;
     path poly(points);
@@ -101,7 +101,7 @@ namespace picovector {
   }
 
   shape* arc(float x, float y, float from, float to, float radius) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
 
     from = fmod(from, 360.0f);
     to = fmod(to, 360.0f);
@@ -126,7 +126,7 @@ namespace picovector {
   }
 
   shape* pie(float x, float y, float from, float to, float radius) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
 
     from = fmod(from, 360.0f);
     to = fmod(to, 360.0f);
@@ -154,7 +154,7 @@ namespace picovector {
 
 
   shape* star(float x, float y, int spikes, float outer_radius, float inner_radius) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
     path poly(spikes * 2);
     for(int i = 0; i < spikes * 2; i++) {
       float step = ((M_PI * 2) / (float)(spikes * 2)) * (float)i;
@@ -166,7 +166,7 @@ namespace picovector {
   }
 
   shape* line(float x1, float y1, float x2, float y2) {
-    shape *result = new shape(1);
+    shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
     path poly(2);
 
     poly.add_point(x1, y1);

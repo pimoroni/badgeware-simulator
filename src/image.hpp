@@ -27,6 +27,9 @@ namespace picovector {
       image window(rect r);
       uint32_t* ptr(int x, int y);
 
+      uint32_t pixel(int x, int y);
+      uint32_t pixel_clamped(int x, int y);
+
       void clear();
       void rectangle(const rect &r);
       void circle(const point &p, const int &r);

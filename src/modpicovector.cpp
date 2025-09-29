@@ -99,7 +99,7 @@ mp_obj_t modpicovector_regular_polygon(size_t n_args, const mp_obj_t *pos_args, 
     float s = args[ARG_stroke].u_obj == mp_const_none ? 0 : mp_obj_get_float(args[ARG_stroke].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "regular_polygon" << std::endl;
     shape->shape = regular_polygon(x, y, e, r);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -125,7 +125,7 @@ mp_obj_t modpicovector_circle(size_t n_args, const mp_obj_t *pos_args, mp_map_t 
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "circle" << std::endl;
     shape->shape = circle(x, y, radius);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -152,8 +152,12 @@ mp_obj_t modpicovector_rectangle(size_t n_args, const mp_obj_t *pos_args, mp_map
     float x2 = mp_obj_get_float(args[ARG_x2].u_obj);
     float y2 = mp_obj_get_float(args[ARG_y2].u_obj);
 
+
+    
+    
+
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "rectangle" << std::endl;
     shape->shape = rectangle(x1, y1, x2, y2);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -209,7 +213,7 @@ mp_obj_t modpicovector_arc(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "arc" << std::endl;
     shape->shape = arc(x, y, from, to, radius);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -239,7 +243,7 @@ mp_obj_t modpicovector_pie(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw
     float radius = mp_obj_get_float(args[ARG_radius].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "pie" << std::endl;
     shape->shape = pie(x, y, from, to, radius);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -269,7 +273,7 @@ mp_obj_t modpicovector_star(size_t n_args, const mp_obj_t *pos_args, mp_map_t *k
     float inner_radius = mp_obj_get_float(args[ARG_inner_radius].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "star" << std::endl;
     shape->shape = star(x, y, spikes, outer_radius, inner_radius);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -297,7 +301,7 @@ mp_obj_t modpicovector_line(size_t n_args, const mp_obj_t *pos_args, mp_map_t *k
     float y2 = mp_obj_get_float(args[ARG_y2].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     //std::cerr << "line" << std::endl;
     shape->shape = line(x1, y1, x2, y2);
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
@@ -326,6 +330,16 @@ mp_obj_t modpicovector_shape__del__(mp_obj_t self_in) {
     
     //mp_obj_malloc()
     m_del_class(shape, self->shape);
+    //m_free(self->shape, sizeof(self->shape));
+    //delete self->shape;
+    return mp_const_none;
+}
+
+mp_obj_t modpicovector_brush__del__(mp_obj_t self_in) {
+    self(self_in, brush_obj_t);
+    
+    //mp_obj_malloc()
+    m_del_class(brush, self->brush);
     //m_free(self->shape, sizeof(self->shape));
     //delete self->shape;
     return mp_const_none;
@@ -363,7 +377,7 @@ mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_m
     int a = mp_obj_get_float(args[ARG_a].u_obj);
 
     //std::cerr << "mp_obj_malloc(shape" << std::endl;
-    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);    
 
     brush->brush = m_new_class(color_brush, r, g, b, a);
 
@@ -374,6 +388,35 @@ mp_obj_t modpicovector_color_brush(size_t n_args, const mp_obj_t *pos_args, mp_m
     //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
     return MP_OBJ_FROM_PTR(brush);
 }
+
+
+mp_obj_t modpicovector_blur_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
+    enum { ARG_self, ARG_passes };
+    static const mp_arg_t allowed_args[] = {
+        { MP_QSTR_, MP_ARG_REQUIRED | MP_ARG_OBJ },
+        { MP_QSTR_passes, MP_ARG_OBJ },
+    };
+
+    mp_arg_val_t args[MP_ARRAY_SIZE(allowed_args)];
+    mp_arg_parse_all(n_args, pos_args, kw_args, MP_ARRAY_SIZE(allowed_args), allowed_args, args);
+
+    self(args[ARG_self].u_obj, modpicovector_obj_t);
+
+    int passes = mp_obj_get_float(args[ARG_passes].u_obj);
+
+    //std::cerr << "mp_obj_malloc(shape" << std::endl;
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);    
+
+    brush->brush = m_new_class(blur_brush, passes);
+
+    self->fb->brush = brush->brush;
+    // shape_obj_t *shape = mp_obj_malloc(shape_obj_t, &type_Shape);
+    // //std::cerr << "line" << std::endl;
+    // shape->shape = line(x1, y1, x2, y2);
+    //std::cerr << "return MP_OBJ_FROM_PTR(..." << std::endl;
+    return MP_OBJ_FROM_PTR(brush);
+}
+
 
 mp_obj_t modpicovector_xor_brush(size_t n_args, const mp_obj_t *pos_args, mp_map_t *kw_args) {
     enum { ARG_self, ARG_r, ARG_g, ARG_b };

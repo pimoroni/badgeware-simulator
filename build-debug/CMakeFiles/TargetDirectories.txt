@@ -1,0 +1,7 @@
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/sokol.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/cimgui.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/micropython.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/BUILD_VERSION_HEADER.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/BUILD_FROZEN_CONTENT.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/edit_cache.dir
+/Users/jon/Library/CloudStorage/Dropbox/Development/pimoroni/badgeware/badgeware-simulator/build-debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,1 @@
+make -f Makefile.debug && lldb -o run -- ./build-debug/micropython code=./test/main.py

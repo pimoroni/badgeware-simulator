@@ -3,7 +3,7 @@ import gc
 
 from picovector import PicoVector
 
-WIDTH, HEIGHT = 320, 240    # Tufty 2350
+WIDTH, HEIGHT = 160, 120    # Tufty 2350
 # WIDTH, HEIGHT = 264, 176  # Badger 2350
 # WIDTH, HEIGHT = 39, 26    # Blinky 2350
 
@@ -21,48 +21,67 @@ squircle = v.squircle(150, 60, r1, 5)
 star = v.star(60, 150, 24, r2, r1)
 pie = v.pie(150, 150, 0, 270, r1)
 
+brush_grid_1 = v.color_brush(20, 40, 60, 255)
+brush_grid_2 = v.color_brush(60, 40, 20, 255)
 
 def update(ticks):
-  print(gc.mem_free())
-  print(ticks)
-  v.loop()
+  # print(gc.mem_free())
+  # print(ticks)
+  #v.loop()
 
-  brush = v.color_brush(0, 0, 0, 255)
-  v.clear()  
+  #v.brush(brush_grid_1)
+  #v.clear()  
   
-  s = ((math.sin(ticks / 500) + math.cos(ticks / 500)) + 2.1) * 5
+  #v.brush(brush_grid_2)
+  start = time.time()
+  for y in range(0, 12):
+    for x in range(0, 16):
+      if (x + y) % 2 == 0:
+        print(".")#v.draw(v.rectangle(x * 10, y * 10, x * 10 + 10, y * 10 + 10))
+  end = time.time()
+  delta = round((end - start) * 1000)
+  print("grid took", delta, "ms")
+      
 
   
-  brushes = [
-    v.color_brush(60, 80, 100, 255),
-    v.brighten_brush(100),
-    v.xor_brush(255, 255, 255)
-  ]
+  
+  # brushes = [
+  #   v.color_brush(200, 100, 100, 100),
+  #   v.brighten_brush(50),
+  #   v.xor_brush(255, 255, 255),
+  #   # v.blur_brush(1)
+  # ]
 
-  for y in range(0, 3):
-    yo = y * 80 + 40
-    for x in range(0, 4):
-      xo = x * 80 + 40
+  # s = ((math.sin(ticks / 500) + math.cos(ticks / 500)) + 2.1) * 5
 
-      brush_idx = x + y * 3
+  # for y in range(0, 3):
+  #   yo = y * 40 + 20
+  #   for x in range(0, 4):
+  #     xo = x * 40 + 20
 
-      if brush_idx < len(brushes):
-        v.brush(brushes[brush_idx])
+  #     brush_idx = x + y * 4
 
-        #print(xo, yo, brush_idx)
-        steps = 5
-        for i in range(0, steps):
-          angle = (360 / steps) * i
-          angle += ticks / 20
-          radians = angle * (math.pi / 180)
-          lx = math.sin(radians) * 10
-          ly = math.cos(radians) * 10
-          squircle = v.squircle(xo + lx, yo + ly, s, 5)
-          #squircle = v.rectangle(xo + lx - s, yo + ly - s, xo + lx + s, yo + ly + s)
+  #     if brush_idx < len(brushes):
+  #       v.brush(brushes[brush_idx])
 
-          v.draw(squircle)
+  #       #print(xo, yo, brush_idx)
+  #       steps = 5
+  #       start = time.time()
+  #       for i in range(0, steps):
+  #         angle = (360 / steps) * i
+  #         angle += ticks / 20
+  #         radians = angle * (math.pi / 180)
+  #         lx = math.sin(radians) * 10
+  #         ly = math.cos(radians) * 10
+  #         squircle = v.squircle(xo + lx, yo + ly, s, 5)
+  #         #squircle = v.rectangle(xo + lx - s, yo + ly - s, xo + lx + s, yo + ly + s)
 
+  #         v.draw(squircle)
+  #       end = time.time()
+  #       delta = round((end - start) * 1000)
+  #       print("brush", brush_idx, "took", delta, "ms")
 
+  
   #time.sleep(0.1)
 
   
@@ -76,3 +95,4 @@ def update(ticks):
 ##  v.draw(star)
   #print(ticks)
   return True
+# 

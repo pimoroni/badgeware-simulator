@@ -5,6 +5,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -94,8 +95,7 @@ namespace picovector {
 
   void image::rectangle(const rect &r) {
     for(int y = 0; y < r.h; y++) {
-      _rspan span(r.x, y, r.w, 255);
-      this->brush->render_spans(this, &span, 1);
+      this->brush->render_span(this, r.x, y, r.w);
     }
   }
 
@@ -114,6 +114,17 @@ namespace picovector {
     //   //printf("c: %d -> %d @ %d\n", sx, ex, y);
     //   span_argb8(ptr(sx, y), ex - sx, c);
     // }
+  }
+
+
+  uint32_t image::pixel(int x, int y) {
+    return *ptr(x, y);    
+  }
+
+  uint32_t image::pixel_clamped(int x, int y) {
+    x = max(int(bounds.x), min(x, int(bounds.x + bounds.w - 1)));
+    y = max(int(bounds.y), min(y, int(bounds.y + bounds.h - 1)));
+    return *ptr(x, y);    
   }
 
 }

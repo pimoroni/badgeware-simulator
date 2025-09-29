@@ -28,7 +28,7 @@ namespace picovector {
 
     shape(int path_count = 0);
     ~shape() {      
-      debug_printf("shape destructed\n");
+      //debug_printf("shape destructed\n");
     }
     void add_path(path path);
     rect bounds();
