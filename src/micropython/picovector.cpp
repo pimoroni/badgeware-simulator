@@ -22,6 +22,7 @@ extern "C" {
       mp_obj_base_t base;
   } modpicovector_obj_t;
 
+  image_obj_t *mp_image;
   int screen_width = 160;
   int screen_height = 120;
   uint32_t framebuffer[160 * 120];
@@ -32,11 +33,11 @@ extern "C" {
 
   mp_obj_t modpicovector_init(size_t n_args, const mp_obj_t *pos_args) {
 
-    image_obj_t *image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
-    image->image = &screen;
+    mp_image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+    mp_image->image = &screen;
 
     mp_obj_dict_t *globals = mp_globals_get();
-    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_screen), image);
+    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_screen), mp_image);
 
     return mp_const_none;
   }
