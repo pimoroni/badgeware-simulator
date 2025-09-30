@@ -87,9 +87,9 @@
 
 
 extern bool micropython_gc_enabled;
-extern void *picovector_buffer;
-extern int picovector_width;
-extern int picovector_height;
+extern void *framebuffer;
+extern int screen_width;
+extern int screen_height;
 
 // Various repl stuff
 int bw_repl_cursor_pos = 0;
@@ -675,11 +675,11 @@ static void sokol_frame(void) {
     //igSetNextWindowSizeConstraints((ImVec2){960, 720}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
 
     // Create the image just in time... sokol was not happy about me trying to update an existing image!?
-    if(picovector_buffer && picovector_width && picovector_height) {
+    if(framebuffer && screen_width && screen_height) {
         //fprintf(stdout, "%i x %i -> %p\n", picovector_width, picovector_height, picovector_buffer);
 
         // If we ever change the output side we need to deinit state.color_img
-        if(sg_query_image_width(state.color_img) != picovector_width || sg_query_image_height(state.color_img) != picovector_height) {
+        if(sg_query_image_width(state.color_img) != screen_width || sg_query_image_height(state.color_img) != screen_height) {
             sg_resource_state img_state = sg_query_image_state(state.color_img);
             if(img_state == SG_RESOURCESTATE_VALID || img_state == SG_RESOURCESTATE_FAILED) {
                 sg_uninit_image(state.color_img);
@@ -688,8 +688,8 @@ static void sokol_frame(void) {
         }
         if(sg_query_image_state(state.color_img) == SG_RESOURCESTATE_ALLOC) {
             sg_init_image(state.color_img, &(sg_image_desc){
-                .width = picovector_width,
-                .height = picovector_height,
+                .width = screen_width,
+                .height = screen_height,
                 .pixel_format = SG_PIXELFORMAT_RGBA8,
                 .usage.dynamic_update = true
             });
@@ -698,14 +698,14 @@ static void sokol_frame(void) {
 
         sg_update_image(state.color_img, &(sg_image_data){
             .mip_levels[0] = {
-                .ptr = picovector_buffer,
-                .size = picovector_width * picovector_height * sizeof(uint32_t),
+                .ptr = framebuffer,
+                .size = screen_width * screen_height * sizeof(uint32_t),
             }
         });
 
         igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
         if (igBegin("PicoVector Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-            const ImVec2 size = {960, 960 / picovector_width * picovector_height};
+            const ImVec2 size = {960, 960 / screen_width * screen_height};
             const ImVec2 uv0 = { 0, 0 };
             const ImVec2 uv1 = { 1, 1 };
 

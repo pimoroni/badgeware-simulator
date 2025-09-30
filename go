@@ -1,1 +1,1 @@
-make && ./build/micropython code=./test/main.py
+make -j && ./build/micropython code=./test/main.py

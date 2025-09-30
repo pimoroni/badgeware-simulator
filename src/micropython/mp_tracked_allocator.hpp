@@ -3,8 +3,8 @@
 #include <new>
 #include <iostream>
 
-#ifndef MMALLOCATOR_H
-#define MMALLOCATOR_H
+#ifndef MPTALLOCATOR_H
+#define MPTALLOCATOR_H
 
 extern "C" {
     extern void *m_tracked_calloc(size_t nmemb, size_t size);
@@ -59,4 +59,4 @@ bool operator==(const MPAllocator <T>&, const MPAllocator <U>&) { return true; }
 template<class T, class U>
 bool operator!=(const MPAllocator <T>&, const MPAllocator <U>&) { return false; }
 
-#endif // MMALLOCATOR_H
+#endif // MPTALLOCATOR_H

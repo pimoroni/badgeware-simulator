@@ -155,7 +155,7 @@ namespace picovector {
       // }
     }
 
-    //brush->render_mask(target);
+    brush->render_mask(target);
 
     for(int y = 0; y < target->bounds.h; y++) {
       uint8_t *pdst = (uint8_t*)target->ptr(0, y);

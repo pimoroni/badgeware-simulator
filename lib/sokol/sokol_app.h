@@ -4743,7 +4743,7 @@ _SOKOL_PRIVATE void _sapp_macos_set_icon(const sapp_icon_desc* icon_desc, int nu
     _sapp.macos.window.contentView = _sapp.macos.view;
     [_sapp.macos.window makeFirstResponder:_sapp.macos.view];
     [_sapp.macos.window center];
-    [_sapp.macos.window setFrameTopLeftPoint:NSMakePoint(0, [[NSScreen mainScreen] frame].size.height)]; // HACK: Position window in top-left corner
+    //[_sapp.macos.window setFrameTopLeftPoint:NSMakePoint(0, [[NSScreen mainScreen] frame].size.height)]; // HACK: Position window in top-left corner
     _sapp.valid = true;
     NSApp.activationPolicy = NSApplicationActivationPolicyRegular;
     if (_sapp.fullscreen) {
