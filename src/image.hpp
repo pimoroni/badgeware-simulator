@@ -34,8 +34,8 @@ namespace picovector {
       void rectangle(const rect &r);
       void circle(const point &p, const int &r);
       void draw(shape *shape);
-      void blit(image &t, const point &p, int alpha = 255);
-      void blit(image &t, rect tr, int alpha = 255);    
+      void blit(image *t, const point p);
+      void blit(image *t, rect tr);
   };
 
 }

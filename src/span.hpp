@@ -76,7 +76,6 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
   //span_pixels_drawn += w;
 
   //src = _buffer_span(src, w); // buffer span from psram to sram
-
   while(w--) {
     uint8_t *ps = (uint8_t *)src;  
     uint8_t *pd = (uint8_t *)dst;  

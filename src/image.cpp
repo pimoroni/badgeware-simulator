@@ -17,7 +17,7 @@ namespace picovector {
 
   image::image(int w, int h) : managed_buffer(true), brush(&_default_image_brush) {
     bounds = rect(0, 0, w, h);
-    p = (uint32_t *)malloc(sizeof(uint32_t) * w * h);
+    p = (uint32_t *)PV_MALLOC(sizeof(uint32_t) * w * h);
     _rowstride = w * sizeof(uint32_t);
   }
 
@@ -28,7 +28,7 @@ namespace picovector {
 
   image::~image() {
     if(managed_buffer) {
-      free(p);
+      //PV_FREE(p);
     }
   }
 
@@ -47,23 +47,23 @@ namespace picovector {
     rectangle(bounds);
   }
 
-  void image::blit(image &t, const point &p, int alpha) {
+  void image::blit(image *t, const point p) {
     rect tr(p.x, p.y, bounds.w, bounds.h); // target rect
-    tr = tr.intersection(t.bounds); // clip to target image bounds
+    tr = tr.intersection(t->bounds); // clip to target image bounds
 
     if(tr.empty()) {return;}
 
     int sxo = p.x < 0 ? -p.x : 0;
-    int syo = p.y < 0 ? -p.y : 0;
+    int syo = p.y < 0 ? -p.y : 0;    
 
     for(int i = 0; i < tr.h; i++) {
       uint32_t *src = this->ptr(sxo, syo + i);
-      uint32_t *dst = t.ptr(tr.x, tr.y + i);
-      span_blit_argb8(src, dst, tr.w, alpha);
+      uint32_t *dst = t->ptr(tr.x, tr.y + i);
+      span_blit_argb8(src, dst, tr.w);
     }
   }
 
-  void image::blit(image &t, rect r, int alpha) {
+  void image::blit(image *t, rect r) {
     // rect cr = r.intersection(t.bounds); // get clipped target rect
     // if(cr.empty()) {return;}
 

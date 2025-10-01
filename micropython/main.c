@@ -87,7 +87,7 @@
 
 
 extern bool micropython_gc_enabled;
-extern void *framebuffer;
+extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
 
@@ -675,7 +675,7 @@ static void sokol_frame(void) {
     //igSetNextWindowSizeConstraints((ImVec2){960, 720}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
 
     // Create the image just in time... sokol was not happy about me trying to update an existing image!?
-    if(framebuffer && screen_width && screen_height) {
+    if(screen_width && screen_height) {
         //fprintf(stdout, "%i x %i -> %p\n", picovector_width, picovector_height, picovector_buffer);
 
         // If we ever change the output side we need to deinit state.color_img
