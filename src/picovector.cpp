@@ -86,24 +86,25 @@ namespace picovector {
     }
 
 
-    // clear target mask
-    for(int y = 0; y < target->bounds.h; y++) {
-      uint8_t *pdst = (uint8_t*)target->ptr(0, y);
-      for(int x = 0; x < target->bounds.w; x++) {
-        pdst[3] = 0;
-        pdst += 4;
-      }
-    }
+    // // clear target mask
+    // for(int y = 0; y < target->bounds.h; y++) {
+    //   uint8_t *pdst = (uint8_t*)target->ptr(0, y);
+    //   for(int x = 0; x < target->bounds.w; x++) {
+    //     pdst[3] = 0;
+    //     pdst += 4;
+    //   }
+    // }
     
     //debug_printf("get nodes\n");
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
-    // const size_t SPAN_BUFFER_SIZE = 256;
-    // static _rspan spans[SPAN_BUFFER_SIZE];
+    const size_t SPAN_BUFFER_SIZE = 256;
+    static _rspan spans[SPAN_BUFFER_SIZE];
 
     int sy = max(b.y, 0.0f);
     int ey = min(floor(b.y) + ceil(b.h), target->bounds.h);
+    int span_count = 0;
     for(int y = sy; y <= ey; y++) {
       int node_count = 0;
       for(int i = 0; i < edge_interpolator_count; i++) {
@@ -115,55 +116,57 @@ namespace picovector {
 
 
       // render into target mask channel
+      // float *current_node = nodes;
+      // while(node_count > 0) {
+      //   int x1 = min(max(0.0f, current_node[0]), target->bounds.w - 1);
+      //   int x2 = min(max(0.0f, current_node[1]), target->bounds.w - 1);
+
+      //   current_node += 2;
+      //   node_count -= 2;
+
+      //   uint8_t *pdst = (uint8_t*)target->ptr(x1, y);
+
+      //   for(int i = 0; i < x2 - x1; i++) {
+      //     pdst[3] = 255;
+      //     pdst += 4;
+      //   }
+      // }
+
+            
       float *current_node = nodes;
+      
       while(node_count > 0) {
         int x1 = min(max(0.0f, current_node[0]), target->bounds.w - 1);
         int x2 = min(max(0.0f, current_node[1]), target->bounds.w - 1);
 
+        spans[span_count].x = x1;
+        spans[span_count].y = y;
+        spans[span_count].w = x2 - x1;
+        spans[span_count].o = 255;
+
+        span_count++;
         current_node += 2;
         node_count -= 2;
-
-        uint8_t *pdst = (uint8_t*)target->ptr(x1, y);
-
-        for(int i = 0; i < x2 - x1; i++) {
-          pdst[3] = 255;
-          pdst += 4;
+        
+        if(span_count == SPAN_BUFFER_SIZE) {
+          brush->render_spans(target, spans, span_count);
+          span_count = 0;
         }
       }
-
-      
-
-      // float *current_node = nodes;
-      // int span_idx = 0;
-      // while(node_count > 0) {
-      //   int x1 = min(max(0.0f, current_node[0]), target->bounds.w);
-      //   int x2 = min(max(0.0f, current_node[1]), target->bounds.w);
-
-      //   spans[span_idx].x = x1;
-      //   spans[span_idx].y = y;
-      //   spans[span_idx].w = x2 - x1;
-      //   spans[span_idx].o = 255;
-      //   span_idx++;
-      //   current_node += 2;
-      //   node_count -= 2;
-
-      //   if(span_idx == SPAN_BUFFER_SIZE || node_count == 0) {
-      //     //debug_printf("render spans %d\n", span_idx);
-      //     brush->render_spans(target, spans, span_idx);
-      //     span_idx = 0;
-      //   }
-      // }
     }
 
-    brush->render_mask(target);
+    // render any left over spans
+    brush->render_spans(target, spans, span_count);
 
-    for(int y = 0; y < target->bounds.h; y++) {
-      uint8_t *pdst = (uint8_t*)target->ptr(0, y);
-      for(int x = 0; x < target->bounds.w; x++) {
-        pdst[3] = 255;
-        pdst += 4;
-      }
-    }
+    //brush->render_mask(target);
+
+    // for(int y = 0; y < target->bounds.h; y++) {
+    //   uint8_t *pdst = (uint8_t*)target->ptr(0, y);
+    //   for(int x = 0; x < target->bounds.w; x++) {
+    //     pdst[3] = 255;
+    //     pdst += 4;
+    //   }
+    // }
 
     //debug_printf("render done\n");
   }

@@ -303,6 +303,18 @@ extern "C" {
     return mp_const_none;
   }
 
+  mp_obj_t image_scale_blit(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+    int x = mp_obj_get_float(pos_args[2]);    
+    int y = mp_obj_get_float(pos_args[3]);    
+    int w = mp_obj_get_float(pos_args[4]);    
+    int h = mp_obj_get_float(pos_args[5]);    
+
+    src->image->blit(self->image, rect(x, y, w, h));
+    return mp_const_none;
+  }
+
   mp_obj_t image_clear(mp_obj_t self_in) {
     self(self_in, image_obj_t);
     self->image->clear();
@@ -346,6 +358,7 @@ extern "C" {
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_brush_obj, 2, image_brush);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
 
   static MP_DEFINE_CONST_FUN_OBJ_1(image_load_obj, image_load);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(image_load_static_obj, MP_ROM_PTR(&image_load_obj));
@@ -357,6 +370,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
       { MP_ROM_QSTR(MP_QSTR_brush), MP_ROM_PTR(&image_brush_obj) },
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
+      { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&image_load_static_obj) },
       
   };

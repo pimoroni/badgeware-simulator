@@ -10,6 +10,8 @@ namespace picovector {
     virtual ~brush() {
       debug_printf("brush destructed\n");      
     }
+    
+    void render_spans(image *target, _rspan *spans, int count);
     virtual void render_span(image *target, int x, int y, int w) = 0;
     virtual void render_mask(image *target);
   };

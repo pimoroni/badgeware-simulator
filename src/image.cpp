@@ -64,24 +64,24 @@ namespace picovector {
   }
 
   void image::blit(image *t, rect r) {
-    // rect cr = r.intersection(t.bounds); // get clipped target rect
-    // if(cr.empty()) {return;}
+    rect cr = r.intersection(t->bounds); // get clipped target rect
+    if(cr.empty()) {return;}
 
-    // // determine source bounds for clipped area in fp16:16 coordinates
-    // int fprw = (bounds.w << 16) / r.w;
-    // int fprh = (bounds.h << 16) / r.h;
-    // rect sr(
-    //   -min(r.x, 0.0f) * fprw,
-    //   -min(r.y, 0.0f) * fprh,
-    //   cr.w * fprw,
-    //   cr.h * fprh
-    // );
+    // determine source bounds for clipped area in fp16:16 coordinates
+    int fprw = (int(bounds.w) << 16) / r.w;
+    int fprh = (int(bounds.h) << 16) / r.h;
+    rect sr(
+      -min(r.x, 0.0f) * fprw,
+      -min(r.y, 0.0f) * fprh,
+      cr.w * fprw,
+      cr.h * fprh
+    );
 
-    // for(int i = 0; i < cr.h; i++) {
-    //   int so = (sr.y + (i * fprh)) >> 16;
-    //   uint32_t *dst = t.ptr(cr.x, cr.y + i);
-    //   span_blit_scale(this->ptr(0, so), dst, sr.x, sr.w, cr.w, alpha);
-    // }
+    for(int i = 0; i < cr.h; i++) {
+      int so = (int(sr.y) + (i * fprh)) >> 16;
+      uint32_t *dst = t->ptr(cr.x, cr.y + i);
+      span_blit_scale(this->ptr(0, so), dst, sr.x, sr.w, cr.w, 255);
+    }
   }
 
   uint32_t* image::ptr(int x, int y) {
