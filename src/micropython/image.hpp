@@ -128,6 +128,40 @@ extern "C" {
         }
       } break;
 
+      case PNG_PIXEL_GRAYSCALE: {
+        while(c--) {
+          uint8_t src = *psrc;
+          // do something with index here
+
+          switch(pDraw->iBpp) {
+            case 8: {
+              *pdst = _make_col(src, src, src);
+              pdst++;
+            } break;
+
+            case 4: {
+              int src1 = (src & 0xf0) | ((src & 0xf0) >> 4);
+              int src2 = (src & 0x0f) | ((src & 0x0f) << 4);
+              *pdst = _make_col(src1, src1, src1);
+              pdst++;
+              *pdst = _make_col(src2, src2, src2);
+              pdst++;
+            } break;
+
+            case 1: {
+              for(int i = 0; i < 8; i++) {
+                int v = src & 0b10000000 ? 255 : 0;
+                *pdst = _make_col(v, v, v);
+                pdst++;
+                src <<= 1;
+              }              
+            } break;
+          }
+
+          psrc++;          
+        }
+      } break;
+
       default: {
         // TODO: raise file not supported error
       } break;

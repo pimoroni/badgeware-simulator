@@ -2,10 +2,9 @@ import math, time
 import gc
 from lib import *
 
+pixel_code = Font("test/pixelcode-font.6x12.png", 6, 12)
 
-# load an image asset from the filesystem
 totoro = Image.load("test/totoro.png")
-#mona = Image.load("test/mona-spritesheet.png")
 
 mona_sprites = SpriteSheet("test/mona-spritesheet.png", 40, 31)
 monas = {
@@ -17,8 +16,6 @@ monas = {
   "ghost":   AnimatedSprite(mona_sprites, 0, 6,  6),
   "notify":  AnimatedSprite(mona_sprites, 0, 7, 11)
 }
-
-test = Image(50, 50)
 
 #regular_polygon = shapes.regular_polygon(60, 60, r1, 5)
 
@@ -40,20 +37,20 @@ def update(ticks):
 
   #v.brush(brush_grid_1)
   screen.brush(brush_grid_1)
-  screen.clear()
+  screen.draw(shapes.rectangle(0, 0, 160, 120))
   
-  #v.brush(brush_grid_2)
-  screen.brush(brush_grid_2)
+  # #v.brush(brush_grid_2)
+  # screen.brush(brush_grid_2)
 
 
-  start = time.time()
-  for y in range(0, 12):
-    for x in range(0, 16):
-      if (x + y) % 2 == 0:
-        screen.draw(shapes.rectangle(x * 10, y * 10, x * 10 + 10, y * 10 + 10))
-  end = time.time()
-  delta = round((end - start) * 1000)
-  #print("grid took", delta, "ms")
+  # start = time.time()
+  # for y in range(0, 12):
+  #   for x in range(0, 16):
+  #     if (x + y) % 2 == 0:
+  #       screen.draw(shapes.rectangle(x * 10, y * 10, x * 10 + 10, y * 10 + 10))
+  # end = time.time()
+  # delta = round((end - start) * 1000)
+  # #print("grid took", delta, "ms")
       
   x = (math.sin(ticks / 1000) * 50) - 50 + 80
   y = (math.cos(ticks / 1000) * 50) - 50 + 60
@@ -61,7 +58,6 @@ def update(ticks):
   
 
   frame = round(ticks / 100)
-  print(frame)
 
   i = 0
   for type in monas:
@@ -69,6 +65,8 @@ def update(ticks):
     yo = math.sin((ticks / 250) + (i / 1)) * 20
     xo = math.sin((ticks / 500) + (i / 2)) * 5
     screen.blit(monas[type].frame(frame), 0 + i * 18 + xo, 50 + yo)
+
+  pixel_code.text(screen, 10, 10, "this is a message\nit should wrap to another\nline if it encounters a\nnew line character.")
   # screen.blit(eating_mona.frame(frame), 10, 30)
   # screen.blit(heart_mona.frame(frame), 30, 50)
   # screen.blit(code_mona.frame(frame), 50, 30)
