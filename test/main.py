@@ -1,13 +1,22 @@
 import math, time
 import gc
+from lib import *
 
-# we need to call this in our "pre-setup code", the user shouldn't have to do it
-# it's required to setup the global 'screen' object
-from picovector import PicoVector, brushes, shapes, Image 
-PicoVector.init()
 
 # load an image asset from the filesystem
 totoro = Image.load("test/totoro.png")
+#mona = Image.load("test/mona-spritesheet.png")
+
+mona_sprites = SpriteSheet("test/mona-spritesheet.png", 40, 31)
+monas = {
+  "default": AnimatedSprite(mona_sprites, 0, 0, 12),
+  "eating":  AnimatedSprite(mona_sprites, 0, 1, 13),
+  "heart":   AnimatedSprite(mona_sprites, 0, 2,  4),
+  "code":    AnimatedSprite(mona_sprites, 0, 3,  6),
+  "dance":   AnimatedSprite(mona_sprites, 0, 4, 11),
+  "ghost":   AnimatedSprite(mona_sprites, 0, 6,  6),
+  "notify":  AnimatedSprite(mona_sprites, 0, 7, 11)
+}
 
 test = Image(50, 50)
 
@@ -46,46 +55,66 @@ def update(ticks):
   delta = round((end - start) * 1000)
   #print("grid took", delta, "ms")
       
-
-  screen.blit(totoro, 50, 0)
+  x = (math.sin(ticks / 1000) * 50) - 50 + 80
+  y = (math.cos(ticks / 1000) * 50) - 50 + 60
+  #screen.blit(mona.sprite(1, 1), x, y)
   
-  b = [
-    [brushes.color(200, 100, 100, 100)],
-    [brushes.brighten(20)],
-    [brushes.xor(255, 255, 255)],
-    [brushes.blur(1), brushes.color(20, 40, 60, 100)]
-  ]
 
-  s = ((math.sin(ticks / 500) + math.cos(ticks / 500)) + 2.1) * 5
+  frame = round(ticks / 100)
+  print(frame)
 
-  for y in range(0, 3):
-    yo = y * 40 + 20
-    for x in range(0, 4):
-      xo = x * 40 + 20
+  i = 0
+  for type in monas:
+    i = i + 1
+    yo = math.sin((ticks / 250) + (i / 1)) * 20
+    xo = math.sin((ticks / 500) + (i / 2)) * 5
+    screen.blit(monas[type].frame(frame), 0 + i * 18 + xo, 50 + yo)
+  # screen.blit(eating_mona.frame(frame), 10, 30)
+  # screen.blit(heart_mona.frame(frame), 30, 50)
+  # screen.blit(code_mona.frame(frame), 50, 30)
+  # # screen.blit(dance_mona.frame(frame), 70, 50)
+  # screen.blit(default_mona.frame(frame), 90, 80)
+  # screen.blit(ghost_mona.frame(frame), 110, 50)
+  # screen.blit(notify_mona.frame(frame), 130, 30)
 
-      brush_idx = x + y * 4
+  
+  # b = [
+  #   [brushes.color(200, 100, 100, 100)],
+  #   [brushes.brighten(20)],
+  #   [brushes.xor(255, 255, 255)],
+  #   [brushes.blur(1), brushes.color(20, 40, 60, 100)]
+  # ]
 
-      if brush_idx < len(b):
-        for b2 in b[brush_idx]:
-          screen.brush(b2)
+  # s = ((math.sin(ticks / 500) + math.cos(ticks / 500)) + 2.1) * 5
 
-          #print(xo, yo, brush_idx)
-          steps = 5
-          start = time.time()
-          for i in range(0, steps):
-            angle = (360 / steps) * i
-            angle += ticks / 20
-            radians = angle * (math.pi / 180)
-            lx = math.sin(radians) * 10
-            ly = math.cos(radians) * 10
-            squircle = shapes.squircle(xo + lx, yo + ly, s, 5)
+  # for y in range(0, 3):
+  #   yo = y * 40 + 20
+  #   for x in range(0, 4):
+  #     xo = x * 40 + 20
 
-            #squircle = v.rectangle(xo + lx - s, yo + ly - s, xo + lx + s, yo + ly + s)
+  #     brush_idx = x + y * 4
 
-            screen.draw(squircle)
-          end = time.time()
-          delta = round((end - start) * 1000)
-          #print("brush", brush_idx, "took", delta, "ms")
+  #     if brush_idx < len(b):
+  #       for b2 in b[brush_idx]:
+  #         screen.brush(b2)
+
+  #         #print(xo, yo, brush_idx)
+  #         steps = 5
+  #         start = time.time()
+  #         for i in range(0, steps):
+  #           angle = (360 / steps) * i
+  #           angle += ticks / 20
+  #           radians = angle * (math.pi / 180)
+  #           lx = math.sin(radians) * 10
+  #           ly = math.cos(radians) * 10
+  #           squircle = shapes.squircle(xo + lx, yo + ly, s, 5)
+
+  #           #squircle = v.rectangle(xo + lx - s, yo + ly - s, xo + lx + s, yo + ly + s)
+
+  #           screen.draw(squircle)
+  #         end = time.time()
+  #         delta = round((end - start) * 1000)
+  #         #print("brush", brush_idx, "took", delta, "ms")
 
   
   #time.sleep(0.1)
