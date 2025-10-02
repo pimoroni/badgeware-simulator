@@ -277,9 +277,7 @@ void fetch_badgeware_update_callback() {
     debug_printf("fetching update callback...\n");
     update_callback_obj = _mp_load_global(qstr_from_str("update"));
     if(update_callback_obj == mp_const_none) {
-        //TODO switch out this URL for the final one
         warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
-        //mp_raise_msg(&mp_type_NameError, MP_ERROR_TEXT("a function named 'update(ticks)' is not defined"));
     }
 }
 
@@ -308,15 +306,9 @@ static void badgeware_init(void);
 static void watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
                            const char* filepath, const char* oldfilepath, void* user)
 {
-    // receive change events. type of event is stored in 'action' variable
-    //char *watch_path = (char*)user;
-    char path[PATH_MAX] = {};
     switch(action) {
         case DMON_ACTION_MODIFY:
-            memcpy(path, rootdir, strlen(rootdir));
-            memcpy(path + strlen(rootdir), filepath, strlen(filepath));
-            path[strlen(rootdir) + strlen(filepath)] = '\0';
-            warning_printf("WARNING: Hot reload triggered by %s\n", path);
+            warning_printf("WARNING: Hot reload triggered by %s\n", filepath);
             hot_reload = true;
             break;
         default:
