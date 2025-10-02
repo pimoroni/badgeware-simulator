@@ -86,10 +86,14 @@
 #define warning_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 
-extern bool micropython_gc_enabled;
+//extern bool micropython_gc_enabled;
 extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
+
+const long heap_size = 1024 * 1024 * (sizeof(mp_uint_t) / 4);
+char heap[heap_size] = {0};
+mp_obj_t pystack[1024];
 
 // Various repl stuff
 int bw_repl_cursor_pos = 0;
@@ -115,17 +119,6 @@ static void bw_repl_print_strn(const char *str, size_t len) {
 static void bw_repl_print_str(const char *str) {
     bw_repl_print_strn(str, strlen(str));
 }
-
-#if MICROPY_ENABLE_GC
-// Heap size of GC heap (if enabled)
-// Make it larger on a 64 bit machine, because pointers are larger.
-long heap_size = 1024 * 1024 * (sizeof(mp_uint_t) / 4);
-#endif
-
-// Number of heaps to assign by default if MICROPY_GC_SPLIT_HEAP=1
-#ifndef MICROPY_GC_SPLIT_HEAP_N_HEAPS
-#define MICROPY_GC_SPLIT_HEAP_N_HEAPS (1)
-#endif
 
 #if !MICROPY_PY_SYS_PATH
 #error "The unix port requires MICROPY_PY_SYS_PATH=1"
@@ -176,7 +169,7 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
     nlr_buf_t nlr;
     debug_printf("nlr_push()\n");
     if (nlr_push(&nlr) == 0) {
-        micropython_gc_enabled = true;
+        //micropython_gc_enabled = true;
         // create lexer based on source kind
         debug_printf("create lexer...\n");
         mp_lexer_t *lex;
@@ -234,7 +227,7 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         debug_printf("mp_handle_pending\n");
         mp_handle_pending(true);
         nlr_pop();
-        micropython_gc_enabled = false;
+        //micropython_gc_enabled = false;
         return 0;
 
     } else {
@@ -292,12 +285,8 @@ void fetch_badgeware_update_callback() {
 
 static int run_file(const char* path) {
     debug_printf("Running....%s?\n", path);
-    // Set base dir of the script as first entry in sys.path.
-    
-    debug_printf("do_file\n");
-    gc_collect();
 
-    // set the path to the directory of the current running file
+    // Set base dir of the script as first entry in sys.path.
     const char* dir = dirname((char *)path);
     mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
 
@@ -313,6 +302,9 @@ static int run_file(const char* path) {
 volatile bool hot_reload = false;
 char *hot_reload_code;
 
+static void micropython_init(void);
+static void badgeware_init(void);
+
 static void watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
                            const char* filepath, const char* oldfilepath, void* user)
 {
@@ -324,22 +316,13 @@ static void watch_callback(dmon_watch_id watch_id, dmon_action action, const cha
             memcpy(path, rootdir, strlen(rootdir));
             memcpy(path + strlen(rootdir), filepath, strlen(filepath));
             path[strlen(rootdir) + strlen(filepath)] = '\0';
-            //if(strcmp(path, watch_path) == 0) {
-                //run_file(path);
-            if(strcmp(path + strlen(path) - 3, ".py") == 0) {
-                warning_printf("WARNING: Hot reload triggered by %s\n", path);
-                hot_reload = true;
-            } else {
-                warning_printf("WARNING: Ignored change in %s\n", path);
-            }
+            warning_printf("WARNING: Hot reload triggered by %s\n", path);
+            hot_reload = true;
             break;
         default:
             break;
     }
 }
-
-static void micropython_init(void);
-static void badgeware_init(void);
 
 static void sokol_init(void) {
     dmon_init();
@@ -377,13 +360,6 @@ static void sokol_init(void) {
     };
 
     state.color_img = sg_alloc_image();
-    
-    /*sg_init_image(state.color_img, &(sg_image_desc){
-        .width = 320,
-        .height = 240,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .usage.dynamic_update = true
-    });*/
 
     // MICROPYTHON INIT
 
@@ -400,34 +376,19 @@ static void sokol_init(void) {
     // catch EPIPE themselves.
     signal(SIGPIPE, SIG_IGN);
     #endif
-    micropython_init();
     badgeware_init();
 }
 
-char *heap = NULL;
-mp_obj_t pystack[1024];
-
 static void micropython_init(void) {
-    #if MICROPY_ENABLE_GC
-    #if !MICROPY_GC_SPLIT_HEAP
-    if(!heap) {
-        heap = malloc(heap_size);
-    }
-    memset(heap, 0, heap_size);
-    gc_init(heap, heap + heap_size);
-    #else
-    assert(MICROPY_GC_SPLIT_HEAP_N_HEAPS > 0);
-    char *heaps[MICROPY_GC_SPLIT_HEAP_N_HEAPS];
-    long multi_heap_size = heap_size / MICROPY_GC_SPLIT_HEAP_N_HEAPS;
-    for (size_t i = 0; i < MICROPY_GC_SPLIT_HEAP_N_HEAPS; i++) {
-        heaps[i] = malloc(multi_heap_size);
-        if (i == 0) {
-            gc_init(heaps[i], heaps[i] + multi_heap_size);
-        } else {
-            gc_add(heaps[i], heaps[i] + multi_heap_size);
-        }
-    }
+    mp_deinit();
+
+    #if MICROPY_PY_THREAD
+    //mp_thread_init();
     #endif
+
+    #if MICROPY_ENABLE_GC
+    memset(heap, 0, sizeof(heap));
+    gc_init(heap, heap + sizeof(heap));
     #endif
 
     #if MICROPY_ENABLE_PYSTACK
@@ -442,24 +403,20 @@ static void micropython_init(void) {
     MP_STATE_VM(default_emit_opt) = MP_EMIT_OPT_NONE;
     #endif
 
-    #if MICROPY_VFS_POSIX
-    {
-        // Mount the host FS at the root of our internal VFS
-        mp_obj_t args[2] = {
-            MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 0, 0, NULL),
-            MP_OBJ_NEW_QSTR(MP_QSTR__slash_),
-        };
-        mp_vfs_mount(2, args, (mp_map_t *)&mp_const_empty_map);
+    // Mount the host FS at the root of our internal VFS
+    mp_obj_t args[2] = {
+        MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 0, 0, NULL),
+        MP_OBJ_NEW_QSTR(MP_QSTR__slash_),
+    };
+    mp_vfs_mount(2, args, (mp_map_t *)&mp_const_empty_map);
 
-        // Make sure the root that was just mounted is the current VFS (it's always at
-        // the end of the linked list).  Can't use chdir('/') because that will change
-        // the current path within the VfsPosix object.
-        MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_mount_table);
-        while (MP_STATE_VM(vfs_cur)->next != NULL) {
-            MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_cur)->next;
-        }
+    // Make sure the root that was just mounted is the current VFS (it's always at
+    // the end of the linked list).  Can't use chdir('/') because that will change
+    // the current path within the VfsPosix object.
+    MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_mount_table);
+    while (MP_STATE_VM(vfs_cur)->next != NULL) {
+        MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_cur)->next;
     }
-    #endif
 
     mp_sys_path = mp_obj_new_list(0, NULL);
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
@@ -470,34 +427,23 @@ static void badgeware_init(void) {
 
     if(sargs_exists("code")) {
         const char *path = sargs_value("code");
-        debug_printf("Running code: %s\n", path);
+        debug_printf("Watching code: %s\n", path);
         hot_reload_code = realpath(path, NULL);
 
         if (hot_reload_code == NULL) {
-            mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
+            //mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
             // TODO: Exit
+            return;
         }
 
         char *dname = dirname(hot_reload_code);
-        int ret = -1;
-        //while (ret != 255) {
-
-            debug_printf("Watching directory %s\n", dname);
-            dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
-            hot_reload = true;
-        //}
-        (void)ret;
+        debug_printf("Watching directory %s\n", dname);
+        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
+        hot_reload = true;
 
         debug_printf("free(abspath)\n");
         //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
         free(dname);
-    } else {
-        // TODO: Why does one single char array cause a syntax error!?
-        const char* init_code_0 = "from picovector import PicoVector\n";
-        int ret = execute_from_lexer(LEX_SRC_STR, init_code_0, MP_PARSE_SINGLE_INPUT, true);
-        const char* init_code_1 = "v = PicoVector(320, 240)\n";
-        ret = execute_from_lexer(LEX_SRC_STR, init_code_1, MP_PARSE_SINGLE_INPUT, true);
-        (void)ret;
     }
 }
 
@@ -535,12 +481,6 @@ void mp_hal_stdout_tx_str(const char *str) {
     mp_hal_stdout_tx_strn(str, strlen(str));
 }
 
-// TODO: Make this good
-const char *autocomplete_squircle = "squircle(x, y, radius, corners)";
-const char *autocomplete_circle = "circle(x, y, radius)";
-const char *autocomplete_regular_polygon = "regular_polygon(x, y, radius, sides)";
-const char *autocomplete_star = "star(x, y, points, inner, outer)";
-
 static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     if(bw_repl_exec) {
         if(bw_repl_exec_error_maybe) {
@@ -552,28 +492,11 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
         }
         bw_repl_exec = false;
     }
-    
+
     char last = data->Buf[data->CursorPos - 1];
 
     if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
-        //bw_repl_print_str(BW_REPL_TAB);
-        switch(last) {
-            case 's':
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_squircle + 1, autocomplete_squircle + strlen(autocomplete_squircle));
-                break;
-            case 'c':
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_circle + 1, autocomplete_circle + strlen(autocomplete_circle));
-                break;
-            case 'r':
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_regular_polygon + 1, autocomplete_regular_polygon + strlen(autocomplete_regular_polygon));
-                break;
-            /*case 's': // Oh no
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, autocomplete_star + 1, autocomplete_star + strlen(autocomplete_star));
-                break;*/
-            default:
-                ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
-                break;
-        }
+        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
     }
     if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
         if (last == '\n') {
@@ -590,8 +513,14 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     return 0;
 }
 
-bool initial_load_done = false;
 static void sokol_frame(void) {
+    if(hot_reload) {
+        micropython_init();
+
+        run_file(hot_reload_code);
+        hot_reload = false;
+    }
+
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
         .height = sapp_height(),
@@ -599,29 +528,6 @@ static void sokol_frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
-    if(hot_reload) {
-        if(initial_load_done) {
-            micropython_init();
-        }
-
-        run_file(hot_reload_code);
-        hot_reload = false;
-        initial_load_done = true;
-    }
-
-    //sgl_defaults();
-
-    /*sg_update_image(state.color_img, &(sg_image_data){
-        .subimage[0][0] = SG_RANGE(buffer)
-    });*/
-
-    /*sgl_enable_texture();
-    sgl_matrix_mode_projection();
-    const float aspect = sapp_heightf() / sapp_widthf();
-    sgl_ortho(-1.0f, +1.0f, aspect, -aspect, -1.0f, +1.0f);
-    sgl_matrix_mode_modelview();*/
-
-    //sg_color color = { 0.0f, 0.0f, 0.0f };
     mp_handle_pending(true);
 
     if(update_callback_obj != mp_const_none) {
@@ -695,8 +601,6 @@ static void sokol_frame(void) {
 
     // Create the image just in time... sokol was not happy about me trying to update an existing image!?
     if(screen_width && screen_height) {
-        //fprintf(stdout, "%i x %i -> %p\n", picovector_width, picovector_height, picovector_buffer);
-
         // If we ever change the output side we need to deinit state.color_img
         if(sg_query_image_width(state.color_img) != screen_width || sg_query_image_height(state.color_img) != screen_height) {
             sg_resource_state img_state = sg_query_image_state(state.color_img);
@@ -705,6 +609,7 @@ static void sokol_frame(void) {
                 sg_destroy_view(state.color_img_view);
             }
         }
+
         if(sg_query_image_state(state.color_img) == SG_RESOURCESTATE_ALLOC) {
             sg_init_image(state.color_img, &(sg_image_desc){
                 .width = screen_width,
@@ -735,12 +640,6 @@ static void sokol_frame(void) {
         igPopStyleVar(); // ImGuiStyleVar_WindowPadding
     }
 
-    //sg_destroy_image(color_img);
-
-  
-    /*=== UI CODE ENDS HERE ===*/
-
-    //printf("%f\n", color.r);
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();
     sg_end_pass();
@@ -763,10 +662,6 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     #if defined(__arm__) && !defined(__thumb2__)
     // ARM (non-Thumb) architectures require more stack.
     stack_size *= 2;
-    #endif
-
-    #if MICROPY_PY_THREAD
-    mp_thread_init();
     #endif
 
     mp_cstack_init_with_sp_here(stack_size);
