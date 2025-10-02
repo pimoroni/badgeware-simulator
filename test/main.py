@@ -31,6 +31,7 @@ def free(message=""):
 
 
 free("before sprites")
+icons = SpriteSheet(f"test/sprites/icons.png", 10, 1)
 mona_dance = SpriteSheet(f"test/sprites/mona-dance.gif.png", 6, 1)
 mona_code = SpriteSheet(f"test/sprites/mona-code-2.gif.png", 4, 1)
 mona_dead = SpriteSheet(f"test/sprites/mona-dead.gif.png", 7, 1)
@@ -40,13 +41,13 @@ mona_heart = SpriteSheet(f"test/sprites/mona-heart.gif.png", 14, 1)
 mona_notify = SpriteSheet(f"test/sprites/mona-notify.gif.png", 11, 1)
 free("sprites loaded")
 monas = {
-  "dance":   AnimatedSprite(mona_dance, 0, 0, 6),
-  "code":    AnimatedSprite(mona_code, 0, 0,  4),
-  "dead":   AnimatedSprite(mona_dead, 0, 0,  7),
-  "default": AnimatedSprite(mona_default, 0, 0, 11),
-  "eating":  AnimatedSprite(mona_eating, 0, 0, 12),
-  "heart":   AnimatedSprite(mona_heart, 0, 0,  14),
-  "notify":  AnimatedSprite(mona_notify, 0, 0, 11)
+  "dance":   mona_dance.animation(),
+  "code":    mona_code.animation(),
+  "dead":    mona_dead.animation(),
+  "default": mona_default.animation(),
+  "eating":  mona_eating.animation(),
+  "heart":   mona_heart.animation(),
+  "notify":  mona_notify.animation()
 }
 free("animations defined")
 
@@ -57,10 +58,36 @@ free("animations defined")
 # star = v.star(60, 150, 24, r2, r1)
 # pie = v.pie(150, 150, 0, 270, r1)
 
-brush_grid_1 = brushes.color(20, 40, 60, 255)
+brush_grid_1 = brushes.color(30, 50, 70, 255)
 brush_grid_2 = brushes.color(60, 40, 20, 255)
 
+outline = brushes.color(38, 39, 42, 255)
+
+
+bar_width = 50
+bar_top = 110
+bar_height = 10
+
+def rect_deflate(rect):
+  return (rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
+
+brush_happy = brushes.color(236, 108, 185)
+brush_hunger = brushes.color(119, 182, 138)
+brush_clean = brushes.color(139, 156, 201)
+def draw_bar(icon, brush, rect, amount):
+  screen.brush(outline)
+  screen.draw(shapes.rectangle(*rect))
+  rect = rect_deflate(rect)  
+  screen.brush(brush)
+  width = ((rect[2] - rect[0]) / 100) * amount
+  screen.draw(shapes.rectangle(rect[0], rect[1], rect[0] + width, rect[3]))
+  screen.blit(icons.sprite(icon, 0), rect[0] - 5, rect[1] - 4)
+
+
 def update(ticks):
+  happiness = (math.sin(ticks / 500) * 20) + 50
+  hunger = (math.sin(ticks / 300) * 40) + 80
+  cleanliness = (math.sin(ticks / 1000) * 30) + 40
   #print(totoro.width, totoro.height)
   #print(test.width, test.height)
 
@@ -101,9 +128,12 @@ def update(ticks):
 
   pixel_code.text(screen, 10, 10, "this is a message\nit should wrap to another\nline if it encounters a\nnew line character.")
 
+  draw_bar(0, brush_happy, (10, 110, 50, 115), happiness)
+  draw_bar(1, brush_hunger, (60, 110, 100, 115), hunger)
+  draw_bar(2, brush_clean, (110, 110, 150, 115), cleanliness)
+  
 
-
-  pixel_code.text(screen, 2, 2, "monagotchi")
+  pixel_code.text(screen, 52, 0, "monagotchi")
   # screen.blit(eating_mona.frame(frame), 10, 30)
   # screen.blit(heart_mona.frame(frame), 30, 50)
   # screen.blit(code_mona.frame(frame), 50, 30)

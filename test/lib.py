@@ -19,6 +19,11 @@ class SpriteSheet:
   def sprite(self, x, y):
     return self.sprites[x][y]
   
+  def animation(self, x=0, y=0, count=None, horizontal=True):
+    if not count:
+      count = int(self.image.width / self.sw)
+    return AnimatedSprite(self, x, y, count, horizontal)
+  
 class AnimatedSprite:  
   def __init__(self, spritesheet, x, y, count, horizontal=True):
     self.spritesheet = spritesheet
