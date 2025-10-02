@@ -297,6 +297,10 @@ static int run_file(const char* path) {
     debug_printf("do_file\n");
     gc_collect();
 
+    // set the path to the directory of the current running file
+    const char* dir = dirname((char *)path);
+    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
+
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
 
     debug_printf("done?\n");
@@ -474,11 +478,6 @@ static void badgeware_init(void) {
             // TODO: Exit
         }
 
-        char *p = strrchr(hot_reload_code, '/');
-
-        debug_printf("mp_obj_list_store....?\n");
-        mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(hot_reload_code, p - hot_reload_code));
-        
         char *dname = dirname(hot_reload_code);
         int ret = -1;
         //while (ret != 255) {
@@ -604,6 +603,7 @@ static void sokol_frame(void) {
         if(initial_load_done) {
             micropython_init();
         }
+
         run_file(hot_reload_code);
         hot_reload = false;
         initial_load_done = true;
