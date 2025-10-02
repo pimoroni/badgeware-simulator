@@ -6,16 +6,49 @@ pixel_code = Font("test/pixelcode-font.6x12.png", 6, 12)
 
 totoro = Image.load("test/totoro.png")
 
-mona_sprites = SpriteSheet("test/mona-spritesheet.png", 40, 31)
+spritesheets = [
+  "mona-dance.gif.png",
+  "mona-code-2.gif.png",
+  "mona-dead.gif.png",
+  "mona-default.gif.png",
+  "mona-eating.gif.png",
+  "mona-heart.gif.png",
+  "mona-love.gif.png",
+  "mona-notify.gif.png",
+]
+
+_lf = None
+def free(message=""):
+  global _lf
+  f = int(gc.mem_free() / 1024)
+  print(f"> free memory {f}kb [{message}]", end="")
+  if _lf:
+    delta = f - _lf
+    sign = "-" if delta < 0 else "+"
+    print(f" {sign}{abs(delta)}kb", end="")
+  print("")
+  _lf = f
+
+
+free("before sprites")
+mona_dance = SpriteSheet(f"test/sprites/mona-dance.gif.png", 6, 1)
+mona_code = SpriteSheet(f"test/sprites/mona-code-2.gif.png", 4, 1)
+mona_dead = SpriteSheet(f"test/sprites/mona-dead.gif.png", 7, 1)
+mona_default = SpriteSheet(f"test/sprites/mona-default.gif.png", 11, 1)
+mona_eating = SpriteSheet(f"test/sprites/mona-eating.gif.png", 12, 1)
+mona_heart = SpriteSheet(f"test/sprites/mona-heart.gif.png", 14, 1)
+mona_notify = SpriteSheet(f"test/sprites/mona-notify.gif.png", 11, 1)
+free("sprites loaded")
 monas = {
-  "default": AnimatedSprite(mona_sprites, 0, 0, 12),
-  "eating":  AnimatedSprite(mona_sprites, 0, 1, 13),
-  "heart":   AnimatedSprite(mona_sprites, 0, 2,  4),
-  "code":    AnimatedSprite(mona_sprites, 0, 3,  6),
-  "dance":   AnimatedSprite(mona_sprites, 0, 4, 11),
-  "ghost":   AnimatedSprite(mona_sprites, 0, 6,  6),
-  "notify":  AnimatedSprite(mona_sprites, 0, 7, 11)
+  "dance":   AnimatedSprite(mona_dance, 0, 0, 6),
+  "code":    AnimatedSprite(mona_code, 0, 0,  4),
+  "dead":   AnimatedSprite(mona_dead, 0, 0,  7),
+  "default": AnimatedSprite(mona_default, 0, 0, 11),
+  "eating":  AnimatedSprite(mona_eating, 0, 0, 12),
+  "heart":   AnimatedSprite(mona_heart, 0, 0,  14),
+  "notify":  AnimatedSprite(mona_notify, 0, 0, 11)
 }
+free("animations defined")
 
 #regular_polygon = shapes.regular_polygon(60, 60, r1, 5)
 
@@ -67,6 +100,10 @@ def update(ticks):
     screen.blit(monas[type].frame(frame), 0 + i * 18 + xo, 50 + yo)
 
   pixel_code.text(screen, 10, 10, "this is a message\nit should wrap to another\nline if it encounters a\nnew line character.")
+
+
+
+  pixel_code.text(screen, 2, 2, "monagotchi")
   # screen.blit(eating_mona.frame(frame), 10, 30)
   # screen.blit(heart_mona.frame(frame), 30, 50)
   # screen.blit(code_mona.frame(frame), 50, 30)

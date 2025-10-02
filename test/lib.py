@@ -4,13 +4,10 @@ from picovector import PicoVector, brushes, shapes, Image
 PicoVector.init()
 
 class SpriteSheet:
-  def __init__(self, file, sprite_width, sprite_height):
+  def __init__(self, file, columns, rows):
     self.image = Image.load(file)
-    self.sw = sprite_width
-    self.sh = sprite_height
-
-    columns = self.image.width / self.sw
-    rows = self.image.height / self.sh
+    self.sw = int(self.image.width / columns)
+    self.sh = int(self.image.height / rows)
 
     self.sprites = []
     for x in range(0, columns):
