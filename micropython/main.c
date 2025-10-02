@@ -313,15 +313,16 @@ static void watch_callback(dmon_watch_id watch_id, dmon_action action, const cha
                            const char* filepath, const char* oldfilepath, void* user)
 {
     // receive change events. type of event is stored in 'action' variable
-    char *watch_path = (char*)user;
+    //char *watch_path = (char*)user;
     char path[PATH_MAX] = {};
     switch(action) {
         case DMON_ACTION_MODIFY:
             memcpy(path, rootdir, strlen(rootdir));
             memcpy(path + strlen(rootdir), filepath, strlen(filepath));
             path[strlen(rootdir) + strlen(filepath)] = '\0';
-            if(strcmp(path, watch_path) == 0) {
+            //if(strcmp(path, watch_path) == 0) {
                 //run_file(path);
+            if(strcmp(path + strlen(path) - 3, ".py") == 0) {
                 warning_printf("WARNING: Hot reload triggered by %s\n", path);
                 hot_reload = true;
             } else {
