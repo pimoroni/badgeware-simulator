@@ -334,6 +334,9 @@ static void watch_callback(dmon_watch_id watch_id, dmon_action action, const cha
     }
 }
 
+static void micropython_init(void);
+static void badgeware_init(void);
+
 static void sokol_init(void) {
     dmon_init();
     stm_setup(); // sokol_time.h
@@ -393,10 +396,20 @@ static void sokol_init(void) {
     // catch EPIPE themselves.
     signal(SIGPIPE, SIG_IGN);
     #endif
+    micropython_init();
+    badgeware_init();
+}
 
+char *heap = NULL;
+mp_obj_t pystack[1024];
+
+static void micropython_init(void) {
     #if MICROPY_ENABLE_GC
     #if !MICROPY_GC_SPLIT_HEAP
-    char *heap = malloc(heap_size);
+    if(!heap) {
+        heap = malloc(heap_size);
+    }
+    memset(heap, 0, heap_size);
     gc_init(heap, heap + heap_size);
     #else
     assert(MICROPY_GC_SPLIT_HEAP_N_HEAPS > 0);
@@ -414,7 +427,6 @@ static void sokol_init(void) {
     #endif
 
     #if MICROPY_ENABLE_PYSTACK
-    static mp_obj_t pystack[1024];
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
     #endif
 
@@ -447,8 +459,9 @@ static void sokol_init(void) {
 
     mp_sys_path = mp_obj_new_list(0, NULL);
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
+}
 
-
+static void badgeware_init(void) {
     bw_repl_print_str("Hello BadgeWare!\n");
 
     if(sargs_exists("code")) {
@@ -578,6 +591,7 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     return 0;
 }
 
+bool initial_load_done = false;
 static void sokol_frame(void) {
     simgui_new_frame(&(simgui_frame_desc_t){
         .width = sapp_width(),
@@ -587,8 +601,12 @@ static void sokol_frame(void) {
     });
 
     if(hot_reload) {
+        if(initial_load_done) {
+            micropython_init();
+        }
         run_file(hot_reload_code);
         hot_reload = false;
+        initial_load_done = true;
     }
 
     //sgl_defaults();
