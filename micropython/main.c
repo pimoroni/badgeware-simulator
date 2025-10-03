@@ -91,8 +91,8 @@ extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
 
-const long heap_size = 1024 * 1024 * (sizeof(mp_uint_t) / 4);
-char heap[heap_size] = {0};
+#define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
+static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
 
 // Various repl stuff

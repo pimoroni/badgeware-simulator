@@ -19,8 +19,8 @@ namespace picovector {
 
     mat3& rotate_radians(float a) {
       mat3 rotation;
-      float c = std::cosf(a);
-      float s = std::sinf(a);
+      float c = cosf(a);
+      float s = sinf(a);
       rotation.v00 = c; rotation.v01 = -s; rotation.v10 = s; rotation.v11 = c;
       return this->multiply(rotation);
     }

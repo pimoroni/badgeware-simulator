@@ -16,7 +16,7 @@ namespace picovector {
       bool managed_buffer = false;
 
       rect bounds;
-      brush *brush;          
+      picovector::brush *brush;
       int alpha = 255;
       
       size_t _rowstride; // row stride

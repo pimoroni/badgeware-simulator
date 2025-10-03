@@ -100,7 +100,7 @@ namespace picovector {
   void path::edge_points(int edge, point &s, point &e) {
     // return the two points that make up an edge
     s = edge == -1 ? points.back() : points[edge];
-    e = edge == points.size() - 1 ? points.front() : points[edge + 1];
+    e = edge == (int)points.size() - 1 ? points.front() : points[edge + 1];
   }
 
   void path::stroke(float offset) {

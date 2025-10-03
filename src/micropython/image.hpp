@@ -392,8 +392,8 @@ extern "C" {
       MP_QSTR_Image,
       MP_TYPE_FLAG_NONE,
       make_new, (const void *)image_new,
-      locals_dict, &image_locals_dict,
-      attr, (const void *)image_attr
+      attr, (const void *)image_attr,
+      locals_dict, &image_locals_dict
   );
 
 }
