@@ -51,7 +51,11 @@ namespace picovector {
     }
 
     _edgeinterp(point p1, point p2) {
-      if(p1.y < p2.y) { s = p1; e = p2; }else{ s = p2; e = p1; }
+      if(p1.y < p2.y) { 
+        s = p1; e = p2; 
+      } else { 
+        s = p2; e = p1; 
+      }
       step = (e.x - s.x) / (e.y - s.y);
     }
 
@@ -103,13 +107,19 @@ namespace picovector {
     static _rspan spans[SPAN_BUFFER_SIZE];
 
     int sy = max(b.y, 0.0f);
-    int ey = min(floor(b.y) + ceil(b.h), target->bounds.h);
+    int ey = min(floor(b.y) + ceil(b.h), target->bounds.h - 1);
+    //int sy = floor(b.y);
+    //int ey = ceil(b.y + b.h);
     int span_count = 0;
     for(int y = sy; y <= ey; y++) {
       int node_count = 0;
       for(int i = 0; i < edge_interpolator_count; i++) {
         edge_interpolators[i].next(y, nodes, node_count);
       }
+
+      // if(y < target->bounds.y || y >= target->bounds.y + target->bounds.h) {
+      //   continue;
+      // }
 
       // sort the nodes so that neighouring pairs represent render spans
       sort(nodes, nodes + node_count);
@@ -172,14 +182,5 @@ namespace picovector {
   }
 
   
-  /* ==========================================================================
-
-  PRIMITIVES
-
-  helper functions for making primitive shapes
-
-  ========================================================================== */
-
-
 
 }

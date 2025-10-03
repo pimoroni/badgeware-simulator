@@ -137,7 +137,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_squircle_obj, 4, shapes_squircle);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_squircle_static_obj, MP_ROM_PTR(&shapes_squircle_obj));
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_circle_obj, 4, shapes_circle);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_circle_obj, 3, shapes_circle);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_circle_static_obj, MP_ROM_PTR(&shapes_circle_obj));
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_arc_obj, 4, shapes_arc);

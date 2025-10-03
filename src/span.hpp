@@ -117,13 +117,10 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
   }  
 }
 
-inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, int sxfp, int swfp, int dw, int a) {  
-  int i = 0;
-  while(i++ < dw) {    
-    int so = (sxfp + ((i * swfp) / dw)) >> 16; // calculate offset of source pixel
-
+inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, int srcx, int srcstepx, int w, int a) {  
+  while(w--) {    
     uint8_t *pd = (uint8_t *)dst;
-    uint8_t *ps = (uint8_t *)(src + so);
+    uint8_t *ps = (uint8_t *)(src + (srcx >> 16));
 
     int ca = (ps[3] * (a + 1)) / 256; // apply global alpha
 
@@ -131,7 +128,7 @@ inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, i
       // zero alpha, skip pixel                            
     } else if (ca == 255) {
       // full alpha copy pixel
-      *dst = src[so];
+      *dst = src[srcx >> 16];
     } else {
 #ifdef PICO
       // alpha requires blending pixel
@@ -155,6 +152,7 @@ inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, i
 #endif
     }
     
+    srcx += srcstepx;
     dst++;
   }
 }

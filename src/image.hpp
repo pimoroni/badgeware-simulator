@@ -17,6 +17,7 @@ namespace picovector {
 
       rect bounds;
       brush *brush;          
+      int alpha = 255;
       
       size_t _rowstride; // row stride
 
