@@ -284,8 +284,11 @@ void fetch_badgeware_update_callback() {
 static int run_file(const char* path) {
     debug_printf("Running....%s?\n", path);
 
+    char dpath[PATH_MAX];
+    memcpy(dpath, path, strlen(path));
+
     // Set base dir of the script as first entry in sys.path.
-    const char* dir = dirname((char *)path);
+    const char* dir = dirname(dpath);
     mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
 
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
@@ -298,7 +301,7 @@ static int run_file(const char* path) {
 }
 
 volatile bool hot_reload = false;
-char *hot_reload_code;
+char hot_reload_code[PATH_MAX];
 
 static void micropython_init(void);
 static void badgeware_init(void);
@@ -417,26 +420,22 @@ static void micropython_init(void) {
 static void badgeware_init(void) {
     bw_repl_print_str("Hello BadgeWare!\n");
 
-    if(sargs_exists("code")) {
-        const char *path = sargs_value("code");
-        debug_printf("Watching code: %s\n", path);
-        hot_reload_code = realpath(path, NULL);
+    //if(sargs_exists("code")) {
+        const char *path = sargs_value_def("code", "test/main.py");
+        char *rpath = realpath(path, NULL);
+        memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
+        hot_reload_code[strlen(rpath)] = '\0';
 
-        if (hot_reload_code == NULL) {
-            //mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
-            // TODO: Exit
-            return;
-        }
-
-        char *dname = dirname(hot_reload_code);
+        char *dname = dirname(rpath);
+        debug_printf("Watching code: %s\n", hot_reload_code);
         debug_printf("Watching directory %s\n", dname);
         dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
         hot_reload = true;
 
         debug_printf("free(abspath)\n");
         //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
-        free(dname);
-    }
+        //free(dname);
+    //}
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
