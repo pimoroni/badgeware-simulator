@@ -71,6 +71,9 @@ namespace picovector {
     // determine the intersection between transformed polygon and target image
     rect b = shape->bounds();
 
+    // clip the shape bounds to the target bounds
+    rect cb = b.intersection(target->bounds);
+
     //debug_printf("rendering shape %p with %d paths\n", (void*)shape, int(shape->paths.size()));
     //debug_printf("setup interpolators\n");
     // setup interpolators for each edge of the polygon
@@ -89,65 +92,30 @@ namespace picovector {
       }
     }
 
-
-    // // clear target mask
-    // for(int y = 0; y < target->bounds.h; y++) {
-    //   uint8_t *pdst = (uint8_t*)target->ptr(0, y);
-    //   for(int x = 0; x < target->bounds.w; x++) {
-    //     pdst[3] = 0;
-    //     pdst += 4;
-    //   }
-    // }
-    
-    //debug_printf("get nodes\n");
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
     const size_t SPAN_BUFFER_SIZE = 256;
     static _rspan spans[SPAN_BUFFER_SIZE];
 
-    int sy = max(b.y, 0.0f);
-    int ey = min(floor(b.y) + ceil(b.h), target->bounds.h - 1);
-    //int sy = floor(b.y);
-    //int ey = ceil(b.y + b.h);
+    int sy = cb.y;
+    int ey = cb.y + cb.h;
+
     int span_count = 0;
-    for(int y = sy; y <= ey; y++) {
+    for(int y = sy; y < ey; y++) {
       int node_count = 0;
       for(int i = 0; i < edge_interpolator_count; i++) {
         edge_interpolators[i].next(y, nodes, node_count);
       }
 
-      // if(y < target->bounds.y || y >= target->bounds.y + target->bounds.h) {
-      //   continue;
-      // }
-
       // sort the nodes so that neighouring pairs represent render spans
       sort(nodes, nodes + node_count);
-
-
-      // render into target mask channel
-      // float *current_node = nodes;
-      // while(node_count > 0) {
-      //   int x1 = min(max(0.0f, current_node[0]), target->bounds.w - 1);
-      //   int x2 = min(max(0.0f, current_node[1]), target->bounds.w - 1);
-
-      //   current_node += 2;
-      //   node_count -= 2;
-
-      //   uint8_t *pdst = (uint8_t*)target->ptr(x1, y);
-
-      //   for(int i = 0; i < x2 - x1; i++) {
-      //     pdst[3] = 255;
-      //     pdst += 4;
-      //   }
-      // }
-
             
       float *current_node = nodes;
       
       while(node_count > 0) {
-        int x1 = min(max(0.0f, current_node[0]), target->bounds.w - 1);
-        int x2 = min(max(0.0f, current_node[1]), target->bounds.w - 1);
+        int x1 = round(min(max(cb.x, current_node[0]), cb.x + cb.w));
+        int x2 = round(min(max(cb.x, current_node[1]), cb.x + cb.w));
 
         spans[span_count].x = x1;
         spans[span_count].y = y;
@@ -167,18 +135,6 @@ namespace picovector {
 
     // render any left over spans
     brush->render_spans(target, spans, span_count);
-
-    //brush->render_mask(target);
-
-    // for(int y = 0; y < target->bounds.h; y++) {
-    //   uint8_t *pdst = (uint8_t*)target->ptr(0, y);
-    //   for(int x = 0; x < target->bounds.w; x++) {
-    //     pdst[3] = 255;
-    //     pdst += 4;
-    //   }
-    // }
-
-    //debug_printf("render done\n");
   }
 
   

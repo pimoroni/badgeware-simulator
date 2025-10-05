@@ -1,6 +1,7 @@
 # we need to call this in our "pre-setup code", the user shouldn't have to do it
 # it's required to setup the global 'screen' object
 from picovector import PicoVector, brushes, shapes, Image 
+import time
 PicoVector.init()
 
 class SpriteSheet:
@@ -65,3 +66,48 @@ class Font:
       elif char_idx < len(self.chars):        
         image.blit(self.chars[char_idx], cx, cy)
         cx += self.cw
+
+class Particle:
+  def __init__(self, position, motion, user=None):
+    self.position = position
+    self.motion = motion
+    self.user = user
+    self.created_at = time.ticks_ms()
+  
+  def age(self):
+    return (time.ticks_ms() - self.created_at) / 1000
+
+class ParticleGenerator:
+  def __init__(self, gravity, max_age = 2):
+    self.gravity = gravity    
+    self.max_age = max_age
+    self.last_tick_ms = time.ticks_ms()
+    self.particles = []
+
+  def spawn(self, position, motion, user=None):
+    self.particles.append(Particle(position, motion, user))
+
+  def youngest(self):
+    return self.particles[-1] if len(self.particles) > 0 else None
+  
+  # update all particle locations and age out particles that have expired
+  def tick(self):
+    # expire aged particles
+    self.particles = [particle for particle in self.particles if particle.age() < self.max_age]
+    
+    # update particles
+    dt = (time.ticks_ms() - self.last_tick_ms) / 1000
+    for particle in self.particles:
+      particle.position = (
+        particle.position[0] + (particle.motion[0] * dt),
+        particle.position[1] + (particle.motion[1] * dt)
+      )
+      
+      # apply "gravity" force to motion vectors
+      particle.motion = (
+        (particle.motion[0] + self.gravity[0] * dt),
+        (particle.motion[1] + self.gravity[1] * dt)
+      )
+
+    self.last_tick_ms = time.ticks_ms()
+
