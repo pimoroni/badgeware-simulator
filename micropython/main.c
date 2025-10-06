@@ -90,7 +90,14 @@
 extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
-uint8_t buttons; // input buttons
+
+// Buttons for io.pressed / io.changed
+uint8_t picovector_buttons;
+uint8_t picovector_last_buttons;
+uint8_t picovector_changed_buttons;
+
+// Value for io.ticks
+double picovector_ticks;
 
 // MicroPython heap and stack
 #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
@@ -620,17 +627,16 @@ static void sokol_frame(void) {
         igEnd();
         igPopStyleVar(); // ImGuiStyleVar_WindowPadding
     }
-    
-    mp_obj_t ticks = mp_obj_new_int_from_ull(stm_ms(stm_now()));
-    mp_obj_dict_t *globals = mp_globals_get();
-    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_BUTTONS), mp_obj_new_int(buttons));
-    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_TICKS), ticks);
+
+    picovector_ticks = stm_ms(stm_now());
+    picovector_changed_buttons = picovector_buttons ^ picovector_last_buttons;
+    picovector_last_buttons = picovector_buttons;
 
     if(update_callback_obj != mp_const_none) {
         nlr_buf_t nlr;
         // We need to be able to handle any exception
         if (nlr_push(&nlr) == 0) {
-            mp_obj_t result = mp_call_function_1(update_callback_obj, ticks);
+            mp_obj_t result = mp_call_function_0(update_callback_obj);
             // If the update function returns false, stop calling it... I dunno why. Useful, maybe?
             if(result == mp_const_false) {
                 update_callback_obj = mp_const_none;
@@ -659,31 +665,35 @@ static void sokol_event(const sapp_event* ev) {
         bool clear = ev->type == SAPP_EVENTTYPE_KEY_UP;
         uint8_t mask = 0;
         switch (ev->key_code) {
+            case SAPP_KEYCODE_H: // Home
+                mask = 0b100000;
+                break;
             case SAPP_KEYCODE_LEFT: // A
-                mask = 0b10000;
+                mask = 0b010000;
                 break;
             case SAPP_KEYCODE_DOWN: // B
-                mask = 0b01000;
+                mask = 0b001000;
                 break;
             case SAPP_KEYCODE_RIGHT: // C
-                mask = 0b00100;
+                mask = 0b000100;
                 break;
             case SAPP_KEYCODE_RIGHT_SHIFT: // UP
+            case SAPP_KEYCODE_LEFT_SHIFT: // macOS does not disambiguate?
             case SAPP_KEYCODE_PAGE_UP:
-                mask = 0b00010;
+                mask = 0b000010;
                 break;
             case SAPP_KEYCODE_UP: // Down
             case SAPP_KEYCODE_PAGE_DOWN:
-                mask = 0b00001;
+                mask = 0b000001;
                 break;
             default:
                 simgui_handle_event(ev);
                 return;
         }
         if (clear) {
-            buttons &= ~mask;
+            picovector_buttons &= ~mask;
         } else {
-            buttons |= mask;
+            picovector_buttons |= mask;
         }
     }
     simgui_handle_event(ev);

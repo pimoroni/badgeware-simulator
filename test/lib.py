@@ -1,9 +1,7 @@
 # we need to call this in our "pre-setup code", the user shouldn't have to do it
 # it's required to setup the global 'screen' object
-from picovector import PicoVector, brushes, shapes, Image 
+from picovector import PicoVector, brushes, shapes, Image, screen, io
 import time
-
-PicoVector.init()
 
 # BUTTON_A    = 16
 # BUTTON_B    = 99 # can't find it...
