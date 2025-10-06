@@ -12,6 +12,6 @@ namespace picovector {
   shape* arc(float x, float y, float from, float to, float radius);
   shape* pie(float x, float y, float from, float to, float radius);
   shape* star(float x, float y, int spikes, float outer_radius, float inner_radius);
-  shape* line(float x1, float y1, float x2, float y2);
+  shape* line(float x1, float y1, float x2, float y2, float w);
   
 };

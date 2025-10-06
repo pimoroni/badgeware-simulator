@@ -122,8 +122,9 @@ extern "C" {
     float y1 = mp_obj_get_float(pos_args[1]);    
     float x2 = mp_obj_get_float(pos_args[2]);    
     float y2 = mp_obj_get_float(pos_args[3]);    
+    float w = mp_obj_get_float(pos_args[4]);    
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
-    shape->shape = line(x1, y1, x2, y2);
+    shape->shape = line(x1, y1, x2, y2, w);
     return MP_OBJ_FROM_PTR(shape);
   }
 
@@ -178,7 +179,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_star_obj, 4, shapes_star);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_star_static_obj, MP_ROM_PTR(&shapes_star_obj));
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_line_obj, 4, shapes_line);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_line_obj, 5, shapes_line);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_line_static_obj, MP_ROM_PTR(&shapes_line_obj));
 
 

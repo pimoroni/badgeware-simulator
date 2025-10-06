@@ -1,4 +1,5 @@
 import time
+import math
 from lib import *
 
 # load user interface sprites
@@ -24,29 +25,77 @@ stats_icons = {
 }
 
 # ui outline (contrast) colour
-outline = brushes.color(20, 30, 40, 150)
+outline_brush = brushes.color(20, 30, 40, 150)
+
+# draw the background scenery
+def background(ticks, mona):
+  floor_y, mona_x = mona.position()[1] - 5, mona.position()[0]
+
+  # fill the wall background
+  screen.brush(brushes.color(30, 50, 70))
+  screen.draw(shapes.rectangle(0, 0, 160, floor_y))
+
+  # animate the wallpaper
+  screen.brush(brushes.color(30, 40, 20))
+  mx = (mona_x - 80) / 2
+  for y in range(0, 8):
+    for x in range(0, 19):
+      if (x + y) % 2 == 0:
+        xo = math.sin(ticks / 1000) * 2
+        yo = math.cos(ticks / 1000) * 2        
+        screen.draw(shapes.rectangle(x * 10 - mx, y * 10 - 3, xo + 4, yo + 4))
+
+  # draw the picture frame
+  px = 140 - mx
+  screen.brush(brushes.color(30, 40, 50, 100))
+  screen.draw(shapes.rectangle(px + 1, 20 + 1, 38, 28))
+  screen.brush(brushes.color(50, 40, 30, 255))
+  screen.draw(shapes.rectangle(px, 20, 38, 28))
+  screen.brush(brushes.color(80, 90, 100, 255))
+  screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
+  frame = mona._animations["heart"].frame(7)
+  frame.alpha(120)
+  screen.blit(frame, px + 8, 20)
+  frame.alpha(255)
+  
+  # draw the skirting board
+  screen.brush(brushes.color(80, 90, 100, 150))
+  screen.draw(shapes.rectangle(0, floor_y - 5, 160, 5))
+  screen.draw(shapes.rectangle(0, floor_y - 4, 160, 1))
+
+  # draw the floor
+  floor = screen.window(0, floor_y, 160, 120) # clip drawing to floor area
+
+  # draw background fill
+  floor.brush(brushes.color(30, 40, 20))
+  floor.draw(shapes.rectangle(0, 0, 160, 120 - floor_y))
+
+  # draw floorboards  
+  floor.brush(brushes.color(100, 200, 100, 15))
+  for i in range(0, 300, 10):
+    x1 = i - ((mona_x - i) * 1.5)
+    x2 = i - ((mona_x - i) * 2)
+    line = shapes.line(x1, 5, x2, 19, 2)
+    floor.draw(line)
 
 # draw the title banner
 def draw_header():
-  screen.brush(outline)
+  screen.brush(outline_brush)
   screen.draw(shapes.rounded_rectangle(40, 1, 160 - 80, 15, 3))
   #screen.draw(shapes.rectangle(0, 0, 160, 14))
   pixel_code.text(screen, 52, 2, "monagotchi")
  
 def draw_buttons():
-  draw_button(  1, 102, stats_brushes["happy"], "A", "play")
-  draw_button( 54, 102, stats_brushes["hunger"], "B", "feed")
-  draw_button(107, 102, stats_brushes["clean"], "C", "clean")
+  draw_button(  4, 102, stats_brushes["happy"], "A", "play")
+  draw_button( 55, 102, stats_brushes["hunger"], "B", "feed")
+  draw_button(106, 102, stats_brushes["clean"], "C", "clean")
 
+# draw a user action button with button name and label
 def draw_button(x, y, brush, button, label):  
   button_width = 50
-  
-  # draw the button shadow
-  screen.brush(outline)
-  screen.draw(shapes.rounded_rectangle(x + 2, y + 2, button_width, 15, 6))
 
   # draw the button outline
-  screen.brush(outline)
+  screen.brush(outline_brush)
   screen.draw(shapes.rounded_rectangle(x, y, button_width, 15, 6))
 
   # draw the button fill  
@@ -59,12 +108,12 @@ def draw_button(x, y, brush, button, label):
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 6))
   pixel_code.text(screen, x + 5, y + 1, button)
   
-
+# draw a statistics bar with icon and fill level
 def draw_bar(name, x, y, amount):  
   bar_width = 40
 
   # draw the bar background
-  screen.brush(outline)    
+  screen.brush(outline_brush)    
   screen.draw(shapes.rounded_rectangle(x + 11, y, bar_width, 10, 3))
 
   #calculate how wide the bar "fill" is and clamp it to at least 3 pixels
@@ -81,13 +130,8 @@ def draw_bar(name, x, y, amount):
   
   screen.blit(stats_icons[name], x, y + 1)
 
-  
+# draw monas statistics bars
 def draw_stat_bars(mona): 
-  draw_bar("happy",  2, 33, mona.happy)
-  draw_bar("hunger", 2, 50, mona.hunger)
-  draw_bar("clean",  2, 67, mona.clean)
-
-
-# helper functions
-def rect_deflate(rect):
-  return (rect[0] + 1, rect[1] + 1, rect[2] - 1, rect[3] - 1)
+  draw_bar("happy",  2, 41, mona.happy)
+  draw_bar("hunger", 2, 58, mona.hunger)
+  draw_bar("clean",  2, 75, mona.clean)

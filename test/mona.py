@@ -3,31 +3,36 @@ import time, random, math
 
 # this class defines our little friend, modify it to change their behaviour!
 #
+# - move mona to a random location
+# - change mona's mood
+# - alter mona's stats (happiness, hunger, cleanliness)
+# - change mona's appearance
+#
 # the ui will automatically update to reflect mona's state
 
 class Mona:
-  moods = []
-  animations = {}
+  _moods = []
+  _animations = {}
 
   def __init__(self, y):    
-    self.happy = 50
-    self.hunger = 80
-    self.clean = 40
-    self.mood = "default"
-    self.mood_changed_at = time.time()
-    self.position_changed_at = time.time()
-    self.position = (80, y + 2)
-    self.direction = 1
-    self.target = 80
-    self.speed = 0.5
+    self._happy = 50
+    self._hunger = 80
+    self._clean = 40
+    self._mood = "default"
+    self._mood_changed_at = time.time()
+    self._position_changed_at = time.time()
+    self._position = (80, y + 2)
+    self._direction = 1
+    self._target = 80
+    self._speed = 0.5
 
   def draw(self):
     # break out x and y into a shorter hand variables
-    x, y = self.position
+    x, y = self._position
 
     # select sprite for current animation frame
     ticks = time.ticks_ms()
-    image = self.animations[self.mood].frame(round(ticks / 100))
+    image = self._animations[self._mood].frame(round(ticks / 100))
     width, height = image.width * 2, image.height * 2    
 
     # draw monas shadow
@@ -36,29 +41,29 @@ class Mona:
     screen.draw(shapes.rectangle(x - (width / 2) + 5 + 2, y - 2, width - 10 - 4, 4))
 
     # invert mona if they are walking left
-    width *= self.direction
+    width *= self._direction
     
     # is mona floating?
-    floating = math.sin(ticks / 250) * 5 + 5 if self.mood == "dead" else 0
+    floating = math.sin(ticks / 250) * 5 + 5 if self._mood == "dead" else 0
 
     # offset sprite
     x -= (width / 2)
     y -= height + floating
 
     # draw mona
-    alpha = 150 if self.mood == "dead" else 255
+    alpha = 150 if self._mood == "dead" else 255
     image.alpha(alpha)
     screen.scale_blit(image, x, y, width, height)    
     
     # draw monas reflection
     image.alpha(int(alpha * 0.2))
-    screen.scale_blit(image, x, self.position[1] - 2 + 22 + (floating / 2), width, -20)
+    screen.scale_blit(image, x, self._position[1] - 2 + 22 + (floating / 2) + 1, width, -20)
     image.alpha(255)
 
   # set a new target position for mona to move to
   def move_to(self, target):
-    self.target = target
-    self.position_changed_at = time.time()
+    self._target = target
+    self._position_changed_at = time.time()
 
   # select a random position for mona to move to
   def move_to_random(self):
@@ -66,31 +71,45 @@ class Mona:
 
   # return the number of seconds since mona moved
   def time_since_last_position_change(self):
-    return time.time() - self.position_changed_at
+    return time.time() - self._position_changed_at
 
+  # return monas current position
+  def position(self):
+    return self._position
+  
   # change monas mood
   def set_mood(self, mood):
-    self.mood = mood
-    self.mood_changed_at = time.time()
+    self._mood = mood
+    self._mood_changed_at = time.time()
+
+  # increase or decrease monas statistics
+  def happy(self, amount):
+    self._happy = clamp(self._happy + amount, 0, 100)
+
+  def clean(self, amount):
+    self._clean = clamp(self._clean + amount, 0, 100)
+
+  def hunger(self, amount):
+    self._hunger = clamp(self._hunger + amount, 0, 100)
 
   # update monas position
   def update(self):    
     # break out x and y into a shorter hand variables
-    x, y = self.position    
+    x, y = self._position    
 
     # if mona isn't at their target position then move towards it
-    if x != self.target:      
-      self.direction = 1 if x > self.target else -1
-      self.position = (x - (self.speed * self.direction), y)
+    if x != self._target:      
+      self._direction = 1 if x > self._target else -1
+      self._position = (x - (self._speed * self._direction), y)
 
   # select a random mood for mona
   def random_mood(self):
-    self.set_mood(random.choice(Mona.moods))
+    self.set_mood(random.choice(Mona._moods))
 
   # return the number of seconds since monas mood changed
   def time_since_last_mood_change(self):
-    return time.time() - self.mood_changed_at
-      
+    return time.time() - self._mood_changed_at    
+
 # define monas animations and the number of frames
 animations = {
   "dance": 6,
@@ -105,6 +124,6 @@ animations = {
 # load the spritesheets for monas animations
 for name, frame_count in animations.items():
   sprites = SpriteSheet(f"test/sprites/mona-{name}.gif.png", frame_count, 1)
-  Mona.animations[name] = sprites.animation()
+  Mona._animations[name] = sprites.animation()
 
-Mona.moods = list(Mona.animations.keys())
+Mona._moods = list(Mona._animations.keys())

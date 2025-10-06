@@ -146,12 +146,21 @@ namespace picovector {
     return result;
   }
 
-  shape* line(float x1, float y1, float x2, float y2) {
+  shape* line(float x1, float y1, float x2, float y2, float w) {
     shape *result = new(PV_MALLOC(sizeof(shape))) shape(1);
-    path poly(2);
+    path poly(4);
 
-    poly.add_point(x1, y1);
-    poly.add_point(x2, y2);
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float m = sqrt(dx * dx + dy * dy);
+    dx /= m;
+    dy /= m;
+    float hw = w / 2.0f;
+
+    poly.add_point(x1 + (dy * hw), y1 - (dx * hw));
+    poly.add_point(x2 + (dy * hw), y2 - (dx * hw));
+    poly.add_point(x2 - (dy * hw), y2 + (dx * hw));
+    poly.add_point(x1 - (dy * hw), y1 + (dx * hw));
     result->add_path(poly);
 
     return result;

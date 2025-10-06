@@ -135,6 +135,22 @@ namespace picovector {
 
     // render any left over spans
     brush->render_spans(target, spans, span_count);
+
+    bool _debug_points = false;
+    if(_debug_points) {
+      color_brush white(255, 255, 255, 50);
+      for(path &path : shape->paths) {
+        point last = path.points.back(); // start with last point to close loop
+        last = last.transform(transform);
+        //debug_printf("- adding path with %d points\n", int(path.points.size()));
+        for(point next : path.points) {
+          // _rspan span = {.x = next.x .y = next.y, w = 1, o = 255};
+          if(next.x >= 0 && next.x < 160 && next.y >= 0 && next.y < 120) {
+            white.render_span(target, next.x, next.y, 1);
+          }
+        }
+      }
+    }    
   }
 
   

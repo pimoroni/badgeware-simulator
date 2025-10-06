@@ -2,7 +2,20 @@
 # it's required to setup the global 'screen' object
 from picovector import PicoVector, brushes, shapes, Image 
 import time
+
 PicoVector.init()
+
+# BUTTON_A    = 16
+# BUTTON_B    = 99 # can't find it...
+# BUTTON_C    =  4
+# BUTTON_UP   =  1
+# BUTTON_DOWN =  8
+
+# def is_pressed(button):
+#   return BUTTONS & button
+
+def clamp(v, vmin, vmax):
+  return max(vmin, min(v, vmax))
 
 class SpriteSheet:
   def __init__(self, file, columns, rows):

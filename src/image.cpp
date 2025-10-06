@@ -59,7 +59,7 @@ namespace picovector {
     for(int i = 0; i < tr.h; i++) {
       uint32_t *src = this->ptr(sxo, syo + i);
       uint32_t *dst = t->ptr(tr.x, tr.y + i);
-      span_blit_argb8(src, dst, tr.w);
+      span_blit_argb8(src, dst, tr.w, this->alpha);
     }
   }
 
