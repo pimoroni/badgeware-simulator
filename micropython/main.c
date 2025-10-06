@@ -90,6 +90,7 @@
 extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
+uint8_t buttons; // input buttons
 
 #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
 static char heap[heap_size] = {0};
@@ -284,8 +285,11 @@ void fetch_badgeware_update_callback() {
 static int run_file(const char* path) {
     debug_printf("Running....%s?\n", path);
 
+    char dpath[PATH_MAX];
+    memcpy(dpath, path, strlen(path));
+
     // Set base dir of the script as first entry in sys.path.
-    const char* dir = dirname((char *)path);
+    const char* dir = dirname(dpath);
     mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
 
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
@@ -298,7 +302,7 @@ static int run_file(const char* path) {
 }
 
 volatile bool hot_reload = false;
-char *hot_reload_code;
+char hot_reload_code[PATH_MAX];
 
 static void micropython_init(void);
 static void badgeware_init(void);
@@ -417,26 +421,22 @@ static void micropython_init(void) {
 static void badgeware_init(void) {
     bw_repl_print_str("Hello BadgeWare!\n");
 
-    if(sargs_exists("code")) {
-        const char *path = sargs_value("code");
-        debug_printf("Watching code: %s\n", path);
-        hot_reload_code = realpath(path, NULL);
+    //if(sargs_exists("code")) {
+        const char *path = sargs_value_def("code", "test/main.py");
+        char *rpath = realpath(path, NULL);
+        memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
+        hot_reload_code[strlen(rpath)] = '\0';
 
-        if (hot_reload_code == NULL) {
-            //mp_printf(&mp_stderr_print, "MicroPython: can't open file '%s': [Errno %d]\n", hot_reload_code, errno, strerror(errno));
-            // TODO: Exit
-            return;
-        }
-
-        char *dname = dirname(hot_reload_code);
+        char *dname = dirname(rpath);
+        debug_printf("Watching code: %s\n", hot_reload_code);
         debug_printf("Watching directory %s\n", dname);
         dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
         hot_reload = true;
 
         debug_printf("free(abspath)\n");
         //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
-        free(dname);
-    }
+        //free(dname);
+    //}
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
@@ -506,6 +506,7 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
 }
 
 static void sokol_frame(void) {
+
     if(hot_reload) {
         micropython_init();
 
@@ -521,22 +522,6 @@ static void sokol_frame(void) {
     });
 
     mp_handle_pending(true);
-
-    if(update_callback_obj != mp_const_none) {
-        nlr_buf_t nlr;
-        // We need to be able to handle any exception
-        if (nlr_push(&nlr) == 0) {
-            mp_obj_t result = mp_call_function_1(update_callback_obj, mp_obj_new_int_from_ull(stm_ms(stm_now())));
-            // If the update function returns false, stop calling it... I dunno why. Useful, maybe?
-            if(result == mp_const_false) {
-                update_callback_obj = mp_const_none;
-            }
-            nlr_pop();
-        } else {
-            update_callback_obj = mp_const_none;
-            handle_uncaught_exception(nlr.ret_val);
-        }
-    }
 
     // TODO: Why don't sapp_width and sapp_height update on window resize?
     //ImVec2 window_size = {sapp_width(), sapp_height()};
@@ -631,6 +616,27 @@ static void sokol_frame(void) {
         igEnd();
         igPopStyleVar(); // ImGuiStyleVar_WindowPadding
     }
+    
+    mp_obj_t ticks = mp_obj_new_int_from_ull(stm_ms(stm_now()));
+    mp_obj_dict_t *globals = mp_globals_get();
+    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_BUTTONS), mp_obj_new_int(buttons));
+    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_TICKS), ticks);
+
+    if(update_callback_obj != mp_const_none) {
+        nlr_buf_t nlr;
+        // We need to be able to handle any exception
+        if (nlr_push(&nlr) == 0) {
+            mp_obj_t result = mp_call_function_1(update_callback_obj, ticks);
+            // If the update function returns false, stop calling it... I dunno why. Useful, maybe?
+            if(result == mp_const_false) {
+                update_callback_obj = mp_const_none;
+            }
+            nlr_pop();
+        } else {
+            update_callback_obj = mp_const_none;
+            handle_uncaught_exception(nlr.ret_val);
+        }
+    }
 
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();
@@ -645,6 +651,37 @@ static void sokol_cleanup(void) {
 }
 
 static void sokol_event(const sapp_event* ev) {
+    if(ev->type == SAPP_EVENTTYPE_KEY_DOWN || ev->type == SAPP_EVENTTYPE_KEY_UP) {
+        bool clear = ev->type == SAPP_EVENTTYPE_KEY_UP;
+        uint8_t mask = 0;
+        switch (ev->key_code) {
+            case SAPP_KEYCODE_LEFT: // A
+                mask = 0b10000;
+                break;
+            case SAPP_KEYCODE_DOWN: // B
+                mask = 0b01000;
+                break;
+            case SAPP_KEYCODE_RIGHT: // C
+                mask = 0b00100;
+                break;
+            case SAPP_KEYCODE_RIGHT_SHIFT: // UP
+            case SAPP_KEYCODE_PAGE_UP:
+                mask = 0b00010;
+                break;
+            case SAPP_KEYCODE_UP: // Down
+            case SAPP_KEYCODE_PAGE_DOWN:
+                mask = 0b00001;
+                break;
+            default:
+                simgui_handle_event(ev);
+                return;
+        }
+        if (clear) {
+            buttons &= ~mask;
+        } else {
+            buttons |= mask;
+        }
+    }
     simgui_handle_event(ev);
 }
 
