@@ -47,13 +47,16 @@ def background(ticks, mona):
 
   # draw the picture frame
   px = 140 - mx
+  screen.brush(brushes.color(80, 90, 100, 100))
+  screen.draw(shapes.line(px + 2, 20 + 2, px + 20, 15, 1))
+  screen.draw(shapes.line(px + 35 + 2, 20 + 2, px + 20, 15, 1))
+  frame = mona._animations["heart"].frame(7)
   screen.brush(brushes.color(30, 40, 50, 100))
   screen.draw(shapes.rectangle(px + 1, 20 + 1, 38, 28))
   screen.brush(brushes.color(50, 40, 30, 255))
   screen.draw(shapes.rectangle(px, 20, 38, 28))
   screen.brush(brushes.color(80, 90, 100, 255))
   screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
-  frame = mona._animations["heart"].frame(7)
   frame.alpha(120)
   screen.blit(frame, px + 8, 20)
   frame.alpha(255)
@@ -62,6 +65,12 @@ def background(ticks, mona):
   screen.brush(brushes.color(80, 90, 100, 150))
   screen.draw(shapes.rectangle(0, floor_y - 5, 160, 5))
   screen.draw(shapes.rectangle(0, floor_y - 4, 160, 1))
+
+  # draw the outlet
+  outlet = icons.sprite(6, 0)
+  outlet.alpha(100)
+  screen.blit(icons.sprite(6, 0), px - 90, floor_y - 16)
+  outlet.alpha(255)
 
   # draw the floor
   floor = screen.window(0, floor_y, 160, 120) # clip drawing to floor area
