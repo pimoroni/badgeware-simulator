@@ -86,12 +86,13 @@
 #define warning_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
 
-//extern bool micropython_gc_enabled;
+// Framebuffer and "emulator" state
 extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
 uint8_t buttons; // input buttons
 
+// MicroPython heap and stack
 #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
 static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
@@ -108,6 +109,10 @@ const char* BW_REPL_TAB = "    ";
 bool bw_repl_exec = false;
 bool bw_repl_exec_error_maybe = false;
 
+// Hot reloading
+volatile bool hot_reload = false;
+char hot_reload_code[PATH_MAX];
+
 static void bw_repl_print_strn(const char *str, size_t len) {
     if (bw_repl_cursor_pos + len >= BW_REPL_SIZE) {
         bw_repl_cursor_pos = 0;
@@ -116,20 +121,44 @@ static void bw_repl_print_strn(const char *str, size_t len) {
     bw_repl_cursor_pos += len;
 }
 
-
 static void bw_repl_print_str(const char *str) {
     bw_repl_print_strn(str, strlen(str));
 }
 
-#if !MICROPY_PY_SYS_PATH
-#error "The unix port requires MICROPY_PY_SYS_PATH=1"
-#endif
+static void stderr_print_strn(void *env, const char *str, size_t len) {
+    (void)env;
+    warning_printf("%s", str);
+    bw_repl_print_strn(str, len);
+}
 
-#if !MICROPY_PY_SYS_ARGV
-#error "The unix port requires MICROPY_PY_SYS_ARGV=1"
-#endif
+mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
+    ssize_t ret;
+    MP_HAL_RETRY_SYSCALL(ret, write(STDOUT_FILENO, str, len), {});
+    mp_uint_t written = ret < 0 ? 0 : ret;
+    int dupterm_res = mp_os_dupterm_tx_strn(str, len);
+    if (dupterm_res >= 0) {
+        written = MIN((mp_uint_t)dupterm_res, written);
+    }
+    bw_repl_print_strn(str, written);
+    return written;
+}
 
-static void stderr_print_strn(void *env, const char *str, size_t len);
+/*
+mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
+    warning_printf("%s", str);
+    bw_repl_print_strn(str, len);
+    return len;
+}
+*/
+
+// cooked is same as uncooked because the terminal does some postprocessing
+void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
+    mp_hal_stdout_tx_strn(str, len);
+}
+
+void mp_hal_stdout_tx_str(const char *str) {
+    mp_hal_stdout_tx_strn(str, strlen(str));
+}
 
 const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
 
@@ -270,109 +299,9 @@ mp_obj_t _mp_load_global(qstr qst) {
 void* smemtrack_alloc(size_t size, void* user_data) {
     return malloc(size);
 }
+
 void smemtrack_free(void* ptr, void* user_data) {
     free(ptr);
-}
-
-void fetch_badgeware_update_callback() {
-    debug_printf("fetching update callback...\n");
-    update_callback_obj = _mp_load_global(qstr_from_str("update"));
-    if(update_callback_obj == mp_const_none) {
-        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
-    }
-}
-
-static int run_file(const char* path) {
-    debug_printf("Running....%s?\n", path);
-
-    char dpath[PATH_MAX];
-    memcpy(dpath, path, strlen(path));
-
-    // Set base dir of the script as first entry in sys.path.
-    const char* dir = dirname(dpath);
-    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
-
-    int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-
-    debug_printf("done?\n");
-
-    fetch_badgeware_update_callback();
-
-    return ret;
-}
-
-volatile bool hot_reload = false;
-char hot_reload_code[PATH_MAX];
-
-static void micropython_init(void);
-static void badgeware_init(void);
-
-static void watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
-                           const char* filepath, const char* oldfilepath, void* user)
-{
-    switch(action) {
-        case DMON_ACTION_MODIFY:
-            warning_printf("WARNING: Hot reload triggered by %s\n", filepath);
-            hot_reload = true;
-            break;
-        default:
-            break;
-    }
-}
-
-static void sokol_init(void) {
-    dmon_init();
-    stm_setup(); // sokol_time.h
-    sg_setup(&(sg_desc){
-        .environment = sglue_environment(),
-        .logger.func = slog_func,
-        .allocator = (sg_allocator) {
-            .alloc_fn = smemtrack_alloc,
-            .free_fn = smemtrack_free
-        }
-    });
-    simgui_setup(&(simgui_desc_t){ .allocator = (simgui_allocator_t) {
-        .alloc_fn = smemtrack_alloc,
-        .free_fn = smemtrack_free
-    }});
-
-    state.smp.nearest_clamp = sg_make_sampler(&(sg_sampler_desc){
-        .min_filter = SG_FILTER_NEAREST,
-        .mag_filter = SG_FILTER_NEAREST,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-    });
-
-    state.smp.linear_clamp = sg_make_sampler(&(sg_sampler_desc){
-        .min_filter = SG_FILTER_LINEAR,
-        .mag_filter = SG_FILTER_LINEAR,
-        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-    });
-
-    // initial clear color
-    state.pass_action = (sg_pass_action) {
-        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.5f, 1.0f, 1.0 } }
-    };
-
-    state.color_img = sg_alloc_image();
-
-    // MICROPYTHON INIT
-
-    #ifdef SIGPIPE
-    // Do not raise SIGPIPE, instead return EPIPE. Otherwise, e.g. writing
-    // to peer-closed socket will lead to sudden termination of MicroPython
-    // process. SIGPIPE is particularly nasty, because unix shell doesn't
-    // print anything for it, so the above looks like completely sudden and
-    // silent termination for unknown reason. Ignoring SIGPIPE is also what
-    // CPython does. Note that this may lead to problems using MicroPython
-    // scripts as pipe filters, but again, that's what CPython does. So,
-    // scripts which want to follow unix shell pipe semantics (where SIGPIPE
-    // means "pipe was requested to terminate, it's not an error"), should
-    // catch EPIPE themselves.
-    signal(SIGPIPE, SIG_IGN);
-    #endif
-    badgeware_init();
 }
 
 static void micropython_init(void) {
@@ -418,25 +347,121 @@ static void micropython_init(void) {
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
 }
 
-static void badgeware_init(void) {
-    bw_repl_print_str("Hello BadgeWare!\n");
+static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
+                           const char* filepath, const char* oldfilepath, void* user)
+{
+    switch(action) {
+        case DMON_ACTION_MODIFY:
+            warning_printf("WARNING: Hot reload triggered by %s\n", filepath);
+            hot_reload = true;
+            break;
+        default:
+            break;
+    }
+}
 
-    //if(sargs_exists("code")) {
-        const char *path = sargs_value_def("code", "test/main.py");
-        char *rpath = realpath(path, NULL);
+static int badgeware_init(void) {
+    bw_repl_print_str("badgeware_init: Hello BadgeWare!\n");
+    const char *path = sargs_value_def("code", "test/main.py");
+    char *rpath = realpath(path, NULL);
+
+    if(rpath && access(rpath, R_OK) == 0) {
         memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
         hot_reload_code[strlen(rpath)] = '\0';
 
         char *dname = dirname(rpath);
-        debug_printf("Watching code: %s\n", hot_reload_code);
-        debug_printf("Watching directory %s\n", dname);
-        dmon_watch(dname, watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
+        debug_printf("badgeware_init: Watching code: %s\n", hot_reload_code);
+        debug_printf("badgeware_init: Watching directory %s\n", dname);
+        dmon_watch(dname, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
         hot_reload = true;
+        return 0;
+    } else {
+        debug_printf("badgeware_init: Could not open %s\n", path);
+        return -1;
+    }
+}
 
-        debug_printf("free(abspath)\n");
-        //free(abspath); // TODO: using this in userdata uh don't worrry abooout it
-        //free(dname);
-    //}
+void fetch_badgeware_update_callback() {
+    debug_printf("fetching update callback...\n");
+    update_callback_obj = _mp_load_global(qstr_from_str("update"));
+    if(update_callback_obj == mp_const_none) {
+        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
+    }
+}
+
+static int run_file(const char* path) {
+    debug_printf("Running....%s?\n", path);
+
+    char dpath[PATH_MAX];
+    memcpy(dpath, path, strlen(path));
+
+    // Set base dir of the script as first entry in sys.path.
+    const char* dir = dirname(dpath);
+    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
+
+    int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
+
+    debug_printf("done?\n");
+
+    fetch_badgeware_update_callback();
+
+    return ret;
+}
+
+static void sokol_init(void) {
+    dmon_init();
+    stm_setup(); // sokol_time.h
+    sg_setup(&(sg_desc){
+        .environment = sglue_environment(),
+        .logger.func = slog_func,
+        .allocator = (sg_allocator) {
+            .alloc_fn = smemtrack_alloc,
+            .free_fn = smemtrack_free
+        }
+    });
+    simgui_setup(&(simgui_desc_t){ .allocator = (simgui_allocator_t) {
+        .alloc_fn = smemtrack_alloc,
+        .free_fn = smemtrack_free
+    }});
+
+    state.smp.nearest_clamp = sg_make_sampler(&(sg_sampler_desc){
+        .min_filter = SG_FILTER_NEAREST,
+        .mag_filter = SG_FILTER_NEAREST,
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    });
+
+    state.smp.linear_clamp = sg_make_sampler(&(sg_sampler_desc){
+        .min_filter = SG_FILTER_LINEAR,
+        .mag_filter = SG_FILTER_LINEAR,
+        .wrap_u = SG_WRAP_CLAMP_TO_EDGE,
+        .wrap_v = SG_WRAP_CLAMP_TO_EDGE,
+    });
+
+    // initial clear color
+    state.pass_action = (sg_pass_action) {
+        .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.5f, 1.0f, 1.0 } }
+    };
+
+    state.color_img = sg_alloc_image();
+
+    // MICROPYTHON INIT
+    #ifdef SIGPIPE
+    // Do not raise SIGPIPE, instead return EPIPE. Otherwise, e.g. writing
+    // to peer-closed socket will lead to sudden termination of MicroPython
+    // process. SIGPIPE is particularly nasty, because unix shell doesn't
+    // print anything for it, so the above looks like completely sudden and
+    // silent termination for unknown reason. Ignoring SIGPIPE is also what
+    // CPython does. Note that this may lead to problems using MicroPython
+    // scripts as pipe filters, but again, that's what CPython does. So,
+    // scripts which want to follow unix shell pipe semantics (where SIGPIPE
+    // means "pipe was requested to terminate, it's not an error"), should
+    // catch EPIPE themselves.
+    signal(SIGPIPE, SIG_IGN);
+    #endif
+    if(badgeware_init() != 0) {
+        exit(EXIT_FAILURE);
+    }
 }
 
 // from https://github.com/floooh/sokol-samples/blob/master/sapp/imgui-images-sapp.c#L52
@@ -450,27 +475,6 @@ static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
 {
     ImVec2 *aspect = (ImVec2 *)data->UserData;
     data->DesiredSize.x = (data->DesiredSize.y / aspect->y) * aspect->x;
-}
-
-static void stderr_print_strn(void *env, const char *str, size_t len) {
-    (void)env;
-    warning_printf("%s", str);
-    bw_repl_print_strn(str, len);
-}
-
-mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
-    warning_printf("%s", str);
-    bw_repl_print_strn(str, len);
-    return len;
-}
-
-// cooked is same as uncooked because the terminal does some postprocessing
-void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
-    mp_hal_stdout_tx_strn(str, len);
-}
-
-void mp_hal_stdout_tx_str(const char *str) {
-    mp_hal_stdout_tx_strn(str, strlen(str));
 }
 
 static int _igReplCallback(ImGuiInputTextCallbackData* data) {
