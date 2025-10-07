@@ -31,6 +31,8 @@ outline_brush = brushes.color(20, 30, 40, 150)
 def background(ticks, mona):
   floor_y, mona_x = mona.position()[1] - 5, mona.position()[0]
 
+  screen.antialias(1)
+
   # fill the wall background
   screen.brush(brushes.color(30, 50, 70))
   screen.draw(shapes.rectangle(0, 0, 160, floor_y))
@@ -42,7 +44,7 @@ def background(ticks, mona):
     for x in range(0, 19):
       if (x + y) % 2 == 0:
         xo = math.sin(ticks / 1000) * 2
-        yo = math.cos(ticks / 1000) * 2        
+        yo = math.cos(ticks / 1000) * 2
         screen.draw(shapes.rectangle(x * 10 - mx, y * 10 - 3, xo + 4, yo + 4))
 
   # draw the picture frame
@@ -85,6 +87,8 @@ def background(ticks, mona):
     line = shapes.line(x1, 5, x2, 19, 2)
     floor.draw(line)
 
+  screen.antialias(2)
+
 # draw the title banner
 def draw_header():
   screen.brush(outline_brush)
@@ -106,12 +110,12 @@ def draw_button(x, y, brush, button, label):
 
   # draw the button fill  
   screen.brush(brushes.color(60, 80, 100))
-  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, button_width - 2, 15 - 2, 6))
+  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, button_width - 2, 15 - 2, 4))
   pixel_code.text(screen, x + 17, y + 1, label)
 
   # draw the button action key
   screen.brush(brush)
-  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 6))
+  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 4))
   pixel_code.text(screen, x + 5, y + 1, button)
   
 # draw a statistics bar with icon and fill level

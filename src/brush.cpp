@@ -25,12 +25,15 @@ namespace picovector {
   }
 
   void color_brush::render_span(image *target, int x, int y, int w) {
-    //debug_printf("color span at %d, %d -> %d\n", x, y, w);
     uint32_t *dst = target->ptr(x, y);
-
     span_argb8(dst, w, color);    
   }
-  
+
+  void color_brush::render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {
+    uint32_t *dst = target->ptr(x, y);
+    span_argb8(dst, w, color, sb);
+  }
+
   blur_brush::blur_brush(int passes) {
     this->passes = passes;    
   }

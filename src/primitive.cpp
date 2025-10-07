@@ -32,14 +32,13 @@ namespace picovector {
 
   void _build_rounded_rectangle_corner(path *path, float x, float y, float r, int q) {
     float quality = 5; // higher the number, lower the quality - selected by experiment
-    int steps = ceil(r / quality) + 2; // + 2 to include start and end
+    int steps = ceil(r / quality) + 1;
     float delta = -(M_PI / 2) / float(steps);
     float theta = (M_PI / 2) * q; // select start theta for this quadrant
-    for(int i = 0; i < steps; i++) {
-      theta += delta;
+    for(int i = 0; i <= steps; i++) {
       float xo = sin(theta) * r, yo = cos(theta) * r;
       path->add_point((point){x + xo, y + yo});
-      
+      theta += delta;      
     }
   }
 

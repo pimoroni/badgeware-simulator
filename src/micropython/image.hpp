@@ -337,6 +337,13 @@ extern "C" {
     return mp_const_none;
   }
 
+  mp_obj_t image_antialias(size_t n_args, const mp_obj_t *pos_args) {    
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);    
+    int aa = mp_obj_get_int(pos_args[1]);    
+    self->image->antialias = static_cast<antialiasing>(aa);
+    return mp_const_none;
+  }
+
 
   static void image_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, image_obj_t);
@@ -367,6 +374,7 @@ extern "C" {
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_brush_obj, 2, image_brush);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_alpha_obj, 2, image_alpha);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_antialias_obj, 2, image_antialias);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
 
@@ -380,6 +388,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
       { MP_ROM_QSTR(MP_QSTR_brush), MP_ROM_PTR(&image_brush_obj) },
       { MP_ROM_QSTR(MP_QSTR_alpha), MP_ROM_PTR(&image_alpha_obj) },
+      { MP_ROM_QSTR(MP_QSTR_antialias), MP_ROM_PTR(&image_antialias_obj) },
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&image_load_static_obj) },

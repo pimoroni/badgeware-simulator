@@ -26,6 +26,16 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
   pd[3] = 255; // TODO: this is wrong
 }
 
+inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, uint8_t a) {
+  uint8_t *pd = (uint8_t *)dst;
+  uint8_t *ps = (uint8_t *)src;
+  a = (a * ps[3]) / 255;
+  pd[0] = ((pd[0] * (255 - a)) + (ps[0] * a)) / 255;
+  pd[1] = ((pd[1] * (255 - a)) + (ps[1] * a)) / 255;
+  pd[2] = ((pd[2] * (255 - a)) + (ps[2] * a)) / 255;
+  pd[3] = 255; // TODO: this is wrong
+}
+
 inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c) { 
   
   uint8_t *ps = (uint8_t *)&c;
@@ -74,6 +84,14 @@ inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c
 //   }
 }
 
+
+inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c, uint8_t *m) { 
+  uint8_t *ps = (uint8_t *)&c;
+  while(w--) {
+    _rgba_blend_to(dst++, &c, *m++);    
+  }
+}
+
 inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, int w, int a = 255) {     
   //span_pixels_drawn += w;
 
@@ -82,7 +100,7 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
     uint8_t *ps = (uint8_t *)src;  
     uint8_t *pd = (uint8_t *)dst;  
 
-    int ca = (ps[3] * (a + 1)) / 256; // apply global alpha
+    int ca = (ps[3] * (a)) / 255; // apply global alpha
 
     if(ca == 0) {
       // zero alpha, skip pixel                            

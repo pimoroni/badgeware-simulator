@@ -59,7 +59,7 @@ namespace picovector {
       step = (e.x - s.x) / (e.y - s.y);
     }
 
-    void next(int y, float *nodes, int &node_count) {
+    void next(float y, float *nodes, int &node_count) {
       if(y < s.y || y >= e.y) return;
       nodes[node_count++] = s.x + ((y - s.y) * step);
     }
@@ -98,43 +98,65 @@ namespace picovector {
     const size_t SPAN_BUFFER_SIZE = 256;
     static _rspan spans[SPAN_BUFFER_SIZE];
 
+    static uint8_t sb[SPAN_BUFFER_SIZE];    
+
+    int aa = target->antialias;    
+    
     int sy = cb.y;
     int ey = cb.y + cb.h;
 
+    // TODO: we can special case a faster version for no AA here
+
     int span_count = 0;
-    for(int y = sy; y < ey; y++) {
-      int node_count = 0;
-      for(int i = 0; i < edge_interpolator_count; i++) {
-        edge_interpolators[i].next(y, nodes, node_count);
-      }
+    for(float y = sy; y < ey; y++) {
+      // clear the span buffer
+      memset(sb, 0, sizeof(sb));
 
-      // sort the nodes so that neighouring pairs represent render spans
-      sort(nodes, nodes + node_count);
-            
-      float *current_node = nodes;
+      // loop over y sub samples
+      for(int yss = 0; yss < aa; yss++) {
+        float ysso = (1.0f / float(aa + 1)) * float(yss + 1);
       
-      while(node_count > 0) {
-        int x1 = round(min(max(cb.x, current_node[0]), cb.x + cb.w));
-        int x2 = round(min(max(cb.x, current_node[1]), cb.x + cb.w));
+        int node_count = 0;
 
-        spans[span_count].x = x1;
-        spans[span_count].y = y;
-        spans[span_count].w = x2 - x1;
-        spans[span_count].o = 255;
+        for(int i = 0; i < edge_interpolator_count; i++) {
+          edge_interpolators[i].next(y + ysso, nodes, node_count);
+        }
 
-        span_count++;
-        current_node += 2;
-        node_count -= 2;
-        
-        if(span_count == SPAN_BUFFER_SIZE) {
-          brush->render_spans(target, spans, span_count);
-          span_count = 0;
+        // sort the nodes so that neighouring pairs represent render spans
+        sort(nodes, nodes + node_count);
+               
+        for(int i = 0; i < node_count; i += 2) {
+          int x1 = round((nodes[i + 0] - cb.x) * aa);
+          int x2 = round((nodes[i + 1] - cb.x) * aa);
+
+          x1 = min(max(0, x1), int(cb.w * aa));
+          x2 = min(max(0, x2), int(cb.w * aa));       
+          uint8_t *psb = sb;
+          for(int j = x1; j < x2; j++) {
+            psb[j >> (aa >> 1)]++;
+          }        
         }
       }
-    }
 
-    // render any left over spans
-    brush->render_spans(target, spans, span_count);
+      // todo: this could be more efficient if we buffer multiple scanlines at once
+      //debug_printf("render_span_buffer\n");
+      static uint8_t aa_none[2] = {0, 255};
+      static uint8_t aa_x2[5] = {0, 64, 128, 192, 255};
+      static uint8_t aa_x4[17] = {0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255};
+
+      uint8_t *aa_lut = aa_none;
+      aa_lut = aa == 2 ? aa_x2 : aa_lut;
+      aa_lut = aa == 4 ? aa_x4 : aa_lut;      
+
+      // scale span buffer alpha values
+      int c = SPAN_BUFFER_SIZE;
+      uint8_t *psb = sb;
+      while(c--) {
+        *psb++ = aa_lut[*psb];
+      }
+
+      brush->render_span_buffer(target, cb.x, y, cb.w, sb);
+    }
 
     bool _debug_points = false;
     if(_debug_points) {

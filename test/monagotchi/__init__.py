@@ -22,6 +22,8 @@ def game_update(ticks):
   # end of game logic here
 
 def update(ticks):
+  screen.antialias(2)
+
   # update the game state based on user input and timed events
   game_update(ticks)
 
@@ -33,6 +35,13 @@ def update(ticks):
   
   # draw our little friend
   mona.draw()
+
+  # x = math.sin(ticks / 1000) * 5
+  # y = math.cos(ticks / 1000) * 5
+  # screen.brush(brushes.color(255, 0, 0))
+  # screen.draw(shapes.rectangle(20, 20, 30, 30))
+  # screen.draw(shapes.circle(80 + x, 60 + y, 15))
+  # screen.draw(shapes.rounded_rectangle(60, 20, 30, 30, 4))
   
   # draw the user interface elements
   ui.draw_stat_bars(mona)  

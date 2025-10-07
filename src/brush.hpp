@@ -14,6 +14,7 @@ namespace picovector {
     void render_spans(image *target, _rspan *spans, int count);
     virtual void render_span(image *target, int x, int y, int w) = 0;
     virtual void render_mask(image *target);
+    virtual void render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) = 0;
   };
   
   struct color_brush : public brush {
@@ -24,6 +25,7 @@ namespace picovector {
     }
     
     void render_span(image *target, int x, int y, int w);
+    void render_span_buffer(image *target, int x, int y, int w, uint8_t *sb);
     //void render_mask(image *target);
   };
 
@@ -32,6 +34,7 @@ namespace picovector {
     blur_brush(int passes = 1);
     
     void render_span(image *target, int x, int y, int w);
+    void render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {};
     void render_mask(image *target);
   };
 
@@ -40,6 +43,7 @@ namespace picovector {
     brighten_brush(int amount);
     
     void render_span(image *target, int x, int y, int w);
+    void render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {};
     //void render_mask(image *target);
   };
 
@@ -48,6 +52,7 @@ namespace picovector {
     xor_brush(int r, int g, int b);
     
     void render_span(image *target, int x, int y, int w);
+    void render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {};
     //void render_mask(image *target);
   };
 

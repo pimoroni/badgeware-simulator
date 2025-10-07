@@ -10,6 +10,14 @@
 
 namespace picovector {
 
+  enum antialiasing {
+    OFF = 1,
+    LOW = 2,
+    X2 = 2,
+    HIGH = 4,
+    X4 = 4
+  };
+
   class image {
     public:
       uint32_t *p = nullptr;
@@ -18,6 +26,7 @@ namespace picovector {
       rect bounds;
       picovector::brush *brush;
       int alpha = 255;
+      enum antialiasing antialias = OFF;
       
       size_t _rowstride; // row stride
 
