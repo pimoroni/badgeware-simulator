@@ -40,10 +40,12 @@ extern "C" {
   uint8_t picovector_buttons;
   uint8_t picovector_changed_buttons;
   mp_uint_t picovector_ticks;
+  mp_uint_t picovector_last_ticks;
 #else
   extern uint8_t picovector_buttons;
   extern uint8_t picovector_changed_buttons;
   extern double picovector_ticks;
+  extern double picovector_last_ticks;
 #endif
 
   typedef struct _Input_obj_t {
@@ -61,6 +63,11 @@ extern "C" {
 
     if(attr == MP_QSTR_ticks && dest[0] == MP_OBJ_NULL) {
       dest[0] = mp_obj_new_int_from_ll(picovector_ticks);
+      return;
+    }
+
+    if(attr == MP_QSTR_ticks_delta && dest[0] == MP_OBJ_NULL) {
+      dest[0] = mp_obj_new_int_from_ll(picovector_ticks - picovector_last_ticks);
       return;
     }
 
@@ -106,6 +113,7 @@ extern "C" {
     uint8_t buttons = get_buttons();
     picovector_changed_buttons = buttons ^ picovector_buttons;
     picovector_buttons = buttons;
+    picovector_last_ticks = piocovector_ticks;
     picovector_ticks = mp_hal_ticks_ms();
     return mp_const_none;
   }

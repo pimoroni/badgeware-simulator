@@ -98,6 +98,7 @@ uint8_t picovector_changed_buttons;
 
 // Value for io.ticks
 double picovector_ticks;
+double picovector_last_ticks;
 
 // MicroPython heap and stack
 #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
@@ -636,6 +637,7 @@ static void sokol_frame(void) {
         igPopStyleVar(); // ImGuiStyleVar_WindowPadding
     }
 
+    picovector_last_ticks = picovector_ticks;
     picovector_ticks = stm_ms(stm_now());
     picovector_changed_buttons = picovector_buttons ^ picovector_last_buttons;
     picovector_last_buttons = picovector_buttons;
