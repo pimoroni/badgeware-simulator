@@ -3,6 +3,8 @@
 #include "../picovector.hpp"
 #include "../image.hpp"
 #include "../span.hpp"
+#include "../font.hpp"
+
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
@@ -22,7 +24,6 @@ extern "C" {
   #endif  
 
   extern const mp_obj_type_t type_Image;
-  struct _shape_obj_t;
 
   typedef struct _image_obj_t {
     mp_obj_base_t base;
@@ -293,6 +294,27 @@ extern "C" {
     return mp_const_none;
   }
 
+  mp_obj_t image_font(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const font_obj_t *font = (font_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+    self->image->font = &font->font;
+    return mp_const_none;
+  }
+
+  mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const char *text = mp_obj_str_get_str(pos_args[1]);    
+    float x = mp_obj_get_int(pos_args[2]);
+    float y = mp_obj_get_int(pos_args[3]);
+
+    self->image->font->draw(self->image, text, x, y);
+    // draw it
+    // self->image->draw(shape->shape);
+    return mp_const_none;
+  }
+
+
+
   mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
@@ -373,6 +395,8 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);  
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_brush_obj, 2, image_brush);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_font_obj, 2, image_font);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 4, image_text);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_alpha_obj, 2, image_alpha);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_antialias_obj, 2, image_antialias);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
@@ -387,6 +411,8 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&image_window_obj) },
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
       { MP_ROM_QSTR(MP_QSTR_brush), MP_ROM_PTR(&image_brush_obj) },
+      { MP_ROM_QSTR(MP_QSTR_font), MP_ROM_PTR(&image_font_obj) },
+      { MP_ROM_QSTR(MP_QSTR_text), MP_ROM_PTR(&image_text_obj) },
       { MP_ROM_QSTR(MP_QSTR_alpha), MP_ROM_PTR(&image_alpha_obj) },
       { MP_ROM_QSTR(MP_QSTR_antialias), MP_ROM_PTR(&image_antialias_obj) },
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },

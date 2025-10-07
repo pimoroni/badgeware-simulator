@@ -6,16 +6,13 @@ from lib import *
 # https://qwerasd205.github.io/PixelCode/
 pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 
-vector_font = Font.load("assets/marker-high.af")
+vector_font = Font.load("assets/Roboto-Medium-With-Material-Symbols.af")
 
 
 
 schedule = []
 with open("assets/sessions.json") as schedule_file:
   schedule = json.load(schedule_file)
-
-for event in schedule:
-  print(event["title"])
 
 class Event():
   def __init__(self, data):

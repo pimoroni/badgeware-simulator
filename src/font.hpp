@@ -10,6 +10,8 @@
 
 namespace picovector {
 
+  class image;
+
   typedef struct {
     int8_t x, y;
   } glyph_path_point_t;
@@ -31,6 +33,8 @@ namespace picovector {
   public:
     int glyph_count;
     glyph_t *glyphs;
+
+    void draw(image *target, const char *text, float x, float y);
   };
 
 }
