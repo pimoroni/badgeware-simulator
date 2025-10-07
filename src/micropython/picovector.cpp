@@ -25,7 +25,6 @@ extern "C" {
   } modpicovector_obj_t;
 
   input_obj_t *mp_input;
-
   image_obj_t *mp_image;
   int screen_width = 160;
   int screen_height = 120;
@@ -33,6 +32,12 @@ extern "C" {
   image screen(framebuffer, screen_width, screen_height);
 
   extern const mp_rom_map_elem_t modpicovector_globals_table;
+
+  void modpicovector_deinit() {
+    debug_printf("modpicovector_deinit: Cleaning up...\n");
+    mp_image = nullptr;
+    mp_input = nullptr;
+  }
 
   void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] == MP_OBJ_NULL) {
