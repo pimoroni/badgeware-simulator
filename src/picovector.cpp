@@ -152,7 +152,8 @@ namespace picovector {
       int c = SPAN_BUFFER_SIZE;
       uint8_t *psb = sb;
       while(c--) {
-        *psb++ = aa_lut[*psb];
+        *psb = aa_lut[*psb];
+        psb++;
       }
 
       brush->render_span_buffer(target, cb.x, y, cb.w, sb);

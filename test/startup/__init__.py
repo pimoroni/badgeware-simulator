@@ -2,8 +2,6 @@ import json
 import math
 from lib import *
 
-#splash1_00000
-
 animate_over = 2
 wait_over = 3
 fade_over = 2
