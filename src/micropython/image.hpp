@@ -268,8 +268,11 @@ extern "C" {
     int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
     result->image = new(m_malloc(sizeof(image))) image(png->getWidth(), png->getHeight());
     png->decode((void *)result->image, 0);
+#if PICO
+    m_free(png);
+#else
     m_free(png, sizeof(png));
-
+#endif
     return MP_OBJ_FROM_PTR(result);
   }
 
