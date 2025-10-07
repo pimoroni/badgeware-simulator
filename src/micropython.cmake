@@ -9,6 +9,7 @@ target_sources(usermod_picovector INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/shape.cpp
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/font.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp  
 )
 
@@ -24,6 +25,7 @@ set_source_files_properties(
   ${CMAKE_CURRENT_LIST_DIR}/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/shape.cpp
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/font.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
   PROPERTIES COMPILE_FLAGS
   "-Wno-unused-variable"

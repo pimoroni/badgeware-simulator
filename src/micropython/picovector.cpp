@@ -7,6 +7,7 @@
 #include "brush.hpp"
 #include "shape.hpp"
 #include "image.hpp"
+#include "font.hpp"
 #include "input.hpp"
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
