@@ -3,11 +3,11 @@ import math
 from lib import *
 
 # load user interface sprites
-icons = SpriteSheet(f"test/sprites/icons.png", 10, 1)
+icons = SpriteSheet(f"assets/icons.png", 10, 1)
 
 # load in the font - font sheet generated from 
 # https://qwerasd205.github.io/PixelCode/
-pixel_code = Font("test/pixelcode-font.6x12.png", 6, 12)
+pixel_code = Font("assets/pixelcode-font.6x12.png", 6, 12)
 
 # brushes to match monas stats
 stats_brushes = {
@@ -55,9 +55,9 @@ def background(ticks, mona):
   screen.draw(shapes.rectangle(px + 1, 20 + 1, 38, 28))
   screen.brush(brushes.color(50, 40, 30, 255))
   screen.draw(shapes.rectangle(px, 20, 38, 28))
-  screen.brush(brushes.color(80, 90, 100, 255))
+  screen.brush(brushes.color(120, 130, 140, 255))
   screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
-  frame.alpha(120)
+  frame.alpha(180)
   screen.blit(frame, px + 8, 20)
   frame.alpha(255)
   
@@ -68,9 +68,7 @@ def background(ticks, mona):
 
   # draw the outlet
   outlet = icons.sprite(6, 0)
-  outlet.alpha(100)
   screen.blit(icons.sprite(6, 0), px - 90, floor_y - 16)
-  outlet.alpha(255)
 
   # draw the floor
   floor = screen.window(0, floor_y, 160, 120) # clip drawing to floor area
@@ -91,7 +89,6 @@ def background(ticks, mona):
 def draw_header():
   screen.brush(outline_brush)
   screen.draw(shapes.rounded_rectangle(40, 1, 160 - 80, 15, 3))
-  #screen.draw(shapes.rectangle(0, 0, 160, 14))
   pixel_code.text(screen, 52, 2, "monagotchi")
  
 def draw_buttons():

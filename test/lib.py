@@ -67,18 +67,46 @@ class Font:
       for x in range(0, columns):
         self.chars.append(self.image.window(self.cw * x, self.ch * y, self.cw, self.ch))
   
-  def text(self, image, x, y, text):    
-    cx, cy = x, y # caret pos
-    for char in text:
-      char_idx = ord(char)
-      if char_idx == 10:
-        cx = x
-        cy += self.ch
-      elif char_idx == 32:
-        cx += self.cw / 2
-      elif char_idx < len(self.chars):        
-        image.blit(self.chars[char_idx], cx, cy)
-        cx += self.cw
+  def text(self, image, x, y, text, max_width=None, only_measure=False):    
+    cx, cy = 0, 0 # caret pos
+    maxx, maxy = 0, 0
+
+    lines = text.splitlines()
+    for line in lines:
+      words = line.split(" ")
+      for word in words:
+        # work out length of word in pixels
+        wl = len(word) * self.cw
+
+        # move to next line if exceeds max width
+        if max_width and cx + wl > max_width:
+          cx = 0
+          cy += self.ch - 2
+
+        # render characters in word
+        for char in word:
+          char_idx = ord(char)
+          if not only_measure and char_idx < len(self.chars):
+            image.blit(self.chars[char_idx], cx + x, cy + y)
+          cx += self.cw
+
+          if max_width and cx > max_width:
+            cx = 0
+            cy += self.ch - 2
+        
+        # once the word has been rendered update our min and max cursor values
+        maxx = max(maxx, cx)
+        maxy = max(maxy, cy + self.ch - 2)
+
+        cx += self.cw / 3
+
+      cx = 0
+      cy += self.ch - 2
+
+    return maxx, maxy
+
+  def measure(self, text, max_width=None):
+    return self.text(None, 0, 0, text, max_width=max_width, only_measure=True)
 
 class Particle:
   def __init__(self, position, motion, user=None):

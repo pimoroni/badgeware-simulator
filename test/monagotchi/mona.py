@@ -123,7 +123,7 @@ animations = {
 
 # load the spritesheets for monas animations
 for name, frame_count in animations.items():
-  sprites = SpriteSheet(f"test/sprites/mona-{name}.gif.png", frame_count, 1)
+  sprites = SpriteSheet(f"assets/mona-{name}.gif.png", frame_count, 1)
   Mona._animations[name] = sprites.animation()
 
 Mona._moods = list(Mona._animations.keys())
