@@ -43,7 +43,9 @@ extern "C" {
     if (dest[0] == MP_OBJ_NULL) {
       if (attr == MP_QSTR_screen) {
         if(!mp_image) {
-          mp_image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+          // Don't use mp_obj_malloc_with_finalizer here, since the __del__
+          // method will try to delete our `screen` and explode.
+          mp_image = mp_obj_malloc(image_obj_t, &type_Image);
           mp_image->image = &screen;
         }
         dest[0] = MP_OBJ_FROM_PTR(mp_image);
