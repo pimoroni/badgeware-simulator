@@ -61,6 +61,8 @@ extern "C" {
     
     int error;
 
+    debug_printf("loading font...\n");
+
     char marker[5];
     mp_stream_read_exactly(file, &marker, sizeof(marker), &error);
     marker[4] = 0;

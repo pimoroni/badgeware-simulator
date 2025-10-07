@@ -1,6 +1,6 @@
 # we need to call this in our "pre-setup code", the user shouldn't have to do it
 # it's required to setup the global 'screen' object
-from picovector import PicoVector, brushes, shapes, Image, screen, io
+from picovector import PicoVector, brushes, shapes, Image, screen, io, Font
 import time
 
 # print("io imported")
@@ -54,7 +54,7 @@ class AnimatedSprite:
     frame_index %= len(self.frames)
     return self.spritesheet.sprite(self.frames[frame_index][0], self.frames[frame_index][1])
 
-class Font:
+class BitmapFont:
   def __init__(self, file, char_width, char_height):
     self.image = Image.load(file)
     self.cw = char_width
