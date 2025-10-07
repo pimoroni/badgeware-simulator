@@ -7,6 +7,7 @@
 #include "brush.hpp"
 #include "shape.hpp"
 #include "image.hpp"
+#include "input.hpp"
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 
@@ -22,6 +23,8 @@ extern "C" {
       mp_obj_base_t base;
   } modpicovector_obj_t;
 
+  input_obj_t *mp_input;
+
   image_obj_t *mp_image;
   int screen_width = 160;
   int screen_height = 120;
@@ -30,16 +33,22 @@ extern "C" {
 
   extern const mp_rom_map_elem_t modpicovector_globals_table;
 
-
-  mp_obj_t modpicovector_init(size_t n_args, const mp_obj_t *pos_args) {
-
-    mp_image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
-    mp_image->image = &screen;
-
-    mp_obj_dict_t *globals = mp_globals_get();
-    mp_obj_dict_store(globals, MP_OBJ_NEW_QSTR(MP_QSTR_screen), mp_image);
-
-    return mp_const_none;
+  void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+    if (dest[0] == MP_OBJ_NULL) {
+      if (attr == MP_QSTR_screen) {
+        if(!mp_image) {
+          mp_image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+          mp_image->image = &screen;
+        }
+        dest[0] = MP_OBJ_FROM_PTR(mp_image);
+      }
+      if (attr == MP_QSTR_io) {
+        if(!mp_input) {
+          mp_input = mp_obj_malloc(input_obj_t, &type_Input);
+        }
+        dest[0] = MP_OBJ_FROM_PTR(mp_input);
+      }
+    }
   }
 
   mp_obj_t modpicovector_brush(mp_obj_t brush_in) {

@@ -200,6 +200,7 @@ target_compile_definitions(${MICROPY_TARGET} PRIVATE
     #MICROPY_PY_THREAD=1  # Build fails on macOS "call to undeclared function 'pthread_mach_thread_np'"
     #MICROPY_PY_THREAD_GIL=1
     FFCONF_H="${MICROPY_DIR}/lib/oofatfs/ffconf.h"
+    MPZ_DIG_SIZE=16
 )
 
 # Apply optimisations to performance-critical source code.

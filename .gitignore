@@ -46,3 +46,4 @@ build-debug/
 
 # noise
 .vscode/
+.DS_Store
