@@ -113,7 +113,7 @@ extern "C" {
     uint8_t buttons = get_buttons();
     picovector_changed_buttons = buttons ^ picovector_buttons;
     picovector_buttons = buttons;
-    picovector_last_ticks = piocovector_ticks;
+    picovector_last_ticks = picovector_ticks;
     picovector_ticks = mp_hal_ticks_ms();
     return mp_const_none;
   }
