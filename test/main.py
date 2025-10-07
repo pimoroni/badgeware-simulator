@@ -1,4 +1,5 @@
 import os, sys
+from lib import *
 
 # sets up the sys path and current working directory for the app to be launched
 # then imports the app and returns it
@@ -10,5 +11,5 @@ def run_app(name):
 
 app = run_app("monagotchi")
 
-def update(ticks):
-  return app.update(ticks)
+def update():    
+  return app.update(io.ticks)

@@ -38,7 +38,7 @@ extern "C" {
   static void input_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, input_obj_t);
 
-    if(attr == MP_QSTR_ticks && dest[0] == MP_OBJ_NULL) {
+    if(attr == MP_QSTR_ticks && dest[0] == MP_OBJ_NULL) {      
       dest[0] = mp_obj_new_int_from_ll(picovector_ticks);
       return;
     }

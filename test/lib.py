@@ -3,6 +3,8 @@
 from picovector import PicoVector, brushes, shapes, Image, screen, io
 import time
 
+print(io.ticks)
+
 # BUTTON_A    = 16
 # BUTTON_B    = 99 # can't find it...
 # BUTTON_C    =  4
