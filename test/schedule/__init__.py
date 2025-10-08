@@ -54,10 +54,20 @@ def draw_event_card(data):
   screen.brush(brushes.color(30, 70, 50))
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
+  screen.antialias(4);
+  screen.brush(brushes.color(255, 255, 255))
+  #print("set font")
+  screen.font(vector_font)
+  #print("draw text")
+  size = math.sin(io.ticks / 1000) * 20 + 30
+  screen.text("press any button to continue...", 10, 50, size)
+
+  #print("done")
+  return
   caret_y = 0
   caret_y += centre_text(0, caret_y, 160, event.when(), padding=(1, 0, 4, 0), background=brushes.color(20, 40, 60, 150))
   caret_y += centre_text(0, caret_y, 160, event.where(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
-  #centre_text(12, event.where())
+  centre_text(12, event.where())
 
   _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
   caret_y += h + 5

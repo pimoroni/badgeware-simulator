@@ -6,35 +6,43 @@
 #include "brush.hpp"
 #include "shape.hpp"
 #include "rect.hpp"
+#include "point.hpp"
 #include "matrix.hpp"
 
 namespace picovector {
 
   class image;
 
-  typedef struct {
+  class glyph_path_point {
+  public:
     int8_t x, y;
-  } glyph_path_point_t;
+    
+    point transform(mat3 *transform);
+  };
 
-  typedef struct {
+  class glyph_path {
+  public:
     uint16_t point_count;
-    glyph_path_point_t *points;
-  } glyph_path_t;
+    glyph_path_point *points;
+  };
 
-  typedef struct {
+  class glyph {
+  public:
     uint16_t codepoint;
     int8_t x, y, w, h;
     int8_t advance;
     uint8_t path_count;
-    glyph_path_t *paths;    
-  } glyph_t;
+    glyph_path *paths;   
+    
+    rect bounds(mat3 *transform);
+  };
 
   class font {
   public:
     int glyph_count;
-    glyph_t *glyphs;
+    glyph *glyphs;
 
-    void draw(image *target, const char *text, float x, float y);
+    void draw(image *target, const char *text, float x, float y, float size);
   };
 
 }

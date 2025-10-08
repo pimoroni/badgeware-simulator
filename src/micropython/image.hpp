@@ -1,4 +1,4 @@
-
+#include <algorithm>
 #include "mp_tracked_allocator.hpp"
 #include "../picovector.hpp"
 #include "../image.hpp"
@@ -11,6 +11,7 @@
 #define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
 
 using namespace picovector;
+using namespace std;
 
 extern "C" {
 
@@ -294,20 +295,16 @@ extern "C" {
     return mp_const_none;
   }
 
-  mp_obj_t image_font(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const font_obj_t *font = (font_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    self->image->font = &font->font;
-    return mp_const_none;
-  }
 
   mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);    
-    float x = mp_obj_get_int(pos_args[2]);
-    float y = mp_obj_get_int(pos_args[3]);
+    
+    float x = mp_obj_get_float(pos_args[2]);
+    float y = mp_obj_get_float(pos_args[3]);
+    float size = mp_obj_get_float(pos_args[4]);
 
-    self->image->font->draw(self->image, text, x, y);
+    self->image->font->draw(self->image, text, x, y, size);
     // draw it
     // self->image->draw(shape->shape);
     return mp_const_none;
@@ -344,6 +341,13 @@ extern "C" {
   }
 
 
+  mp_obj_t image_font(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    font_obj_t *font = (font_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+    self->image->font = &font->font;
+    return mp_const_none;
+  }
+
   mp_obj_t image_brush(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
@@ -354,8 +358,9 @@ extern "C" {
 
   mp_obj_t image_alpha(size_t n_args, const mp_obj_t *pos_args) {    
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);    
-    int a = mp_obj_get_int(pos_args[1]);    
-    self->image->alpha = a;
+    float a = mp_obj_get_float(pos_args[1]);    
+    a = min(255.0f, max(a, 0.0f));
+    self->image->alpha = int(a);
     return mp_const_none;
   }
 
@@ -396,7 +401,7 @@ extern "C" {
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_brush_obj, 2, image_brush);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_font_obj, 2, image_font);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 4, image_text);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 5, image_text);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_alpha_obj, 2, image_alpha);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_antialias_obj, 2, image_antialias);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
