@@ -37,12 +37,21 @@ namespace picovector {
   void render_character(glyph *glyph, image *target, mat3 *transform, brush *brush) {    
     if(!glyph->path_count) {return;};
     
+    //debug_printf("------------\n");
     // determine the intersection between transformed polygon and target image
+    //rect u = rect(glyph->x, glyph->y, glyph->w, glyph->h);
+    //debug_printf("u %f, %f x %f, %f\n", u.x, u.y, u.w, u.h);
     rect b = glyph->bounds(transform);
+    
+    // bounds y coordinate seems wrong - WHY?
+    //debug_printf("t %f, %f x %f, %f\n", b.x, b.y, b.w, b.h);
+
 
     // clip the shape bounds to the target bounds
-    //rect cb = b.intersection(target->bounds);
-    rect cb = target->bounds;
+    rect cb = b.intersection(target->bounds);
+    //debug_printf("c %f, %f x %f, %f\n", cb.x, cb.y, cb.w, cb.h);
+
+    //rect cb = target->bounds;
     //debug_printf("print char %c at %f, %f -> %f, %f\n", char(glyph->codepoint), cb.x, cb.y, cb.w, cb.h);
 
     // setup interpolators for each edge of the polygon
@@ -144,10 +153,10 @@ namespace picovector {
   }
 
   rect glyph::bounds(mat3 *transform) {
-    point p1(x, y);
-    point p2(x + w, y);
-    point p3(x + w, y + h);
-    point p4(x, y + h);
+    point p1(x, -y);
+    point p2(x + w, -y);
+    point p3(x + w, -y - h);
+    point p4(x, -y);
 
     p1 = p1.transform(transform);
     p2 = p2.transform(transform);
@@ -192,7 +201,8 @@ namespace picovector {
     mat3 transform;
     transform = transform.translate(x, y);
     transform = transform.scale(size / 128.0f, size / 128.0f);    
-    
+    transform = transform.translate(0, size);
+
     for(int i = 0; i < strlen(text); i++) {
       char c = text[i];
       // find the glyph
