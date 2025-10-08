@@ -27,7 +27,11 @@ extern "C" {
 
   mp_obj_t font__del__(mp_obj_t self_in) {
     self(self_in, font_obj_t);
+#if PICO
+    m_free(self->buffer);
+#else
     m_free(self->buffer, self->buffer_size);
+#endif
     return mp_const_none;
   }
 
