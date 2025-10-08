@@ -46,7 +46,7 @@ namespace picovector {
     //debug_printf("print char %c at %f, %f -> %f, %f\n", char(glyph->codepoint), cb.x, cb.y, cb.w, cb.h);
 
     // setup interpolators for each edge of the polygon
-    static _edgeinterp edge_interpolators[256];
+    static _edgeinterp edge_interpolators[1024];
     int edge_interpolator_count = 0;
 
     for(int i = 0; i < glyph->path_count; i++) {
@@ -162,8 +162,31 @@ namespace picovector {
     return rect(minx, miny, ceil(maxx) - minx, ceil(maxy) - miny);
   }
 
-  void font::draw(image *target, const char *text, float x, float y, float size) {
+  rect font::measure(image *target, const char *text, float size) {
+    rect r;
+
+    mat3 transform;
+    transform = transform.scale(size / 128.0f, size / 128.0f);    
     
+    for(int i = 0; i < strlen(text); i++) {
+      char c = text[i];
+      // find the glyph
+      for(int j = 0; j < this->glyph_count; j++) {
+        if(this->glyphs[j].codepoint == uint16_t(c)) {
+          float a = this->glyphs[j].advance;
+          transform = transform.translate(a, 0);
+          point caret(1, 1);
+          caret = caret.transform(transform);
+          r.w = max(r.w, caret.x);
+          r.h = max(r.y, caret.y);
+        }
+      }
+    }
+
+    return r;
+  }
+
+  void font::draw(image *target, const char *text, float x, float y, float size) {    
     point caret(x, y);
 
     mat3 transform;
@@ -181,7 +204,6 @@ namespace picovector {
         }
       }
     }
-    
   }
 
 }

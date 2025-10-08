@@ -6,9 +6,7 @@ from lib import *
 # https://qwerasd205.github.io/PixelCode/
 pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 
-vector_font = Font.load("assets/Roboto-Medium-With-Material-Symbols.af")
-
-
+vector_font = Font.load("assets/MonaSans-Medium.af")
 
 schedule = []
 with open("assets/sessions.json") as schedule_file:
@@ -28,24 +26,69 @@ class Event():
     return self._data["room"]
 
   def when(self):
-    days = {"2025-10-28": "Tues", "2025-10-29": "Weds"}
-    return f"{days[self._data["date"]]}    {self._data["starts"]} - {self._data["ends"]}"
+    days = {"2025-10-28": "Tuesday", "2025-10-29": "Wednesday"}
+    return f"{days[self._data["date"]]} {self._data["starts"]} - {self._data["ends"]}"
 
   def presenter(self):
     return self._data["name"] or None
+
+def text(image, x, y, text, size, max_width=None, only_measure=False):    
+  cx, cy = 0, 0 # caret pos
+  maxx, maxy = 0, 0
+
+  lines = text.splitlines()
+  for line in lines:
+    words = line.split(" ")
+    for word in words:
+      # work out length of word in pixels
+      wl, wh = image.measure_text(word, size)
+      
+      # move to next line if exceeds max width
+      if max_width and cx + wl > max_width:
+        cx = 0
+        cy += size - 2
+
+      # render characters in word
+      screen.text(word, cx + x, cy + y, size)
+
+      cx += wl
+
+      if max_width and cx > max_width:
+        cx = 0
+        cy += size - 2
+      
+      # once the word has been rendered update our min and max cursor values
+      maxx = max(maxx, cx)
+      maxy = max(maxy, cy + size - 2)
+
+      cx += 2
+
+    cx = 0
+    cy += size - 2
+
+  return maxx, maxy
 
 def centre_text(x, y, w, text, padding=0, background=None):
   if type(padding) == int or type(padding) == float:
     padding = (padding, padding, padding, padding)
 
+  size = 12
+
   mw = w - padding[1] - padding[3]
-  tw, h = pixel_code.measure(text, max_width=mw)
+
+  tw, h = screen.measure_text(text, size)
+
+  #tw, h = pixel_code.measure(text, max_width=mw)
 
   if background:
     screen.brush(background)
     screen.draw(shapes.rectangle(x, y, w, h + padding[0] + padding[2]))
   
-  pixel_code.text(screen, 80 - (tw / 2), y + padding[0], text, max_width=mw)
+  #pixel_code.text(screen, 80 - (tw / 2), y + padding[0], text, max_width=mw)
+  
+  screen.brush(brushes.color(255, 255, 255))
+  screen.text(text, 80 - (tw / 2), y + size + padding[0], size)
+
   return h + padding[0] + padding[2]
 
 def draw_event_card(data):  
@@ -55,35 +98,38 @@ def draw_event_card(data):
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
   screen.antialias(4);
-  screen.brush(brushes.color(255, 255, 255))
+  
   #print("set font")
   screen.font(vector_font)
   #print("draw text")
-  size = math.sin(io.ticks / 1000) * 20 + 30
-  screen.text("press any button to continue...", 10, 50, size)
+  #size = math.sin(io.ticks / 1000) * 20 + 30
+  
 
   #print("done")
-  return
   caret_y = 0
   caret_y += centre_text(0, caret_y, 160, event.when(), padding=(1, 0, 4, 0), background=brushes.color(20, 40, 60, 150))
   caret_y += centre_text(0, caret_y, 160, event.where(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
-  centre_text(12, event.where())
+  #centre_text(12, event.where())
 
-  _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
-  caret_y += h + 5
+  #def text(image, x, y, text, size, max_width=None, only_measure=False):    
+  text(screen, 5, caret_y + 20, event.title(), 16, max_width=150)
+  #caret_y += centre_text(0, caret_y, 160, event.title(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
+
+  # _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
+  #caret_y += h + 5
   
 
 
-  if event.presenter():
-    pixel_code.text(screen, 5, caret_y, "- " + event.presenter(), max_width=150)
+  #if event.presenter():
+  #  pixel_code.text(screen, 5, caret_y, "- " + event.presenter(), max_width=150)
   
-  if event.track():
-    w, _ = pixel_code.measure(event.track())
-    w += 4
-    h = 12
-    screen.brush(brushes.color(230, 70, 50))
-    screen.draw(shapes.rounded_rectangle(160 - w - 4, 120 - h - 4, w + 8, h, 3))
-    pixel_code.text(screen, 160 - w, 120 - h - 4, event.track())
+  # if event.track():
+  #   w, _ = pixel_code.measure(event.track())
+  #   w += 4
+  #   h = 12
+  #   screen.brush(brushes.color(230, 70, 50))
+  #   screen.draw(shapes.rounded_rectangle(160 - w - 4, 120 - h - 4, w + 8, h, 3))
+  #   pixel_code.text(screen, 160 - w, 120 - h - 4, event.track())
 
   #pixel_code.text(screen, 2, 82, event["topic"])
 
@@ -93,7 +139,17 @@ def draw_event_card(data):
   # screen.draw(shapes.rectangle(160 - w, 120 - h - 4, w, h))
   # pixel_code.text(screen, 160 - w + 2, 120 - h - 4, event["type"])
 
+_last_ticks = 0
 def update(ticks):
   card = round(ticks / 1000)
   draw_event_card(schedule[card % len(schedule)])
+
+  global _last_ticks
+  fps = round(1000 / (ticks - _last_ticks))
+  screen.brush(brushes.color(0, 0, 0))
+  screen.draw(shapes.rectangle(0, 0, 80, 24))
+  screen.brush(brushes.color(255, 255, 255))
+  screen.text(f"{fps}FPS", 5, 18, 20)
+  _last_ticks = ticks
+
   return True

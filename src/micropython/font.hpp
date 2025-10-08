@@ -97,7 +97,7 @@ extern "C" {
 
     if(!result->buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
-    }
+    }    
 
     glyph *glyphs = (glyph *)result->buffer;
     glyph_path *paths = (glyph_path *)(result->buffer + glyph_buffer_size);

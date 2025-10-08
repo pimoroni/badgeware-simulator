@@ -2,7 +2,7 @@ import json
 import math
 from lib import *
 
-# animation pacing settings
+# animation settings
 animation_duration = 3
 fade_duration = 2
 frame_count = 159

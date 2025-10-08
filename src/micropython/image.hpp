@@ -308,11 +308,23 @@ extern "C" {
     float size = mp_obj_get_float(pos_args[4]);
 
     self->image->font->draw(self->image, text, x, y, size);
-    // draw it
-    // self->image->draw(shape->shape);
+
     return mp_const_none;
   }
 
+  mp_obj_t image_measure_text(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const char *text = mp_obj_str_get_str(pos_args[1]);    
+    
+    float size = mp_obj_get_float(pos_args[2]);
+
+    rect r = self->image->font->measure(self->image, text, size);
+
+    mp_obj_t result[2];
+    result[0] = mp_obj_new_float(r.w);
+    result[1] = mp_obj_new_float(size);
+    return mp_obj_new_tuple(2, result);
+  }
 
 
   mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
@@ -405,6 +417,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_brush_obj, 2, image_brush);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_font_obj, 2, image_font);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 5, image_text);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 3, image_measure_text);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_alpha_obj, 2, image_alpha);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_antialias_obj, 2, image_antialias);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
@@ -421,6 +434,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_brush), MP_ROM_PTR(&image_brush_obj) },
       { MP_ROM_QSTR(MP_QSTR_font), MP_ROM_PTR(&image_font_obj) },
       { MP_ROM_QSTR(MP_QSTR_text), MP_ROM_PTR(&image_text_obj) },
+      { MP_ROM_QSTR(MP_QSTR_measure_text), MP_ROM_PTR(&image_measure_text_obj) },
       { MP_ROM_QSTR(MP_QSTR_alpha), MP_ROM_PTR(&image_alpha_obj) },
       { MP_ROM_QSTR(MP_QSTR_antialias), MP_ROM_PTR(&image_antialias_obj) },
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },

@@ -43,6 +43,7 @@ namespace picovector {
     glyph *glyphs;
 
     void draw(image *target, const char *text, float x, float y, float size);
+    rect measure(image *target, const char *text, float size);
   };
 
 }
