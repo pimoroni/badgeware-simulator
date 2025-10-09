@@ -27,8 +27,8 @@ namespace picovector {
       bool managed_buffer = false;
 
       rect bounds;
-      brush *brush;
-      font *font;
+      picovector::brush *brush;
+      picovector::font *font;
       int alpha = 255;
       enum antialiasing antialias = OFF;
       

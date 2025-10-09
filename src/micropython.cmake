@@ -30,3 +30,9 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS
   "-Wno-unused-variable"
 )
+
+target_compile_options(usermod_picovector INTERFACE
+    -Wall
+    -Werror
+)
+
