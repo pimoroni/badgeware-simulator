@@ -102,7 +102,6 @@ def draw_event_card(data):
   screen.brush(brushes.color(30, 70, 50))
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
-  screen.antialias(4);
   
   #print("set font")
   screen.font(vector_font)
@@ -117,7 +116,7 @@ def draw_event_card(data):
   #centre_text(12, event.where())
 
   #def text(image, x, y, text, size, max_width=None, only_measure=False):    
-  text(screen, 5, caret_y + 20, event.title(), 18, max_width=150)
+  text(screen, 5, caret_y + 20, event.title(), 20, max_width=150)
   #caret_y += centre_text(0, caret_y, 160, event.title(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
 
   # _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
