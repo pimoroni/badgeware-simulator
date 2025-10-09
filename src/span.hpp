@@ -32,6 +32,14 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, ui
   uint8_t *pd = (uint8_t *)dst;
   uint8_t *ps = (uint8_t *)src;
   a = (a * ps[3]) / 255;
+  if(a == 255) {
+    *dst = *src;
+    return;
+  }
+  if(a == 0) {
+    return;
+  }
+
   pd[0] = ((pd[0] * (255 - a)) + (ps[0] * a)) / 255;
   pd[1] = ((pd[1] * (255 - a)) + (ps[1] * a)) / 255;
   pd[2] = ((pd[2] * (255 - a)) + (ps[2] * a)) / 255;
