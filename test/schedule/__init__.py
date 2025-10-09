@@ -146,9 +146,24 @@ def draw_event_card(data):
 
 _last_ticks = 0
 def update(ticks):
+
+
+  screen.antialias(4);
+  
+  # #print("set font")
+  # screen.font(vector_font)
+
+  # screen.brush(brushes.color(30, 50, 70))
+  # screen.draw(shapes.rectangle(0, 0, 160, 120))
+  # screen.brush(brushes.color(255, 255, 255))
+  # size = math.sin(ticks / 1000) * 30 + 40
+  # screen.text(f"This is a test", 50, 10, size)
+
+
+  #time.sleep(.5)
   card = round(ticks / 5000)
   draw_event_card(schedule[card % len(schedule)])
-
+  
   global _last_ticks
   fps = round(1000 / (ticks - _last_ticks))
   screen.brush(brushes.color(0, 0, 0))

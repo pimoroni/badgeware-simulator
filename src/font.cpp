@@ -56,7 +56,7 @@ namespace picovector {
     // "strips" of scanlines and process each strip individually
 
     // strip height in pixels
-    int strip_height = NODE_BUFFER_HEIGHT >> (aa_level >> 1);    
+    int strip_height = NODE_BUFFER_HEIGHT / aa_level;
 
     // calculate the subsample step for the aa current level 
     float subsample_step = (1.0f / float(aa_level));
@@ -74,31 +74,56 @@ namespace picovector {
 
       // generate the sample nodes from the glyph edges
       for(int i = 0; i < glyph->path_count; i++) {
+        //debug_printf("start of path %d\n", i);
         glyph_path *path = &glyph->paths[i];
         point last = path->points[path->point_count - 1].transform(transform);      
         for(int j = 0; j < path->point_count; j++) {        
           //debug_printf(" - interpolate edge %d\n", j);
           point next = path->points[j].transform(transform);
-          
-          if(next.y != last.y) {                      
-            const point &start = next.y < last.y ? next : last;
-            const point &end = next.y < last.y ? last : next;
+          //debug_printf("- %f, %f -> %f, %f\n", last.x, last.y, next.x, next.y);
+          if(next.y != last.y) {        
+            //debug_printf("- processing edge\n");              
+            // get line start and end coordinates (start always above)
+            float sx, sy, ex, ey;
+            if(last.y < next.y) {
+              sx = last.x; sy = last.y; ex = next.x; ey = next.y;
+            } else {
+              sx = next.x; sy = next.y; ex = last.x; ey = last.y;            
+            }            
 
-            const float step = (end.x - start.x) / (end.y - start.y);
+            if(ey >= strip_y && sy <= strip_y + strip_height) {
+              // work out x delta step per node buffer
+              float dx = ((ex - sx) / (ey - sy)) / aa_level;            
+            
+              // shift y coordinates into strip coordinates
+              sy -= strip_y;
+              ey -= strip_y;
 
-            if(end.y > strip_y && start.y < strip_y + strip_height) {
-              // add edge into node samples
-              float sample_y = float(strip_y) + (subsample_step / 2.0f);
-              for(int k = 0; k < NODE_BUFFER_HEIGHT; k++) {          
-                if(sample_y >= start.y && sample_y <= end.y) {
-                  nodes[k][node_counts[k]] = round((start.x + ((sample_y - start.y) * step)) * float(aa_level));
-                  node_counts[k]++;
+              // clamp start y value and offset x position as needed
+              float x = sx;
+              if(sy < 0.0f) {
+                x += dx * (abs(sy) * aa_level);
+                sy = 0.0f;
+              }
+
+              // clamp end y
+              ey = min(float(strip_height), ey);
+                          
+              float step_y = 1.0f / float(aa_level);
+              float y = step_y / 2.0f;
+              for(int k = 0; k < NODE_BUFFER_HEIGHT; k++) {
+                //debug_printf("  > sample_y %f (%f -> %f)\n", sample_y, sy, ey);
+                if(y >= sy && y <= ey) {
+                  nodes[k][node_counts[k]] = round(x * float(aa_level));
+                  node_counts[k]++;            
+                  //debug_printf("  > +node %d (%d)\n", k, nodes[k][node_counts[k]]);   
+                  x += dx;                
                 }
-
-                //debug_printf("  - added %d nodes to line %d (%2f)\n", node_counts[k], k, sample_y);
-                sample_y += subsample_step;
+                y += step_y;
               }
             }
+          } else {
+            //debug_printf("- y coords the same, skipping\n");
           }
 
           last = next;
@@ -122,16 +147,6 @@ namespace picovector {
           //debug_printf("> %d has %d nodes\n", y + i, node_counts[y + i]);
 
           for(int node_idx = 0; node_idx < node_counts[y + i]; node_idx += 2) {
-            // int x1 = round((nodes[y + i][node_idx + 0] - cb.x) * aa_level);
-            // int x2 = round((nodes[y + i][node_idx + 1] - cb.x) * aa_level);
-
-            // x1 = min(max(0, x1), int(cb.w * aa_level));
-            // x2 = min(max(0, x2), int(cb.w * aa_level));   
-            // uint8_t *p = span_buffer;
-            // for(int j = x1; j < x2; j++) {
-            //   p[j >> (aa_level >> 1)]++;
-            // }        
-
             int x1 = nodes[y + i][node_idx + 0] - (cb.x * aa_level);
             int x2 = nodes[y + i][node_idx + 1] - (cb.x * aa_level);
 
@@ -148,6 +163,8 @@ namespace picovector {
         static uint8_t aa_x2[5] = {0, 64, 128, 192, 255};
         static uint8_t aa_x4[17] = {0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255};
 
+        //debug_printf("> render scanline %d\n", y);
+
         uint8_t *aa_lut = aa_none;
         aa_lut = aa_level == 2 ? aa_x2 : aa_lut;
         aa_lut = aa_level == 4 ? aa_x4 : aa_lut;      
@@ -155,13 +172,17 @@ namespace picovector {
         // scale span buffer alpha values
         int c = SPAN_BUFFER_SIZE;
         uint8_t *psb = span_buffer;
-        while(c--) {
+        while(c--) {          
           *psb = aa_lut[*psb];
           psb++;
         }
-
+      
         int ry = strip_y + (y / aa_level);
-        brush->render_span_buffer(target, cb.x, ry, cb.w, span_buffer);      
+
+        if(ry < cb.y + cb.h) {
+          //debug_printf("> render_span_buffer: cb.x=%f, ry=%d, cb.w=%f\n", cb.x, ry, cb.w);
+          brush->render_span_buffer(target, cb.x, ry, cb.w, span_buffer);      
+        }
 
           // sort the nodes so that neighouring pairs represent render spans
           
