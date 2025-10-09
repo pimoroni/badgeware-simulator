@@ -6,7 +6,7 @@ from lib import *
 # https://qwerasd205.github.io/PixelCode/
 pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 
-vector_font = Font.load("assets/MonaSans-Medium.af")
+vector_font = Font.load("assets/MonaSans-Medium-Low.af")
 
 schedule = []
 with open("assets/sessions.json") as schedule_file:
@@ -32,41 +32,46 @@ class Event():
   def presenter(self):
     return self._data["name"] or None
 
+
+
 def text(image, x, y, text, size, max_width=None, only_measure=False):    
-  cx, cy = 0, 0 # caret pos
-  maxx, maxy = 0, 0
+  lines = [] 
+  longest = 0 
+  for line in text.splitlines():    
+    # if max_width is specified then perform word wrapping
+    if max_width:      
+      # setup a start and end cursor to traverse the text
+      start, end = 0, 0
+      while True:
+        # search for the next space
+        end = line.find(" ", end)
+        if end == -1:
+          end = len(line)
 
-  lines = text.splitlines()
-  for line in lines:
-    words = line.split(" ")
-    for word in words:
-      # work out length of word in pixels
-      wl, wh = image.measure_text(word, size)
-      
-      # move to next line if exceeds max width
-      if max_width and cx + wl > max_width:
-        cx = 0
-        cy += size - 2
+        # measure the text up to the space
+        width, _ = image.measure_text(line[start:end], size)
+        longest = max(longest, width)
+        if width > max_width: 
+          # line exceeded max length
+          end = line.rfind(" ", start, end)
+          lines.append(line[start:end])        
+          start = end + 1
+        elif end == len(line): 
+          # reached the end of the string
+          lines.append(line[start:end])
+          break
+        
+        # step past the last space
+        end += 1
+    else:
+      lines.append(line)    
+ 
+    cy = 0
+    for line in lines:            
+      screen.text(line, x, cy + y, size)
+      cy += size - 2
 
-      # render characters in word
-      screen.text(word, cx + x, cy + y, size)
-
-      cx += wl
-
-      if max_width and cx > max_width:
-        cx = 0
-        cy += size - 2
-      
-      # once the word has been rendered update our min and max cursor values
-      maxx = max(maxx, cx)
-      maxy = max(maxy, cy + size - 2)
-
-      cx += 2
-
-    cx = 0
-    cy += size - 2
-
-  return maxx, maxy
+  return longest, cy
 
 def centre_text(x, y, w, text, padding=0, background=None):
   if type(padding) == int or type(padding) == float:
@@ -112,7 +117,7 @@ def draw_event_card(data):
   #centre_text(12, event.where())
 
   #def text(image, x, y, text, size, max_width=None, only_measure=False):    
-  text(screen, 5, caret_y + 20, event.title(), 16, max_width=150)
+  text(screen, 5, caret_y + 20, event.title(), 18, max_width=150)
   #caret_y += centre_text(0, caret_y, 160, event.title(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
 
   # _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
@@ -141,7 +146,7 @@ def draw_event_card(data):
 
 _last_ticks = 0
 def update(ticks):
-  card = round(ticks / 1000)
+  card = round(ticks / 5000)
   draw_event_card(schedule[card % len(schedule)])
 
   global _last_ticks
@@ -151,5 +156,7 @@ def update(ticks):
   screen.brush(brushes.color(255, 255, 255))
   screen.text(f"{fps}FPS", 5, 18, 20)
   _last_ticks = ticks
+
+  #time.sleep(0.5)
 
   return True
