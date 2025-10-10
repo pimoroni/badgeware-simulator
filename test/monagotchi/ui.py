@@ -131,7 +131,7 @@ def draw_bar(name, x, y, amount):
 
   # if bar level is low then alternate fill with red to show a warning
   screen.brush(stats_brushes[name])
-  if amount < 25:
+  if amount <= 30:
     ticks = time.ticks_ms()
     blink = round(ticks / 250) % 2 == 0
     if blink:
