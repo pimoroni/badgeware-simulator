@@ -47,7 +47,7 @@ namespace picovector {
     
     
     // setup a node storage buffer that can do up to 32 sampling lines
-    constexpr size_t NODE_BUFFER_HEIGHT = 32;
+    constexpr int NODE_BUFFER_HEIGHT = 32;
     static int16_t nodes[NODE_BUFFER_HEIGHT][64];
     static uint8_t node_counts[NODE_BUFFER_HEIGHT];
 
@@ -218,12 +218,12 @@ namespace picovector {
   }
 
   rect font::measure(image *target, const char *text, float size) {
-    rect r;
+    rect r =  {0, 0, 0, 0};
 
     mat3 transform;
     transform = transform.scale(size / 128.0f, size / 128.0f);    
     
-    for(int i = 0; i < strlen(text); i++) {
+    for(size_t i = 0; i < strlen(text); i++) {
       char c = text[i];
       // find the glyph
       for(int j = 0; j < this->glyph_count; j++) {
@@ -250,7 +250,7 @@ namespace picovector {
     transform = transform.scale(size / 128.0f, size / 128.0f);        
     
 
-    for(int i = 0; i < strlen(text); i++) {
+    for(size_t i = 0; i < strlen(text); i++) {
       char c = text[i];
       // find the glyph
       for(int j = 0; j < this->glyph_count; j++) {
