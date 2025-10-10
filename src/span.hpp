@@ -36,7 +36,6 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, ui
     a = (t + (t >> 8)) >> 8;
 
     interp0->accum[1] = a; // alpha    
-    uint8_t *pd = (uint8_t *)dst;  
   
     interp0->base[0] = pd[0];
     interp0->base[1] = ps[0]; // red
