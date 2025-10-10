@@ -39,6 +39,7 @@ extern const mp_obj_type_t type_Shapes;
 extern const mp_obj_type_t type_Brushes;
 extern const mp_obj_type_t type_Image;
 extern const mp_obj_type_t type_Font;
+extern const mp_obj_type_t type_Matrix;
 
 static const mp_rom_map_elem_t modpicovector_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_modpicovector) },
@@ -48,6 +49,7 @@ static const mp_rom_map_elem_t modpicovector_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_Image),  MP_ROM_PTR(&type_Image) },
     { MP_ROM_QSTR(MP_QSTR_Font),  MP_ROM_PTR(&type_Font) },
     { MP_ROM_QSTR(MP_QSTR_draw),  MP_ROM_PTR(&modpicovector_draw_static_obj) },
+    { MP_ROM_QSTR(MP_QSTR_Matrix),  MP_ROM_PTR(&type_Matrix) },
 };
 static MP_DEFINE_CONST_DICT(modpicovector_globals, modpicovector_globals_table);
 

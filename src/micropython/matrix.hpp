@@ -20,6 +20,15 @@ extern "C" {
     mat3 m;
   } matrix_obj_t;
 
+
+  static mp_obj_t matrix_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+    matrix_obj_t *self = m_new_obj(matrix_obj_t);
+    self->base.type = type;
+    self->m = mat3();
+    return MP_OBJ_FROM_PTR(self);
+  }
+
+
   mp_obj_t matrix_rotate(size_t n_args, const mp_obj_t *pos_args) {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     float a = mp_obj_get_float(pos_args[1]);    
@@ -84,6 +93,7 @@ extern "C" {
       type_Matrix,
       MP_QSTR_Matrix,
       MP_TYPE_FLAG_NONE,
+      make_new, (const void *)matrix_new,
       locals_dict, &matrix_locals_dict
   );
 
