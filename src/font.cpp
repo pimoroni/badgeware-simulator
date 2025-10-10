@@ -38,6 +38,9 @@ namespace picovector {
     if(!glyph->path_count) {return;};
     
     rect b = glyph->bounds(transform);
+    b.x = floor(b.x); b.y = floor(b.y);
+    b.w = ceil(b.w); b.h = ceil(b.h);
+    
     rect cb = b.intersection(target->bounds);
 
     // todo: can we pass in multiple glyphs to be processed together?
@@ -89,8 +92,8 @@ namespace picovector {
               sx = last.x; sy = last.y; ex = next.x; ey = next.y;
             } else {
               sx = next.x; sy = next.y; ex = last.x; ey = last.y;            
-            }            
-
+            }        
+            
             if(ey >= strip_y && sy <= strip_y + strip_height) {
               // work out x delta step per node buffer
               float dx = ((ex - sx) / (ey - sy)) / aa_level;            
@@ -110,11 +113,11 @@ namespace picovector {
               ey = min(float(strip_height), ey);
                           
               float step_y = 1.0f / float(aa_level);
-              float y = step_y / 2.0f;
+              float y = 0.0f;//step_y / 2.0f;
               for(int k = 0; k < NODE_BUFFER_HEIGHT; k++) {
                 //debug_printf("  > sample_y %f (%f -> %f)\n", sample_y, sy, ey);
                 if(y >= sy && y < ey) {
-                  nodes[k][node_counts[k]] = round(x * float(aa_level));
+                  nodes[k][node_counts[k]] = int(x * float(aa_level));
                   node_counts[k]++;            
                   //debug_printf("  > +node %d (%d)\n", k, nodes[k][node_counts[k]]);   
                   x += dx;                
@@ -147,8 +150,8 @@ namespace picovector {
           //debug_printf("> %d has %d nodes\n", y + i, node_counts[y + i]);
 
           for(int node_idx = 0; node_idx < node_counts[y + i]; node_idx += 2) {
-            int x1 = nodes[y + i][node_idx + 0] - (cb.x * aa_level);
-            int x2 = nodes[y + i][node_idx + 1] - (cb.x * aa_level);
+            int x1 = nodes[y + i][node_idx + 0] - round(cb.x * aa_level);
+            int x2 = nodes[y + i][node_idx + 1] - round(cb.x * aa_level);
 
             x1 = min(max(0, x1), int(cb.w * aa_level));
             x2 = min(max(0, x2), int(cb.w * aa_level));   
@@ -243,8 +246,9 @@ namespace picovector {
 
     mat3 transform;
     transform = transform.translate(x, y);
-    transform = transform.scale(size / 128.0f, size / 128.0f);    
     transform = transform.translate(0, size);
+    transform = transform.scale(size / 128.0f, size / 128.0f);        
+    
 
     for(int i = 0; i < strlen(text); i++) {
       char c = text[i];

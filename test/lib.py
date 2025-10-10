@@ -15,6 +15,44 @@ import time
 # def is_pressed(button):
 #   return BUTTONS & button
 
+
+# takes a text string (that may include newline characters) and performs word
+# wrapping. returns a line of lines and their widths as a result.
+def wrap_and_measure(image, text, size, max_width):
+  result = []
+
+  for line in text.splitlines():    
+    # if max_width is specified then perform word wrapping
+    if max_width:      
+      # setup a start and end cursor to traverse the text
+      start, end = 0, 0
+      while True:
+        # search for the next space
+        end = line.find(" ", end)
+        if end == -1:
+          end = len(line)
+
+        # measure the text up to the space
+        width, _ = image.measure_text(line[start:end], size)
+        if width > max_width: 
+          # line exceeded max length
+          end = line.rfind(" ", start, end)
+          result.append((line[start:end], width))
+          start = end + 1
+        elif end == len(line): 
+          # reached the end of the string
+          result.append((line[start:end], width))
+          break
+        
+        # step past the last space
+        end += 1
+    else:
+      # no wrapping needed, just return the original line with its width
+      width, _ = image.measure_text(line, size)
+      result.append((line, width))
+ 
+  return result
+
 def clamp(v, vmin, vmax):
   return max(vmin, min(v, vmax))
 

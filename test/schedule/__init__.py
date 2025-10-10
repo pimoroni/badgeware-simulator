@@ -33,7 +33,6 @@ class Event():
     return self._data["name"] or None
 
 
-
 def text(image, x, y, text, size, max_width=None, only_measure=False):    
   lines = [] 
   longest = 0 
@@ -77,7 +76,7 @@ def centre_text(x, y, w, text, padding=0, background=None):
   if type(padding) == int or type(padding) == float:
     padding = (padding, padding, padding, padding)
 
-  size = 12
+  size = 13
 
   mw = w - padding[1] - padding[3]
 
@@ -108,6 +107,8 @@ def draw_event_card(data):
   #print("draw text")
   #size = math.sin(io.ticks / 1000) * 20 + 30
   
+  lines = wrap_and_measure(screen, event.title(), 16, 150)
+  print(lines)
 
   #print("done")
   caret_y = 0
@@ -116,7 +117,10 @@ def draw_event_card(data):
   #centre_text(12, event.where())
 
   #def text(image, x, y, text, size, max_width=None, only_measure=False):    
-  text(screen, 5, caret_y + 20, event.title(), 20, max_width=150)
+
+  xo = math.sin(io.ticks / 5000) * 10
+  yo = math.cos(io.ticks / 5000) * 10
+  text(screen, 5 + xo, caret_y + 18 + yo, event.title(), 24, max_width=150)
   #caret_y += centre_text(0, caret_y, 160, event.title(), padding=(1, 10, 4, 10), background=brushes.color(20, 40, 60, 150))
 
   # _, h = pixel_code.text(screen, 5, caret_y, event.title(), max_width=150)
@@ -147,7 +151,7 @@ _last_ticks = 0
 def update(ticks):
 
 
-  screen.antialias(4);
+  screen.antialias(2);
   
   # #print("set font")
   # screen.font(vector_font)
@@ -156,9 +160,9 @@ def update(ticks):
   # screen.draw(shapes.rectangle(0, 0, 160, 120))
   # screen.brush(brushes.color(255, 255, 255))
   # size = math.sin(ticks / 1000) * 30 + 40
-  # screen.text(f"This is a test", 50, 10, size)
+  # screen.text(f"This", 50, 50, size)
 
-
+  # return True
   #time.sleep(.5)
   card = round(ticks / 5000)
   draw_event_card(schedule[card % len(schedule)])
@@ -168,7 +172,7 @@ def update(ticks):
   screen.brush(brushes.color(0, 0, 0))
   screen.draw(shapes.rectangle(0, 0, 80, 24))
   screen.brush(brushes.color(255, 255, 255))
-  screen.text(f"{fps}FPS", 5, 18, 20)
+  screen.text(f"{fps}FPS", 0, 0, 20)
   _last_ticks = ticks
 
   #time.sleep(0.5)

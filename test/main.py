@@ -9,7 +9,7 @@ def run_app(name):
   sys.path.append(file_path)
   return __import__(name)
 
-app = run_app("schedule")
+app = run_app("performance")
 
 def update():    
   return app.update(io.ticks)
