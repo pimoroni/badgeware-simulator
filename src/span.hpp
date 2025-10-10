@@ -36,25 +36,21 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, ui
     a = (t + (t >> 8)) >> 8;
 
     interp0->accum[1] = a; // alpha    
-    while(w--) {
-      uint8_t *pd = (uint8_t *)dst;  
+    uint8_t *pd = (uint8_t *)dst;  
+  
+    interp0->base[0] = pd[0];
+    interp0->base[1] = ps[0]; // red
+    pd[0] = (uint8_t)interp0->peek[1];
+  
+    interp0->base[0] = pd[1];
+    interp0->base[1] = ps[1]; // green
+    pd[1] = (uint8_t)interp0->peek[1];
+  
+    interp0->base[0] = pd[2];
+    interp0->base[1] = ps[2]; // blue
+    pd[2] = (uint8_t)interp0->peek[1];
     
-      interp0->base[0] = pd[0];
-      interp0->base[1] = ps[0]; // red
-      pd[0] = (uint8_t)interp0->peek[1];
-    
-      interp0->base[0] = pd[1];
-      interp0->base[1] = ps[1]; // green
-      pd[1] = (uint8_t)interp0->peek[1];
-    
-      interp0->base[0] = pd[2];
-      interp0->base[1] = ps[2]; // blue
-      pd[2] = (uint8_t)interp0->peek[1];
-      
-      pd[3] = 255; // TODO: this is wrong
-
-      dst++;
-    }
+    pd[3] = 255; // TODO: this is wrong
   #else
     uint16_t t = a * ps[3] + 128;       // add 128 for rounding
     a = (t + (t >> 8)) >> 8;
