@@ -9,6 +9,8 @@
 
 using namespace std;
 
+extern int PicoVector_working_buffer[48156 / 4];
+
 namespace picovector {
   struct _edgeinterp {
     point s;
@@ -48,8 +50,11 @@ namespace picovector {
     
     // setup a node storage buffer that can do up to 32 sampling lines
     constexpr int NODE_BUFFER_HEIGHT = 32;
-    static int16_t nodes[NODE_BUFFER_HEIGHT][64];
-    static uint8_t node_counts[NODE_BUFFER_HEIGHT];
+    //static int16_t nodes[NODE_BUFFER_HEIGHT][64];
+    //static uint8_t node_counts[NODE_BUFFER_HEIGHT];
+
+    auto nodes = new(PicoVector_working_buffer) int16_t [NODE_BUFFER_HEIGHT][64];
+    auto node_counts = new((uint8_t *)PicoVector_working_buffer + (NODE_BUFFER_HEIGHT * 64 * 2)) uint8_t[NODE_BUFFER_HEIGHT];
 
     // get the antialiasing factor (1 = none, 2 = 2x, 4 = 4x)
     int aa_level = target->antialias;
@@ -73,7 +78,7 @@ namespace picovector {
       //debug_printf("> render strip %d to %d\n", strip_y, strip_y + strip_height);
 
       // reset the node counts before rendering this strip
-      memset(node_counts, 0, sizeof(node_counts));      
+      memset(node_counts, 0, NODE_BUFFER_HEIGHT);      
 
       // generate the sample nodes from the glyph edges
       for(int i = 0; i < glyph->path_count; i++) {
@@ -138,9 +143,10 @@ namespace picovector {
 
       // render out each scanline
       constexpr size_t SPAN_BUFFER_SIZE = 256;
-      static uint8_t span_buffer[SPAN_BUFFER_SIZE];
+      //static uint8_t span_buffer[SPAN_BUFFER_SIZE];
+      auto span_buffer = new(PicoVector_working_buffer + (NODE_BUFFER_HEIGHT * 64 * 2) + (NODE_BUFFER_HEIGHT)) uint8_t [SPAN_BUFFER_SIZE];
       for(int y = 0; y < NODE_BUFFER_HEIGHT; y += aa_level) {
-        memset(span_buffer, 0, sizeof(span_buffer));      
+        memset(span_buffer, 0, SPAN_BUFFER_SIZE);      
 
         for(int i = 0; i < aa_level; i++) {
 

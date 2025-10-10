@@ -60,10 +60,12 @@ extern "C" {
   }
 
   void pngdec_close_callback(void *handle) {
+    debug_printf("pngdec_close_callback %p\n", handle);
     mp_stream_close((mp_obj_t)handle);
   }
 
   int32_t pngdec_read_callback(PNGFILE *png, uint8_t *p, int32_t c) {
+    debug_printf("pngdec_read_callback %p\n", png->fHandle);
     mp_obj_t fhandle = png->fHandle;
     int error;
     return mp_stream_read_exactly(fhandle, p, c, &error);
@@ -71,6 +73,7 @@ extern "C" {
 
   // Re-implementation of stream.c/static mp_obj_t stream_seek(size_t n_args, const mp_obj_t *args)
   int32_t pngdec_seek_callback(PNGFILE *png, int32_t p) {
+    debug_printf("pngdec_seek_callback %p\n", png->fHandle);
     mp_obj_t fhandle = png->fHandle;
     struct mp_stream_seek_t seek_s;
     seek_s.offset = p;
@@ -265,14 +268,16 @@ extern "C" {
     const char *s = mp_obj_str_get_str(path);    
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
 
-    PNG *png = new(m_malloc(sizeof(PNG))) PNG();
+    //PNG *png = new(m_malloc(sizeof(PNG))) PNG();
+    PNG *png = new(PicoVector_working_buffer) PNG();
     int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
     result->image = new(m_malloc(sizeof(image))) image(png->getWidth(), png->getHeight());
     png->decode((void *)result->image, 0);
+    png->close();
 #if PICO
-    m_free(png);
+    //m_free(png);
 #else
-    m_free(png, sizeof(png));
+    //m_free(png, sizeof(png));
 #endif
     return MP_OBJ_FROM_PTR(result);
   }

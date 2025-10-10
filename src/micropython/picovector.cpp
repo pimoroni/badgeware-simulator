@@ -4,6 +4,8 @@
 // #include "../image.hpp"
 
 
+extern int PicoVector_working_buffer[];
+
 #include "brush.hpp"
 #include "shape.hpp"
 #include "font.hpp"
