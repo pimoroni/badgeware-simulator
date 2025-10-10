@@ -9,6 +9,7 @@
 #include "font.hpp"
 #include "image.hpp"
 #include "input.hpp"
+#include "matrix.hpp"
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 

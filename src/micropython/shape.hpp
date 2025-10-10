@@ -4,6 +4,7 @@
 #include "../primitive.hpp"
 #include "../shape.hpp"
 #include "../image.hpp"
+#include "matrix.hpp"
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
@@ -135,6 +136,30 @@ extern "C" {
     return MP_OBJ_FROM_PTR(self);
   }
 
+  static void shape_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+    self(self_in, shape_obj_t);
+
+    if(attr == MP_QSTR_transform) { // get
+      if(dest[0] == MP_OBJ_NULL) {
+        matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
+        out->m = self->shape->transform;
+        dest[0] = MP_OBJ_FROM_PTR(out);
+        return;
+      }
+
+      if(dest[1] != MP_OBJ_NULL && dest[0] != MP_OBJ_NULL) { // set
+        if(!mp_obj_is_type(dest[1], &type_Matrix)) {
+          mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
+        }        
+        matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
+        self->shape->transform = in->m;
+        dest[0] = MP_OBJ_NULL;
+        return;
+      }      
+    }
+
+    dest[1] = MP_OBJ_SENTINEL;
+  }
 
   /*
     micropython bindings
@@ -152,6 +177,7 @@ extern "C" {
       type_Shape,
       MP_QSTR_Shape,
       MP_TYPE_FLAG_NONE,
+      attr, (const void *)shape_attr,
       locals_dict, &shape_locals_dict
   );
 

@@ -302,10 +302,15 @@ extern "C" {
   mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);    
-    
+
+    if(!self->image->font) {
+      mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));      
+    }
+
     float x = mp_obj_get_float(pos_args[2]);
     float y = mp_obj_get_float(pos_args[3]);
     float size = mp_obj_get_float(pos_args[4]);
+
 
     self->image->font->draw(self->image, text, x, y, size);
 
@@ -315,7 +320,11 @@ extern "C" {
   mp_obj_t image_measure_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);    
-    
+
+    if(!self->image->font) {
+      mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));      
+    }
+
     float size = mp_obj_get_float(pos_args[2]);
 
     rect r = self->image->font->measure(self->image, text, size);

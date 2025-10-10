@@ -94,8 +94,7 @@ namespace picovector {
   }
 
   void image::draw(shape *shape) {
-    mat3 m;
-    render(shape, this, &m, brush);
+    render(shape, this, &shape->transform, brush);
   }
 
   void image::rectangle(const rect &r) {
