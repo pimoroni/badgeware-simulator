@@ -200,10 +200,10 @@ def free(message=""):
   import gc
   gc.collect() # collect any free memory before reporting
   f = int(gc.mem_free() / 1024)
-  print(f"{message} (free {f}kb", end="")
+  print(f"{message}: {f}kb", end="")
   if _lf:
     delta = f - _lf
     sign = "-" if delta < 0 else "+"
-    print(f" [{sign}{abs(delta)}kb]", end="")
-  print(")")
+    print(f" ({sign}{abs(delta)}kb)", end="")
+  print("")
   _lf = f

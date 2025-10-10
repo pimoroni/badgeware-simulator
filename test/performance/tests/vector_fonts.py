@@ -8,7 +8,6 @@ def vector_font_test():
   
   overflow = test_phrase_size * len(lines) - 120 + 4
   y = math.sin(io.ticks / 1000) * (overflow / 2) - (overflow / 2)
-  y = 0
   for line in lines:
     text, width = line
     screen.brush(brushes.color(0, 0, 0))
@@ -21,7 +20,6 @@ test_phrase_wrapped = wrap_and_measure(screen, test_phrase, test_phrase_size, 15
 def vector_font_test_pre_wrap():
   overflow = test_phrase_size * len(test_phrase_wrapped) - 120 + 4
   y = math.sin(io.ticks / 1000) * (overflow / 2) - (overflow / 2)
-  y = 0
   for line in test_phrase_wrapped:
     text, width = line
     screen.brush(brushes.color(0, 0, 0))

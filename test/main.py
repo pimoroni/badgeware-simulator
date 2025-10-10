@@ -1,5 +1,7 @@
-import os, sys
+import os, sys, gc
 from lib import *
+
+gc.threshold(150000)
 
 # sets up the sys path and current working directory for the app to be launched
 # then imports the app and returns it
@@ -9,12 +11,12 @@ def run_app(name):
   sys.path.append(file_path)
   return __import__(name)
 
-app = run_app("monagotchi")
+app = run_app("performance")
 
 _last_free_mem_debug = None
 def update():    
   global _last_free_mem_debug
   if not _last_free_mem_debug or time.time() - _last_free_mem_debug > 1:
-    print(free("!! free memory"))    
+    print(free("[info] free memory"))    
     _last_free_mem_debug = time.time()
   return app.update(io.ticks)
