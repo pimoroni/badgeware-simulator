@@ -108,7 +108,7 @@ def draw_event_card(data):
   #size = math.sin(io.ticks / 1000) * 20 + 30
   
   lines = wrap_and_measure(screen, event.title(), 16, 150)
-  print(lines)
+  #print(lines)
 
   #print("done")
   caret_y = 0
@@ -151,7 +151,7 @@ _last_ticks = 0
 def update(ticks):
 
 
-  screen.antialias(2);
+  screen.antialias(4);
   
   # #print("set font")
   # screen.font(vector_font)
@@ -165,15 +165,17 @@ def update(ticks):
   # return True
   #time.sleep(.5)
   card = round(ticks / 5000)
+
+  screen.transform = Matrix().rotate(10)
   draw_event_card(schedule[card % len(schedule)])
   
-  global _last_ticks
-  fps = round(1000 / (ticks - _last_ticks))
-  screen.brush(brushes.color(0, 0, 0))
-  screen.draw(shapes.rectangle(0, 0, 80, 24))
-  screen.brush(brushes.color(255, 255, 255))
-  screen.text(f"{fps}FPS", 0, 0, 20)
-  _last_ticks = ticks
+  # global _last_ticks
+  # fps = round(1000 / (ticks - _last_ticks))
+  # screen.brush(brushes.color(0, 0, 0))
+  # screen.draw(shapes.rectangle(0, 0, 80, 24))
+  # screen.brush(brushes.color(255, 255, 255))
+  # screen.text(f"{fps}FPS", 0, 0, 20)
+  # _last_ticks = ticks
 
   #time.sleep(0.5)
 

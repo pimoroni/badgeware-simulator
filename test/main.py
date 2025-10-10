@@ -14,7 +14,7 @@ app = run_app("monagotchi")
 _last_free_mem_debug = None
 def update():    
   global _last_free_mem_debug
-  if not _last_free_mem_debug or time.time() - _last_free_mem_debug > 5:
+  if not _last_free_mem_debug or time.time() - _last_free_mem_debug > 1:
     print(free("!! free memory"))    
     _last_free_mem_debug = time.time()
   return app.update(io.ticks)

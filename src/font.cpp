@@ -222,6 +222,7 @@ namespace picovector {
 
     mat3 transform;
     transform = transform.scale(size / 128.0f, size / 128.0f);    
+    transform.multiply(target->transform);
     
     for(size_t i = 0; i < strlen(text); i++) {
       char c = text[i];

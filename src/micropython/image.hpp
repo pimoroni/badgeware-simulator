@@ -409,6 +409,27 @@ extern "C" {
       dest[0] = mp_obj_new_int(self->image->bounds.h);
       return;
     }      
+    
+
+    if(attr == MP_QSTR_transform) { // get
+      if(dest[0] == MP_OBJ_NULL) {
+        matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
+        out->m = self->image->transform;
+        dest[0] = MP_OBJ_FROM_PTR(out);
+        return;
+      }
+
+      if(dest[1] != MP_OBJ_NULL && dest[0] != MP_OBJ_NULL) { // set
+        if(!mp_obj_is_type(dest[1], &type_Matrix)) {
+          mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
+        }        
+        matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
+        self->image->transform = in->m;
+        dest[0] = MP_OBJ_NULL;
+        return;
+      }      
+    }
+
 
     dest[1] = MP_OBJ_SENTINEL;
   }

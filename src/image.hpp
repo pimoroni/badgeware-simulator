@@ -31,6 +31,7 @@ namespace picovector {
       picovector::font *font;
       int alpha = 255;
       enum antialiasing antialias = OFF;
+      mat3 transform;
       
       size_t _rowstride; // row stride
 
