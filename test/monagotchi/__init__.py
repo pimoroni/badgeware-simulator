@@ -70,7 +70,7 @@ def game_update(ticks):
     hunger = max(0, min(hunger, MAX_HUNGER))
     happiness = max(0, min(happiness, MAX_HAPPINESS))
     cleanliness = max(0, min(cleanliness, MAX_CLEANLINESS))
-    print(mona.hunger, mona.happy, mona.clean)
+    #print(mona.hunger, mona.happy, mona.clean)
 
     # If any of the stats are <= 30% then play the notify animation
     if min(mona.hunger, mona.happy, mona.clean) <= 30:
@@ -89,8 +89,6 @@ def game_update(ticks):
 
 
 def update(ticks):
-  screen.antialias(2)
-
   # update the game state based on user input and timed events
   game_update(ticks)
 

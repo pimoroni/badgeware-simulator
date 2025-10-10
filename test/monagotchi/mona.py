@@ -18,13 +18,15 @@ class Mona:
     self._happy = 50
     self._hunger = 80
     self._clean = 40
-    self._mood = "default"
+    self._mood = None    
+    self._animation = None
     self._mood_changed_at = time.time()
     self._position_changed_at = time.time()
     self._position = (80, y + 2)
     self._direction = 1
     self._target = 80
     self._speed = 0.5
+    self.set_mood("default")
 
   def draw(self):
     # break out x and y into a shorter hand variables
@@ -32,7 +34,7 @@ class Mona:
 
     # select sprite for current animation frame
     ticks = time.ticks_ms()
-    image = self._animations[self._mood].frame(round(ticks / 100))
+    image = self._animation.frame(round(ticks / 100))
     width, height = image.width * 2, image.height * 2    
 
     # draw monas shadow
@@ -79,6 +81,11 @@ class Mona:
   
   # change monas mood
   def set_mood(self, mood):
+    if mood != self._mood:
+      # load mood animation
+      sprites = SpriteSheet(f"assets/mona-{mood}.gif.png", animations[mood], 1)
+      self._animation = sprites.animation()
+
     self._mood = mood
     self._mood_changed_at = time.time()
 
@@ -122,8 +129,8 @@ animations = {
 }
 
 # load the spritesheets for monas animations
-for name, frame_count in animations.items():
-  sprites = SpriteSheet(f"assets/mona-{name}.gif.png", frame_count, 1)
-  Mona._animations[name] = sprites.animation()
+# for name, frame_count in animations.items():
+#   sprites = SpriteSheet(f"assets/mona-{name}.gif.png", frame_count, 1)
+#   Mona._animations[name] = sprites.animation()
 
 Mona._moods = list(Mona._animations.keys())

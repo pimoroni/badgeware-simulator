@@ -4,7 +4,7 @@ from lib import *
 
 # load in the font - font sheet generated from 
 # https://qwerasd205.github.io/PixelCode/
-pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
+#pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 
 vector_font = Font.load("assets/MonaSans-Medium-Low.af")
 

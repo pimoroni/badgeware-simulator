@@ -198,6 +198,7 @@ _lf = None
 def free(message=""):
   global _lf
   import gc
+  gc.collect() # collect any free memory before reporting
   f = int(gc.mem_free() / 1024)
   print(f"{message} (free {f}kb", end="")
   if _lf:

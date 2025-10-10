@@ -4,16 +4,19 @@ from lib import *
 
 # load user interface sprites
 icons = SpriteSheet(f"assets/icons.png", 10, 1)
+portrait = Image.load(f"assets/portrait.png")
 
 # load in the font - font sheet generated from 
 # https://qwerasd205.github.io/PixelCode/
-pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
+#pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
+monasans = Font.load("assets/MonaSans-Medium-Low.af")
+screen.font(monasans)
 
 # brushes to match monas stats
 stats_brushes = {
   "happy": brushes.color(141, 39, 135),
   "hunger": brushes.color(53, 141, 39),
-  "clean": brushes.color(39, 106, 141),
+  "clean": brushes.color(39, 106, 171),
   "warning": brushes.color(255, 0, 0, 200)
 }
 
@@ -52,16 +55,14 @@ def background(ticks, mona):
   screen.brush(brushes.color(80, 90, 100, 100))
   screen.draw(shapes.line(px + 2, 20 + 2, px + 20, 15, 1))
   screen.draw(shapes.line(px + 35 + 2, 20 + 2, px + 20, 15, 1))
-  frame = mona._animations["heart"].frame(7)
   screen.brush(brushes.color(30, 40, 50, 100))
   screen.draw(shapes.rectangle(px + 1, 20 + 1, 38, 28))
   screen.brush(brushes.color(50, 40, 30, 255))
   screen.draw(shapes.rectangle(px, 20, 38, 28))
   screen.brush(brushes.color(120, 130, 140, 255))
   screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
-  frame.alpha(180)
-  screen.blit(frame, px + 8, 20)
-  frame.alpha(255)
+  portrait.alpha(180)
+  screen.blit(portrait, px + 8, 20)
   
   # draw the skirting board
   screen.brush(brushes.color(80, 90, 100, 150))
@@ -69,8 +70,8 @@ def background(ticks, mona):
   screen.draw(shapes.rectangle(0, floor_y - 4, 160, 1))
 
   # draw the outlet
-  outlet = icons.sprite(6, 0)
-  screen.blit(icons.sprite(6, 0), px - 90, floor_y - 16)
+  outlet = icons.sprite(3, 0)
+  screen.blit(outlet, px - 90, floor_y - 18)
 
   # draw the floor
   floor = screen.window(0, floor_y, 160, 120) # clip drawing to floor area
@@ -87,13 +88,15 @@ def background(ticks, mona):
     line = shapes.line(x1, 5, x2, 19, 2)
     floor.draw(line)
 
-  screen.antialias(2)
+  screen.antialias(4)
 
 # draw the title banner
 def draw_header():
   screen.brush(outline_brush)
-  screen.draw(shapes.rounded_rectangle(40, 1, 160 - 80, 15, 3))
-  pixel_code.text(screen, 52, 2, "monagotchi")
+  screen.draw(shapes.rounded_rectangle(30, 1, 160 - 60, 18, 3))
+  screen.brush(brushes.color(255, 255, 255))
+  w, _ = screen.measure_text("monagotchi", 18)
+  screen.text("monagotchi", 80 - (w / 2), -4, 18)
  
 def draw_buttons():
   draw_button(  4, 102, stats_brushes["happy"], "A", "play")
@@ -111,12 +114,19 @@ def draw_button(x, y, brush, button, label):
   # draw the button fill  
   screen.brush(brushes.color(60, 80, 100))
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, button_width - 2, 15 - 2, 4))
-  pixel_code.text(screen, x + 17, y + 1, label)
+  screen.brush(brushes.color(0, 0, 0, 100))
+  screen.text(label, x + 17, y - 2, 14)
+  screen.brush(brushes.color(255, 255, 255))
+  screen.text(label, x + 16, y - 3, 14)
+
+  #pixel_code.text(screen, x + 17, y + 1, label)
 
   # draw the button action key
   screen.brush(brush)
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 4))
-  pixel_code.text(screen, x + 5, y + 1, button)
+  screen.brush(brushes.color(255, 255, 255))
+  screen.text(button, x + 3, y - 2, 14)
+
   
 # draw a statistics bar with icon and fill level
 def draw_bar(name, x, y, amount):  
@@ -138,7 +148,7 @@ def draw_bar(name, x, y, amount):
       screen.brush(stats_brushes["warning"])
   screen.draw(shapes.rounded_rectangle(x + 7 + 1, y + 1, fill_width, 6, 3))
   
-  screen.blit(stats_icons[name], x, y - 2)
+  screen.blit(stats_icons[name], x, y - 3)
 
 # draw monas statistics bars
 def draw_stat_bars(mona): 
