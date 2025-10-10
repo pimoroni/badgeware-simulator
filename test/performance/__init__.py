@@ -3,6 +3,8 @@ import math
 from lib import *
 
 font = Font.load("assets/MonaSans-Medium-Low.af")
+screen.font(font)
+screen.antialias(2)
 
 
 
@@ -37,7 +39,6 @@ _samples = []
 _sample_count = 100
 
 def update(ticks):
-  screen.antialias(2);
 
   # clear the screen
   screen.brush(brushes.color(30, 50, 70))
@@ -56,8 +57,7 @@ def update(ticks):
     _samples = _samples[-_sample_count:]
 
   # draw average FPS
-  fps = round(1000000 / (sum(_samples) / float(len(_samples))))
-  screen.font(font)
+  fps = round(1000000 / (sum(_samples) / float(len(_samples))))  
   width, height = screen.measure_text(f"{fps} FPS", 16)
   screen.brush(brushes.color(0, 0, 0))
   screen.draw(shapes.rectangle(0, 0, width + 4, height))
