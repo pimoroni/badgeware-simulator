@@ -6,6 +6,12 @@
 
 using namespace std;
 
+// Common memory pool for font/span rendering buffers and PNGDEC
+// This is sized to *just* fit the PNGDEC state which is 48156k
+// It *must* be 32bit aligned (I found out the hard way.)
+//int PicoVector_working_buffer[48156 / 4]; // On device
+int PicoVector_working_buffer[48240 / 4]; // macOS (emulator)
+
 // This will completely break imgui or sokol or something
 //because these will be called before the MicroPython heap is initialised.
 
@@ -77,7 +83,8 @@ namespace picovector {
     //debug_printf("rendering shape %p with %d paths\n", (void*)shape, int(shape->paths.size()));
     //debug_printf("setup interpolators\n");
     // setup interpolators for each edge of the polygon
-    static _edgeinterp edge_interpolators[256];
+    //static _edgeinterp edge_interpolators[256];
+    auto edge_interpolators = new(PicoVector_working_buffer) _edgeinterp[256];
     int edge_interpolator_count = 0;
     for(path &path : shape->paths) {
       point last = path.points.back(); // start with last point to close loop
@@ -96,9 +103,11 @@ namespace picovector {
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
     const size_t SPAN_BUFFER_SIZE = 256;
-    static _rspan spans[SPAN_BUFFER_SIZE];
+    //static _rspan spans[SPAN_BUFFER_SIZE];
+    static auto spans = new((uint8_t *)PicoVector_working_buffer + (sizeof(_edgeinterp) * 256)) _rspan[SPAN_BUFFER_SIZE];
 
-    static uint8_t sb[SPAN_BUFFER_SIZE];    
+    //static uint8_t sb[SPAN_BUFFER_SIZE];
+    static auto sb = new((uint8_t *)PicoVector_working_buffer + (sizeof(_edgeinterp) * 256) + (sizeof(_edgeinterp) * SPAN_BUFFER_SIZE)) uint8_t[SPAN_BUFFER_SIZE];
 
     int aa = target->antialias;    
     
@@ -110,7 +119,7 @@ namespace picovector {
     int span_count = 0;
     for(float y = sy; y < ey; y++) {
       // clear the span buffer
-      memset(sb, 0, sizeof(sb));
+      memset(sb, 0, SPAN_BUFFER_SIZE);
 
       // loop over y sub samples
       for(int yss = 0; yss < aa; yss++) {
