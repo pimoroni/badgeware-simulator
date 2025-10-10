@@ -11,9 +11,9 @@ pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 
 # brushes to match monas stats
 stats_brushes = {
-  "happy": brushes.color(239, 66, 229, 150),
-  "hunger": brushes.color(90, 239, 66, 150),
-  "clean": brushes.color(66, 180, 239, 150),
+  "happy": brushes.color(141, 39, 135),
+  "hunger": brushes.color(53, 141, 39),
+  "clean": brushes.color(39, 106, 141),
   "warning": brushes.color(255, 0, 0, 200)
 }
 
@@ -124,7 +124,7 @@ def draw_bar(name, x, y, amount):
 
   # draw the bar background
   screen.brush(outline_brush)    
-  screen.draw(shapes.rounded_rectangle(x + 11, y, bar_width, 10, 3))
+  screen.draw(shapes.rounded_rectangle(x + 7, y, bar_width, 8, 3))
 
   #calculate how wide the bar "fill" is and clamp it to at least 3 pixels
   fill_width = max(((bar_width - 2) / 100) * amount, 6)
@@ -136,9 +136,9 @@ def draw_bar(name, x, y, amount):
     blink = round(ticks / 250) % 2 == 0
     if blink:
       screen.brush(stats_brushes["warning"])
-  screen.draw(shapes.rounded_rectangle(x + 11 + 1, y + 1, fill_width, 8, 3))
+  screen.draw(shapes.rounded_rectangle(x + 7 + 1, y + 1, fill_width, 6, 3))
   
-  screen.blit(stats_icons[name], x, y + 1)
+  screen.blit(stats_icons[name], x, y - 2)
 
 # draw monas statistics bars
 def draw_stat_bars(mona): 

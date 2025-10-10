@@ -101,7 +101,8 @@ double picovector_ticks;
 double picovector_last_ticks;
 
 // MicroPython heap and stack
-#define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
+// #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
+#define heap_size (500 * 1024)
 static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
 
