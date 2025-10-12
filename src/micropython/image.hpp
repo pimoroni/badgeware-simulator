@@ -399,38 +399,58 @@ extern "C" {
   static void image_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, image_obj_t);
 
-
-    if(attr == MP_QSTR_width && dest[0] == MP_OBJ_NULL) {
-      dest[0] = mp_obj_new_int(self->image->bounds().w);
-      return;
-    }      
-
-    if(attr == MP_QSTR_height && dest[0] == MP_OBJ_NULL) {
-      dest[0] = mp_obj_new_int(self->image->bounds().h);
-      return;
-    }      
-    
-
-    if(attr == MP_QSTR_transform) { // get
-      if(dest[0] == MP_OBJ_NULL) {
-        matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
-        out->m = *self->image->transform();
-        dest[0] = MP_OBJ_FROM_PTR(out);
-        return;
-      }
-
-      if(dest[1] != MP_OBJ_NULL && dest[0] != MP_OBJ_NULL) { // set
-        if(!mp_obj_is_type(dest[1], &type_Matrix)) {
-          mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
-        }        
-        matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
-        self->image->transform(&in->m);
-        dest[0] = MP_OBJ_NULL;
-        return;
-      }      
+    // GET: dest[0] == MP_OBJ_NULL & dest[1] == MP_OBJ_NULL
+    // DEL: dest[0] == MP_OBJ_NULL & dest[1] != MP_OBJ_NULL
+    // SET: dest[0] output value   & dest[1] != MP_OBJ_NULL
+    typedef enum {GET, SET, DELETE} action_t;
+    action_t action = SET;
+    if(dest[0] == MP_OBJ_NULL && dest[1] == MP_OBJ_NULL) {
+      action = GET;
+    }
+    if(dest[0] == MP_OBJ_NULL && dest[1] != MP_OBJ_NULL) {
+      action = DELETE;
     }
 
+    switch(attr) {
+      case MP_QSTR_width: {
+        if(action == GET) {
+          dest[0] = mp_obj_new_int(self->image->bounds().w);
+          return;
+        }
+      };
 
+      case MP_QSTR_height: {
+        if(action == GET) {
+          dest[0] = mp_obj_new_int(self->image->bounds().h);
+          return;
+        }
+      };
+
+      case MP_QSTR_transform: {
+        if(action == GET) {
+          if(self->image->transform()) {
+            matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
+            out->m = *self->image->transform();
+            dest[0] = MP_OBJ_FROM_PTR(out);          
+          } else {
+            dest[0] = mp_const_none;                      
+          }
+          return;
+        }
+
+        if(action == SET) {
+          if(!mp_obj_is_type(dest[1], &type_Matrix)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
+          }        
+          matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
+          self->image->transform(&in->m);
+          dest[0] = MP_OBJ_NULL;
+          return;  
+        }
+      };
+    }
+
+    // we didn't handle this, fall back to alternative methods
     dest[1] = MP_OBJ_SENTINEL;
   }
 
