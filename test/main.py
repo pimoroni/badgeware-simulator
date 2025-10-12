@@ -9,7 +9,8 @@ def run_app(name):
   file_path = __file__.rsplit("/", 1)[0] + "/" + name
   os.chdir(file_path)
   sys.path.append(file_path)
-  return __import__(name)
+  module = __import__(name)
+  return module
 
 app = run_app("performance")
 

@@ -3,6 +3,7 @@
 #include "../primitive.hpp"
 #include "../shape.hpp"
 #include "../image.hpp"
+#include "../brush.hpp"
 
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
@@ -19,12 +20,12 @@ extern "C" {
 
   typedef struct _brush_obj_t {
     mp_obj_base_t base;
-    brush *brush;
+    brush_t *brush;
   } brush_obj_t;
 
   mp_obj_t brush__del__(mp_obj_t self_in) {
     self(self_in, brush_obj_t);
-    m_del_class(brush, self->brush);
+    m_del_class(brush_t, self->brush);
     return mp_const_none;
   }
 

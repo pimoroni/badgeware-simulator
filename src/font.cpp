@@ -6,22 +6,21 @@
 #include "brush.hpp"
 #include "matrix.hpp"
 
-
-using namespace std;
+using std::sort;
 
 extern int PicoVector_working_buffer[48156 / 4];
 
 namespace picovector {
   struct _edgeinterp {
-    point s;
-    point e;
+    point_t s;
+    point_t e;
     float step;
 
     _edgeinterp() {
 
     }
 
-    _edgeinterp(point p1, point p2) {
+    _edgeinterp(point_t p1, point_t p2) {
       if(p1.y < p2.y) { 
         s = p1; e = p2; 
       } else { 
@@ -36,14 +35,14 @@ namespace picovector {
     }
   };
 
-  void render_character(glyph *glyph, image *target, mat3 *transform, brush *brush) {    
+  void render_character(glyph_t *glyph, image_t *target, mat3_t *transform, brush_t *brush) {    
     if(!glyph->path_count) {return;};
     
-    rect b = glyph->bounds(transform);
+    rect_t b = glyph->bounds(transform);
     b.x = floor(b.x); b.y = floor(b.y);
     b.w = ceil(b.w); b.h = ceil(b.h);
     
-    rect cb = b.intersection(target->bounds);
+    rect_t cb = b.intersection(target->bounds());
 
     // todo: can we pass in multiple glyphs to be processed together?
     
@@ -57,7 +56,7 @@ namespace picovector {
     auto node_counts = new((uint8_t *)PicoVector_working_buffer + (NODE_BUFFER_HEIGHT * 64 * 2)) uint8_t[NODE_BUFFER_HEIGHT];
 
     // get the antialiasing factor (1 = none, 2 = 2x, 4 = 4x)
-    int aa_level = target->antialias;
+    int aa_level = target->antialias();
 
     // our node buffer has a fixed size so we can only render as many sample
     // lines as we can fit into it at a time. we split the overall job into
@@ -83,11 +82,11 @@ namespace picovector {
       // generate the sample nodes from the glyph edges
       for(int i = 0; i < glyph->path_count; i++) {
         //debug_printf("start of path %d\n", i);
-        glyph_path *path = &glyph->paths[i];
-        point last = path->points[path->point_count - 1].transform(transform);      
+        glyph_path_t *path = &glyph->paths[i];
+        point_t last = path->points[path->point_count - 1].transform(transform);      
         for(int j = 0; j < path->point_count; j++) {        
           //debug_printf(" - interpolate edge %d\n", j);
-          point next = path->points[j].transform(transform);
+          point_t next = path->points[j].transform(transform);
           //debug_printf("- %f, %f -> %f, %f\n", last.x, last.y, next.x, next.y);
           if(next.y != last.y) {        
             //debug_printf("- processing edge\n");              
@@ -197,18 +196,18 @@ namespace picovector {
   }
 
 
-  point glyph_path_point::transform(mat3 *transform) {
-    return point(
+  point_t glyph_path_point_t::transform(mat3_t *transform) {
+    return point_t(
       transform->v00 * float(x) + transform->v01 * float(y) + transform->v02,
       transform->v10 * float(x) + transform->v11 * float(y) + transform->v12
     );
   }
 
-  rect glyph::bounds(mat3 *transform) {
-    point p1(x, -y);
-    point p2(x + w, -y);
-    point p3(x + w, -y - h);
-    point p4(x, -y);
+  rect_t glyph_t::bounds(mat3_t *transform) {
+    point_t p1(x, -y);
+    point_t p2(x + w, -y);
+    point_t p3(x + w, -y - h);
+    point_t p4(x, -y);
 
     p1 = p1.transform(transform);
     p2 = p2.transform(transform);
@@ -220,15 +219,17 @@ namespace picovector {
     float maxx = max(p1.x, max(p2.x, max(p3.x, p4.x)));
     float maxy = max(p1.y, max(p2.y, max(p3.y, p4.y)));
 
-    return rect(minx, miny, ceil(maxx) - minx, ceil(maxy) - miny);
+    return rect_t(minx, miny, ceil(maxx) - minx, ceil(maxy) - miny);
   }
 
-  rect font::measure(image *target, const char *text, float size) {
-    rect r =  {0, 0, 0, 0};
+  rect_t font_t::measure(image_t *target, const char *text, float size) {
+    rect_t r =  {0, 0, 0, 0};
 
-    mat3 transform;
+    mat3_t transform;
     transform = transform.scale(size / 128.0f, size / 128.0f);    
-    transform.multiply(target->transform);
+    if(target->transform()) {
+      transform.multiply(*target->transform());
+    }
     
     for(size_t i = 0; i < strlen(text); i++) {
       char c = text[i];
@@ -237,7 +238,7 @@ namespace picovector {
         if(this->glyphs[j].codepoint == uint16_t(c)) {
           float a = this->glyphs[j].advance;
           transform = transform.translate(a, 0);
-          point caret(1, 1);
+          point_t caret(1, 1);
           caret = caret.transform(transform);
           r.w = max(r.w, caret.x);
           r.h = max(r.y, caret.y);
@@ -248,10 +249,10 @@ namespace picovector {
     return r;
   }
 
-  void font::draw(image *target, const char *text, float x, float y, float size) {    
-    point caret(x, y);
+  void font_t::draw(image_t *target, const char *text, float x, float y, float size) {    
+    point_t caret(x, y);
 
-    mat3 transform;
+    mat3_t transform;
     transform = transform.translate(x, y);
     transform = transform.translate(0, size);
     transform = transform.scale(size / 128.0f, size / 128.0f);        
@@ -262,7 +263,7 @@ namespace picovector {
       // find the glyph
       for(int j = 0; j < this->glyph_count; j++) {
         if(this->glyphs[j].codepoint == uint16_t(c)) {
-          render_character(&this->glyphs[j], target, &transform, target->brush);
+          render_character(&this->glyphs[j], target, &transform, target->brush());
           float a = this->glyphs[j].advance;
           transform = transform.translate(a, 0);
         }

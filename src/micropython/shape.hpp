@@ -21,12 +21,12 @@ extern "C" {
 
   typedef struct _shape_obj_t {
     mp_obj_base_t base;
-    shape *shape;
+    shape_t *shape;
   } shape_obj_t;
 
   mp_obj_t shape__del__(mp_obj_t self_in) {
     self(self_in, shape_obj_t);
-    m_del_class(shape, self->shape);
+    m_del_class(shape_t, self->shape);
     return mp_const_none;
   }
 

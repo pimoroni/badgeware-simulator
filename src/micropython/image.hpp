@@ -11,7 +11,6 @@
 #define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
 
 using namespace picovector;
-using namespace std;
 
 extern "C" {
 
@@ -28,17 +27,16 @@ extern "C" {
 
   typedef struct _image_obj_t {
     mp_obj_base_t base;
-    image *image;
+    image_t *image;
   } image_obj_t;
 
   mp_obj_t image__del__(mp_obj_t self_in) {
     self(self_in, image_obj_t);
     if(self->image) {
-      m_del_class(image, self->image);
+      m_del_class(image_t, self->image);
     }
     return mp_const_none;
   }
-
     
   void *pngdec_open_callback(const char *filename, int32_t *size) {
     mp_obj_t fn = mp_obj_new_str(filename, (mp_uint_t)strlen(filename));
@@ -93,7 +91,7 @@ extern "C" {
 
 
   void pngdec_decode_callback(PNGDRAW *pDraw) {
-    image *i = (image *)pDraw->pUser;
+    image_t *i = (image_t *)pDraw->pUser;
 
     uint32_t *pdst = i->ptr(0, pDraw->y);
     uint8_t *psrc = (uint8_t *)pDraw->pPixels;
@@ -259,7 +257,7 @@ extern "C" {
     int w = mp_obj_get_int(args[0]);    
     int h = mp_obj_get_int(args[1]);    
 
-    self->image = new(m_malloc(sizeof(image))) image(w, h);
+    self->image = new(m_malloc(sizeof(image_t))) image_t(w, h);
 
     return MP_OBJ_FROM_PTR(self);
   }
@@ -271,7 +269,7 @@ extern "C" {
     //PNG *png = new(m_malloc(sizeof(PNG))) PNG();
     PNG *png = new(PicoVector_working_buffer) PNG();
     int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
-    result->image = new(m_malloc(sizeof(image))) image(png->getWidth(), png->getHeight());
+    result->image = new(m_malloc(sizeof(image_t))) image_t(png->getWidth(), png->getHeight());
     png->decode((void *)result->image, 0);
     png->close();
 #if PICO
@@ -289,12 +287,9 @@ extern "C" {
     int w = mp_obj_get_int(pos_args[3]);
     int h = mp_obj_get_int(pos_args[4]);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
-    rect i = self->image->bounds.intersection(rect(x, y, w, h));
-    result->image = new(m_malloc(sizeof(image))) image(self->image->ptr(i.x, i.y), i.w, i.h);
-    result->image->_rowstride = self->image->_rowstride;
+    result->image->window(self->image, rect_t(x, y, w, h));
     return MP_OBJ_FROM_PTR(result);
   }
-
 
   mp_obj_t image_draw(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
@@ -308,7 +303,7 @@ extern "C" {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);    
 
-    if(!self->image->font) {
+    if(!self->image->font()) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));      
     }
 
@@ -317,7 +312,7 @@ extern "C" {
     float size = mp_obj_get_float(pos_args[4]);
 
 
-    self->image->font->draw(self->image, text, x, y, size);
+    self->image->font()->draw(self->image, text, x, y, size);
 
     return mp_const_none;
   }
@@ -326,13 +321,13 @@ extern "C" {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);    
 
-    if(!self->image->font) {
+    if(!self->image->font()) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));      
     }
 
     float size = mp_obj_get_float(pos_args[2]);
 
-    rect r = self->image->font->measure(self->image, text, size);
+    rect_t r = self->image->font()->measure(self->image, text, size);
 
     mp_obj_t result[2];
     result[0] = mp_obj_new_float(r.w);
@@ -347,7 +342,7 @@ extern "C" {
     int x = mp_obj_get_float(pos_args[2]);    
     int y = mp_obj_get_float(pos_args[3]);    
 
-    src->image->blit(self->image, point(x, y));
+    src->image->blit(self->image, point_t(x, y));
     return mp_const_none;
   }
 
@@ -359,7 +354,7 @@ extern "C" {
     int w = mp_obj_get_float(pos_args[4]);    
     int h = mp_obj_get_float(pos_args[5]);    
 
-    src->image->blit(self->image, rect(x, y, w, h));
+    src->image->blit(self->image, rect_t(x, y, w, h));
     return mp_const_none;
   }
 
@@ -373,14 +368,14 @@ extern "C" {
   mp_obj_t image_font(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     font_obj_t *font = (font_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    self->image->font = &font->font;
+    self->image->font(&font->font);
     return mp_const_none;
   }
 
   mp_obj_t image_brush(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    self->image->brush = brush->brush;
+    self->image->brush(brush->brush);
     return mp_const_none;
   }
 
@@ -389,14 +384,14 @@ extern "C" {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);    
     float a = mp_obj_get_float(pos_args[1]);    
     a = min(255.0f, max(a, 0.0f));
-    self->image->alpha = int(a);
+    self->image->alpha(int(a));
     return mp_const_none;
   }
 
   mp_obj_t image_antialias(size_t n_args, const mp_obj_t *pos_args) {    
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);    
     int aa = mp_obj_get_int(pos_args[1]);    
-    self->image->antialias = static_cast<antialiasing>(aa);
+    self->image->antialias(static_cast<antialias_t>(aa));
     return mp_const_none;
   }
 
@@ -406,12 +401,12 @@ extern "C" {
 
 
     if(attr == MP_QSTR_width && dest[0] == MP_OBJ_NULL) {
-      dest[0] = mp_obj_new_int(self->image->bounds.w);
+      dest[0] = mp_obj_new_int(self->image->bounds().w);
       return;
     }      
 
     if(attr == MP_QSTR_height && dest[0] == MP_OBJ_NULL) {
-      dest[0] = mp_obj_new_int(self->image->bounds.h);
+      dest[0] = mp_obj_new_int(self->image->bounds().h);
       return;
     }      
     
@@ -419,7 +414,7 @@ extern "C" {
     if(attr == MP_QSTR_transform) { // get
       if(dest[0] == MP_OBJ_NULL) {
         matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
-        out->m = self->image->transform;
+        out->m = *self->image->transform();
         dest[0] = MP_OBJ_FROM_PTR(out);
         return;
       }
@@ -429,7 +424,7 @@ extern "C" {
           mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
         }        
         matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
-        self->image->transform = in->m;
+        self->image->transform(&in->m);
         dest[0] = MP_OBJ_NULL;
         return;
       }      

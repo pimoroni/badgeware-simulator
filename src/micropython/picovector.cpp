@@ -32,7 +32,7 @@ extern "C" {
   int screen_width = 160;
   int screen_height = 120;
   uint32_t framebuffer[160 * 120];
-  image screen(framebuffer, screen_width, screen_height);
+  image_t screen(framebuffer, screen_width, screen_height);
 
   extern const mp_rom_map_elem_t modpicovector_globals_table;
 
@@ -67,7 +67,7 @@ extern "C" {
           mp_raise_ValueError(MP_ERROR_TEXT("brush: Must be a valid brush!"));
       }
       brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(brush_in);
-      screen.brush = brush->brush;
+      screen.brush(brush->brush);
       return mp_const_none;
   }
 

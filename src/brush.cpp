@@ -1,19 +1,20 @@
 #include "brush.hpp"
+#include "image.hpp"
 #include "span.hpp"
 
-using namespace std;
+//using namespace std;
 
 namespace picovector {
 
   #define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 
-  void brush::render_mask(image *target) {
-    for(int y = 0; y < target->bounds.h; y++) {
-      this->render_span(target, 0, y, target->bounds.w);
+  void brush_t::render_mask(image_t *target) {
+    for(int y = 0; y < target->bounds().h; y++) {
+      this->render_span(target, 0, y, target->bounds().w);
     }
   }
 
-  void brush::render_spans(image *target, _rspan *spans, int count) {
+  void brush_t::render_spans(image_t *target, _rspan *spans, int count) {
     while(count--) {  
       this->render_span(target, spans->x, spans->y, spans->w);
       spans++;
@@ -24,12 +25,12 @@ namespace picovector {
     this->color = _make_col(r, g, b, a);
   }
 
-  void color_brush::render_span(image *target, int x, int y, int w) {
+  void color_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = target->ptr(x, y);
     span_argb8(dst, w, color);    
   }
 
-  void color_brush::render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {
+  void color_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
     uint32_t *dst = target->ptr(x, y);
     span_argb8(dst, w, color, sb);
   }
@@ -40,13 +41,13 @@ namespace picovector {
 
 
   // a grotty blur function, must do better...
-  void blur_brush::render_span(image *target, int x, int y, int w) {
+  void blur_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = target->ptr(x, y);
 
     // prime the colour queues
-    uint32_t l = target->pixel_clamped(x - 1, y); // first pixel (left)
-    uint32_t m = target->pixel_clamped(x, y); // first pixel (middle)
-    uint32_t r = target->pixel_clamped(x + 1, y); // first pixel (right)
+    uint32_t l = target->pixel(x - 1, y); // first pixel (left)
+    uint32_t m = target->pixel(x, y); // first pixel (middle)
+    uint32_t r = target->pixel(x + 1, y); // first pixel (right)
     uint32_t rq = _r(l) << 16 | _r(m) << 8 | _r(r);
     uint32_t gq = _g(l) << 16 | _g(m) << 8 | _g(r);
     uint32_t bq = _b(l) << 16 | _b(m) << 8 | _b(r);
@@ -68,7 +69,7 @@ namespace picovector {
       gq <<= 8;
       bq <<= 8;
       aq <<= 8;
-      uint32_t n = target->pixel_clamped(x + 1, y); // new pixel (right)
+      uint32_t n = target->pixel(x + 1, y); // new pixel (right)
       rq |= _r(n);
       gq |= _g(n);
       bq |= _b(n);
@@ -79,21 +80,21 @@ namespace picovector {
   }
 
 
-  void blur_brush::render_mask(image *target) {
+  void blur_brush::render_mask(image_t *target) {
     static uint32_t q[4];
 
     for(int i = 0; i < passes; i++) {
       // horizontal pass
-      for(int y = 0; y < target->bounds.h; y++) {
+      for(int y = 0; y < target->bounds().h; y++) {
         uint32_t *dst = target->ptr(0, y);
 
         // prime the sample queue
-        q[0] = target->pixel_clamped(0, y);
-        q[1] = target->pixel_clamped(0, y);
-        q[2] = target->pixel_clamped(0, y);
-        q[3] = target->pixel_clamped(1, y);
+        q[0] = target->pixel(0, y);
+        q[1] = target->pixel(0, y);
+        q[2] = target->pixel(0, y);
+        q[3] = target->pixel(1, y);
 
-        for(int x = 0; x < target->bounds.w; x++) {
+        for(int x = 0; x < target->bounds().w; x++) {
           // average the pixels in the queue...
           uint8_t r = (_r(q[0]) + _r(q[1]) + _r(q[2]) + _r(q[3])) >> 2;
           uint8_t g = (_g(q[0]) + _g(q[1]) + _g(q[2]) + _g(q[3])) >> 2;
@@ -108,21 +109,21 @@ namespace picovector {
           q[0] = q[2];
           q[1] = q[3];
           q[2] = q[1];
-          q[3] = target->pixel_clamped(x + 1, y);       
+          q[3] = target->pixel(x + 1, y);       
         }
       }
 
       // vertical pass
-      for(int x = 0; x < target->bounds.w; x++) {
+      for(int x = 0; x < target->bounds().w; x++) {
         uint32_t *dst = target->ptr(x, 0);
 
         // prime the sample queue
-        q[0] = target->pixel_clamped(x, 0);
-        q[1] = target->pixel_clamped(x, 0);
-        q[2] = target->pixel_clamped(x, 0);
-        q[3] = target->pixel_clamped(x, 1);
+        q[0] = target->pixel(x, 0);
+        q[1] = target->pixel(x, 0);
+        q[2] = target->pixel(x, 0);
+        q[3] = target->pixel(x, 1);
 
-        for(int y = 0; y < target->bounds.h; y++) {
+        for(int y = 0; y < target->bounds().h; y++) {
           // average the pixels in the queue...
           uint8_t r = (_r(q[0]) + _r(q[1]) + _r(q[2]) + _r(q[3])) >> 2;
           uint8_t g = (_g(q[0]) + _g(q[1]) + _g(q[2]) + _g(q[3])) >> 2;
@@ -131,13 +132,13 @@ namespace picovector {
         
           uint32_t col = _make_col(r, g, b, a);          
           _rgba_blend_to(dst, &col);
-          dst += int(target->bounds.w);
+          dst += int(target->bounds().w);
 
           // shuffle and populate the queue
           q[0] = q[2];
           q[1] = q[3];
           q[2] = q[1];
-          q[3] = target->pixel_clamped(x, y + 1);       
+          q[3] = target->pixel(x, y + 1);       
         }
       }
 
@@ -146,7 +147,7 @@ namespace picovector {
 
   brighten_brush::brighten_brush(int amount) : amount(amount) {}
 
-  void brighten_brush::render_span(image *target, int x, int y, int w) {
+  void brighten_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = target->ptr(x, y);
 
     while(w--) {
@@ -174,7 +175,7 @@ namespace picovector {
     this->color = _make_col(r, g, b);
   }
 
-  void xor_brush::render_span(image *target, int x, int y, int w) {
+  void xor_brush::render_span(image_t *target, int x, int y, int w) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
     uint8_t *src = (uint8_t*)&color;
     while(w--) {
@@ -185,7 +186,7 @@ namespace picovector {
   }  
 
 
-  void xor_brush::render_span_buffer(image *target, int x, int y, int w, uint8_t *sb) {
+  void xor_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
     uint8_t *src = (uint8_t*)&color;
     while(w--) {

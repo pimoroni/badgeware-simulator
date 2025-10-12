@@ -17,14 +17,14 @@ extern "C" {
 
   typedef struct _matrix_obj_t {
     mp_obj_base_t base;
-    mat3 m;
+    mat3_t m;
   } matrix_obj_t;
 
 
   static mp_obj_t matrix_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     matrix_obj_t *self = m_new_obj(matrix_obj_t);
     self->base.type = type;
-    self->m = mat3();
+    self->m = mat3_t();
     return MP_OBJ_FROM_PTR(self);
   }
 
