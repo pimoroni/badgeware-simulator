@@ -171,6 +171,54 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
   }
 }
 
+inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_t *vdst, uint32_t *palette, int w, int a = 255) {
+  //span_pixels_drawn += w;
+  uint8_t *src = (uint8_t*)vsrc;
+  uint32_t *dst = (uint32_t*)vdst;
+
+  //src = _buffer_span(src, w); // buffer span from psram to sram
+  while(w--) {
+
+    uint32_t sc = palette[*src];
+    uint8_t *ps = (uint8_t *)&sc;
+    uint8_t *pd = (uint8_t *)dst;
+
+    int ca = (ps[3] * (a)) / 255; // apply global alpha
+
+    if(ca == 0) {
+      // zero alpha, skip pixel
+    } else if (ca == 255) {
+      // full alpha copy pixel
+      *dst = *src;
+    } else {
+#ifdef PICO
+      // alpha requires blending pixel
+      interp0->accum[1] = ca;
+
+      interp0->base[0] = pd[0];
+      interp0->base[1] = ps[0]; // red
+      pd[1] = (uint8_t)interp0->peek[0];
+
+      interp0->base[0] = pd[1];
+      interp0->base[1] = ps[1]; // green
+      pd[1] = (uint8_t)interp0->peek[1];
+
+      interp0->base[0] = pd[2];
+      interp0->base[1] = ps[2]; // blue
+      pd[2] = (uint8_t)interp0->peek[1];
+#else
+      pd[0] = ((pd[0] * (255 - ca)) + (ps[0] * ca)) / 255;
+      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
+      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
+#endif
+    }
+
+    src++;
+    dst++;
+  }
+}
+
+
 inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, int srcx, int srcstepx, int w, int a) {
   while(w--) {
     uint8_t *pd = (uint8_t *)dst;

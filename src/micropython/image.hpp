@@ -159,6 +159,13 @@ extern "C" {
         }
       };
 
+      case MP_QSTR_has_palette: {
+        if(action == GET) {
+          dest[0] = mp_obj_new_bool(self->image->has_palette());
+          return;
+        }
+      };
+
       case MP_QSTR_antialias: {
         if(action == GET) {
           dest[0] = mp_obj_new_int(self->image->antialias());

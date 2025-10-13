@@ -76,6 +76,10 @@ namespace picovector {
     return this->_bounds;
   }
 
+  bool image_t::has_palette() {
+    return this->_has_palette;
+  }
+
   void image_t::palette(uint8_t i, uint32_t c) {
     this->_palette[i] = c;
   }
@@ -150,7 +154,15 @@ namespace picovector {
       uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
       uint32_t *dst = (uint32_t *)t->ptr(tr.x, tr.y + i);
 
-      span_blit_argb8(src, dst, tr.w, this->alpha());
+
+      if(this->_has_palette) {
+        span_blit_argb8_palette(src, dst, &this->_palette[0], tr.w, this->alpha());
+      }else{
+        span_blit_argb8(src, dst, tr.w, this->alpha());
+      }
+
+
+
     }
   }
 
@@ -171,7 +183,6 @@ namespace picovector {
 
     int sy = min(ctr.y, ctr.y + ctr.h);
     int ey = max(ctr.y, ctr.y + ctr.h);
-
 
     for(int y = sy; y != ey; y++) {
       void *dst = target->ptr(ctr.x, y);

@@ -62,6 +62,7 @@ namespace picovector {
 
       rect_t bounds();
 
+      bool has_palette();
       void palette(uint8_t i, uint32_t c);
       uint32_t palette(uint8_t i);
 

@@ -4,7 +4,6 @@ from lib import *
 
 # load user interface sprites
 icons = SpriteSheet(f"assets/icons.png", 10, 1)
-portrait = Image.load(f"assets/portrait.png")
 
 # load in the font - font sheet generated from
 # https://qwerasd205.github.io/PixelCode/
@@ -61,7 +60,10 @@ def background(mona):
   screen.draw(shapes.rectangle(px, 20, 38, 28))
   screen.brush = brushes.color(120, 130, 140, 255)
   screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
+  portrait = mona._animations["heart"].frame(7)
+  #print(portrait.has_palette)
   portrait.alpha = 180
+
   screen.blit(portrait, px + 8, 20)
 
   # draw the skirting board
@@ -93,7 +95,7 @@ def background(mona):
 # draw the title banner
 def draw_header():
   screen.brush = outline_brush
-  screen.draw(shapes.rounded_rectangle(30, 1, 160 - 60, 18, 3))
+  screen.draw(shapes.rounded_rectangle(30, -5, 160 - 60, 24, 3))
   screen.brush = brushes.color(255, 255, 255)
   w, _ = screen.measure_text("monagotchi", 18)
   screen.text("monagotchi", 80 - (w / 2), -4, 18)
