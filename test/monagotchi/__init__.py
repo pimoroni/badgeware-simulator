@@ -33,7 +33,7 @@ def reset_mona():
   mona.set_mood("default")
 
 
-def game_update(ticks):
+def game_update():
   global dead, happiness, hunger, cleanliness, last_update
 
   if not dead:
@@ -42,11 +42,11 @@ def game_update(ticks):
     mona.clean = (cleanliness / MAX_CLEANLINESS) * 100
 
     # Update the stats once a second
-    if (ticks / 1000) - (last_update / 1000) > 1:
+    if (io.ticks / 1000) - (last_update / 1000) > 1:
       hunger -= 1
       happiness -= 1
       cleanliness -= 1
-      last_update = ticks
+      last_update = io.ticks
 
     if io.BUTTON_A in io.pressed:
       if happiness < MAX_HAPPINESS:
@@ -87,29 +87,20 @@ def game_update(ticks):
 
   # end of game logic here
 
-
-def update(ticks):
+def update():
   # update the game state based on user input and timed events
-  game_update(ticks)
+  game_update()
 
   # update monas state (position)
   mona.update()
 
   # draw the background scene
-  ui.background(ticks, mona)
+  ui.background(mona)
 
   # draw our little friend
   mona.draw()
 
-  # x = math.sin(ticks / 1000) * 5
-  # y = math.cos(ticks / 1000) * 5
-  # screen.brush(brushes.color(255, 0, 0))
-  # screen.draw(shapes.rectangle(20, 20, 30, 30))
-  # screen.draw(shapes.circle(80 + x, 60 + y, 15))
-  # screen.draw(shapes.rounded_rectangle(60, 20, 30, 30, 4))
-
   # draw the user interface elements
-
   if not dead:
     ui.draw_stat_bars(mona)
     ui.draw_buttons()

@@ -15,7 +15,7 @@ namespace picovector {
   }
 
   void brush_t::render_spans(image_t *target, _rspan *spans, int count) {
-    while(count--) {  
+    while(count--) {
       this->render_span(target, spans->x, spans->y, spans->w);
       spans++;
     }
@@ -26,23 +26,23 @@ namespace picovector {
   }
 
   void color_brush::render_span(image_t *target, int x, int y, int w) {
-    uint32_t *dst = target->ptr(x, y);
-    span_argb8(dst, w, color);    
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
+    span_argb8(dst, w, color);
   }
 
   void color_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
-    uint32_t *dst = target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
     span_argb8(dst, w, color, sb);
   }
 
   blur_brush::blur_brush(int passes) {
-    this->passes = passes;    
+    this->passes = passes;
   }
 
 
   // a grotty blur function, must do better...
   void blur_brush::render_span(image_t *target, int x, int y, int w) {
-    uint32_t *dst = target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
 
     // prime the colour queues
     uint32_t l = target->pixel(x - 1, y); // first pixel (left)
@@ -53,14 +53,14 @@ namespace picovector {
     uint32_t bq = _b(l) << 16 | _b(m) << 8 | _b(r);
     uint32_t aq = _a(l) << 16 | _a(m) << 8 | _a(r);
 
-    // horizontal pass    
+    // horizontal pass
     while(w--) {
       // average the three pixels in the queue...
       uint8_t r = (((rq >> 16) & 0xff) + ((rq >> 8) & 0xff) + ((rq >> 8) & 0xff) + ((rq >> 0) & 0xff)) >> 2;
       uint8_t g = (((gq >> 16) & 0xff) + ((gq >> 8) & 0xff) + ((gq >> 8) & 0xff) + ((gq >> 0) & 0xff)) >> 2;
       uint8_t b = (((bq >> 16) & 0xff) + ((bq >> 8) & 0xff) + ((bq >> 8) & 0xff) + ((bq >> 0) & 0xff)) >> 2;
       uint8_t a = (((aq >> 16) & 0xff) + ((aq >> 8) & 0xff) + ((aq >> 8) & 0xff) + ((aq >> 0) & 0xff)) >> 2;
-     
+
       *dst = _make_col(r, g, b, a);
       dst++;
 
@@ -86,7 +86,7 @@ namespace picovector {
     for(int i = 0; i < passes; i++) {
       // horizontal pass
       for(int y = 0; y < target->bounds().h; y++) {
-        uint32_t *dst = target->ptr(0, y);
+        uint32_t *dst = (uint32_t*)target->ptr(0, y);
 
         // prime the sample queue
         q[0] = target->pixel(0, y);
@@ -100,8 +100,8 @@ namespace picovector {
           uint8_t g = (_g(q[0]) + _g(q[1]) + _g(q[2]) + _g(q[3])) >> 2;
           uint8_t b = (_b(q[0]) + _b(q[1]) + _b(q[2]) + _b(q[3])) >> 2;
           uint8_t a = (_a(q[0]) + _a(q[1]) + _a(q[2]) + _a(q[3])) >> 2;
-        
-          uint32_t col = _make_col(r, g, b, a);          
+
+          uint32_t col = _make_col(r, g, b, a);
           _rgba_blend_to(dst, &col);
           dst++;
 
@@ -109,13 +109,13 @@ namespace picovector {
           q[0] = q[2];
           q[1] = q[3];
           q[2] = q[1];
-          q[3] = target->pixel(x + 1, y);       
+          q[3] = target->pixel(x + 1, y);
         }
       }
 
       // vertical pass
       for(int x = 0; x < target->bounds().w; x++) {
-        uint32_t *dst = target->ptr(x, 0);
+        uint32_t *dst = (uint32_t*)target->ptr(x, 0);
 
         // prime the sample queue
         q[0] = target->pixel(x, 0);
@@ -129,8 +129,8 @@ namespace picovector {
           uint8_t g = (_g(q[0]) + _g(q[1]) + _g(q[2]) + _g(q[3])) >> 2;
           uint8_t b = (_b(q[0]) + _b(q[1]) + _b(q[2]) + _b(q[3])) >> 2;
           uint8_t a = (_a(q[0]) + _a(q[1]) + _a(q[2]) + _a(q[3])) >> 2;
-        
-          uint32_t col = _make_col(r, g, b, a);          
+
+          uint32_t col = _make_col(r, g, b, a);
           _rgba_blend_to(dst, &col);
           dst += int(target->bounds().w);
 
@@ -138,7 +138,7 @@ namespace picovector {
           q[0] = q[2];
           q[1] = q[3];
           q[2] = q[1];
-          q[3] = target->pixel(x, y + 1);       
+          q[3] = target->pixel(x, y + 1);
         }
       }
 
@@ -148,7 +148,7 @@ namespace picovector {
   brighten_brush::brighten_brush(int amount) : amount(amount) {}
 
   void brighten_brush::render_span(image_t *target, int x, int y, int w) {
-    uint32_t *dst = target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
 
     while(w--) {
       uint8_t *pd = (uint8_t *)dst;
@@ -183,7 +183,7 @@ namespace picovector {
       _rgba_blend_to((uint32_t *)dst, &xored);
       dst += 4;
     }
-  }  
+  }
 
 
   void xor_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {

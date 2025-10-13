@@ -3,9 +3,7 @@
 #include "../font.hpp"
 #include "../span.hpp"
 
-#define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
-#define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
-#define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
+#include "mp_helpers.hpp"
 
 using namespace picovector;
 
@@ -58,7 +56,7 @@ extern "C" {
   }
 
   mp_obj_t font_load(mp_obj_t path) {
-    //const char *s = mp_obj_str_get_str(path);    
+    //const char *s = mp_obj_str_get_str(path);
     font_obj_t *result = mp_obj_malloc_with_finaliser(font_obj_t, &type_Font);
 
     // PNG *png = new(m_malloc(sizeof(PNG))) PNG();
@@ -76,16 +74,16 @@ extern "C" {
     // open the file for binary reading
     mp_obj_t args[2] = {path, MP_ROM_QSTR(MP_QSTR_r)};
     mp_obj_t file = mp_vfs_open(MP_ARRAY_SIZE(args), args, (mp_map_t *)&mp_const_empty_map);
-    
+
     int error;
 
     char marker[4];
     mp_stream_read_exactly(file, &marker, sizeof(marker), &error);
 
-    if(memcmp(marker, "af!?", 4) != 0) {   
+    if(memcmp(marker, "af!?", 4) != 0) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("failed to load font, missing AF header"));
     }
-    
+
     uint16_t flags       = ru16(file);
     uint16_t glyph_count = ru16(file);
     uint16_t path_count  = ru16(file);
@@ -101,7 +99,7 @@ extern "C" {
 
     if(!result->buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
-    }    
+    }
 
     glyph_t *glyphs = (glyph_t*)result->buffer;
     glyph_path_t *paths = (glyph_path_t*)(result->buffer + glyph_buffer_size);
@@ -128,7 +126,7 @@ extern "C" {
       glyph_t *glyph = &result->font.glyphs[i];
       for(int j = 0; j < glyph->path_count; j++) {
         glyph_path_t *path = &glyph->paths[j];
-        path->point_count = flags & 0b1 ? ru16(file) : ru8(file);                
+        path->point_count = flags & 0b1 ? ru16(file) : ru8(file);
         path->points = points;
         points += path->point_count;
       }
@@ -146,7 +144,7 @@ extern "C" {
         }
       }
     }
-    
+
     mp_stream_close(file);
 
     return MP_OBJ_FROM_PTR(result);
@@ -160,7 +158,7 @@ extern "C" {
   static const mp_rom_map_elem_t font_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&font__del___obj) },
       { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&font_load_static_obj) },
-      
+
   };
   static MP_DEFINE_CONST_DICT(font_locals_dict, font_locals_dict_table);
 

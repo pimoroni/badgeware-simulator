@@ -23,37 +23,47 @@ namespace picovector {
     RGBA4444 = 2,
   } pixel_format_t;
 
-  class mat3_t;  
+  typedef std::vector<uint32_t, PV_STD_ALLOCATOR<uint32_t>> palette_t;
+
+  class mat3_t;
   class font_t;
   class shape_t;
   class brush_t;
 
   class image_t {
     private:
-      uint32_t       *p = nullptr;
-      bool            managed_buffer = false; // TODO: this is messy
-      size_t          _rowstride; // row stride
+      void           *_buffer = nullptr;
+      bool            _managed_buffer = false;
+      size_t          _row_stride;
+      size_t          _bytes_per_pixel;
 
       rect_t          _bounds;
       uint8_t         _alpha = 255;
       antialias_t     _antialias = OFF;
       pixel_format_t  _pixel_format = RGBA8888;
+      bool            _has_palette = false;
       brush_t        *_brush = nullptr;
       font_t         *_font = nullptr;
-      mat3_t         *_transform = nullptr;
-      std::vector<uint32_t, PV_STD_ALLOCATOR<uint32_t>> _palette;
-
+      palette_t       _palette;
 
     public:
-      image_t(int w, int h);
-      image_t(uint32_t *p, int w, int h);
+      image_t();
+      image_t(image_t *source, rect_t r);
+      image_t(int w, int h, pixel_format_t pixel_format=RGBA8888, bool has_palette=false);
+      image_t(void *buffer, int w, int h, pixel_format_t pixel_format=RGBA8888, bool has_palette=false);
       ~image_t();
 
+      size_t buffer_size();
+      size_t bytes_per_pixel();
+      bool compatible_buffer(image_t *other);
       void window(image_t *source, rect_t viewport);
       image_t window(rect_t r);
-      uint32_t* ptr(int x, int y);
+      void* ptr(int x, int y);
 
-      rect_t bounds();      
+      rect_t bounds();
+
+      void palette(uint8_t i, uint32_t c);
+      uint32_t palette(uint8_t i);
 
       uint8_t alpha();
       void alpha(uint8_t alpha);
@@ -63,9 +73,6 @@ namespace picovector {
 
       pixel_format_t pixel_format();
       void pixel_format(pixel_format_t pixel_format);
-
-      mat3_t *transform();
-      void transform(mat3_t *transform);
 
       brush_t *brush();
       void brush(brush_t *brush);

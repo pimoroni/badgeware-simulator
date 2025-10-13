@@ -3,9 +3,7 @@
 #include "mp_tracked_allocator.hpp"
 #include "../matrix.hpp"
 
-#define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
-#define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
-#define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
+#include "mp_helpers.hpp"
 
 using namespace picovector;
 
@@ -31,7 +29,7 @@ extern "C" {
 
   mp_obj_t matrix_rotate(size_t n_args, const mp_obj_t *pos_args) {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    float a = mp_obj_get_float(pos_args[1]);    
+    float a = mp_obj_get_float(pos_args[1]);
     matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
     result->m = self->m.rotate(a);
     return MP_OBJ_FROM_PTR(result);
@@ -39,7 +37,7 @@ extern "C" {
 
   mp_obj_t matrix_rotate_radians(size_t n_args, const mp_obj_t *pos_args) {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    float a = mp_obj_get_float(pos_args[1]);    
+    float a = mp_obj_get_float(pos_args[1]);
     matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
     result->m = self->m.rotate_radians(a);
     return MP_OBJ_FROM_PTR(result);

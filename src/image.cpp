@@ -14,27 +14,74 @@ namespace picovector {
 
   color_brush _default_image_brush(255, 255, 255, 255);
 
-  image_t::image_t(int w, int h) : managed_buffer(true) {
-    _bounds = rect_t(0, 0, w, h);
-    _brush = &_default_image_brush;
-    p = (uint32_t *)PV_MALLOC(sizeof(uint32_t) * w * h);
-    _rowstride = w * sizeof(uint32_t);
+  image_t::image_t() {
   }
 
-  image_t::image_t(uint32_t *p, int w, int h) : p(p), managed_buffer(false) {
-    _bounds = rect_t(0, 0, w, h);    
+  image_t::image_t(image_t *source, rect_t r) {
+    rect_t i = source->_bounds.intersection(r);
+    *this = *source;
+    this->_bounds = rect_t(0, 0, i.w, i.h);
+    this->_buffer = source->ptr(i.x, i.y);
+    this->_managed_buffer = false;
+  }
+
+  image_t::image_t(int w, int h, pixel_format_t pixel_format, bool has_palette) {
+    _bounds = rect_t(0, 0, w, h);
     _brush = &_default_image_brush;
-    _rowstride = w * sizeof(uint32_t);
+    _pixel_format = pixel_format;
+    _has_palette = has_palette;
+    _managed_buffer = true;
+    _bytes_per_pixel = this->_has_palette ? sizeof(uint8_t) : sizeof(uint32_t);
+    _row_stride = w * _bytes_per_pixel;
+    _buffer = PV_MALLOC(this->buffer_size());
+    if(_has_palette) {
+      _palette.resize(256);
+    }
+  }
+
+  image_t::image_t(void *buffer, int w, int h, pixel_format_t pixel_format, bool has_palette) {
+    _bounds = rect_t(0, 0, w, h);
+    _brush = &_default_image_brush;
+    _pixel_format = pixel_format;
+    _has_palette = has_palette;
+    _buffer = buffer;
+    _managed_buffer = false;
+    debug_printf("has p %d\n", this->_has_palette);
+    _bytes_per_pixel = this->_has_palette ? sizeof(uint8_t) : sizeof(uint32_t);
+    _row_stride = w * _bytes_per_pixel;
+    if(_has_palette) {
+      _palette.resize(256);
+    }
   }
 
   image_t::~image_t() {
-    if(managed_buffer) {
-      //PV_FREE(p);
+    if(this->_managed_buffer) {
+      PV_FREE(this->_buffer, this->buffer_size());
     }
+  }
+
+  size_t image_t::buffer_size() {
+    return this->_bytes_per_pixel * this->_bounds.w * this->_bounds.h;
+  }
+
+  size_t image_t::bytes_per_pixel() {
+    return this->_bytes_per_pixel;
+  }
+
+  bool image_t::compatible_buffer(image_t *other) {
+    return this->_palette == other->_palette && this->_pixel_format == other->_pixel_format;
   }
 
   rect_t image_t::bounds() {
     return this->_bounds;
+  }
+
+  void image_t::palette(uint8_t i, uint32_t c) {
+    this->_palette[i] = c;
+  }
+
+  uint32_t image_t::palette(uint8_t i) {
+    return this->_palette[i];
   }
 
   uint8_t image_t::alpha() {
@@ -63,14 +110,6 @@ namespace picovector {
     this->_pixel_format = pixel_format;
   }
 
-  mat3_t* image_t::transform() {
-    return this->_transform;
-  }
-
-  void image_t::transform(mat3_t *transform) {
-    this->_transform = transform;
-  }
-
   brush_t* image_t::brush() {
     return this->_brush;
   }
@@ -89,16 +128,8 @@ namespace picovector {
 
   image_t image_t::window(rect_t r) {
     rect_t i = _bounds.intersection(r);
-    image_t window = image_t(ptr(r.x, r.y), i.w, i.h);
-    window._rowstride = _rowstride;
+    image_t window = image_t(this, rect_t(i.x, i.y, i.w, i.h));
     return window;
-  }
-
-  void image_t::window(image_t *source, rect_t r) {
-    rect_t i = _bounds.intersection(r);
-    this->p = source->ptr(i.x, i.y);
-    this->_bounds = i;
-    this->_rowstride = source->_rowstride;
   }
 
   void image_t::clear() {
@@ -112,11 +143,13 @@ namespace picovector {
     if(tr.empty()) {return;}
 
     int sxo = p.x < 0 ? -p.x : 0;
-    int syo = p.y < 0 ? -p.y : 0;    
+    int syo = p.y < 0 ? -p.y : 0;
+
 
     for(int i = 0; i < tr.h; i++) {
-      uint32_t *src = this->ptr(sxo, syo + i);
-      uint32_t *dst = t->ptr(tr.x, tr.y + i);
+      uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
+      uint32_t *dst = (uint32_t *)t->ptr(tr.x, tr.y + i);
+
       span_blit_argb8(src, dst, tr.w, this->alpha());
     }
   }
@@ -141,14 +174,21 @@ namespace picovector {
 
 
     for(int y = sy; y != ey; y++) {
-      uint32_t *dst = target->ptr(ctr.x, y);
-      span_blit_scale(this->ptr(0, int(srcy)), dst, int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+      void *dst = target->ptr(ctr.x, y);
+
+      if(this->_has_palette) {
+        span_blit_scale_palette((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, &this->_palette[0], int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+      }else{
+        span_blit_scale((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+      }
+
       srcy += srcstepy;
     }
   }
 
-  uint32_t* image_t::ptr(int x, int y) {
-    return this->p + x + (y * (this->_rowstride / sizeof(uint32_t)));
+  void* image_t::ptr(int x, int y) {
+    //debug_printf("get ptr at %d, %d (bpp = %d, rs = %d)\n", x, y, (int)this->_bytes_per_pixel, (int)this->_row_stride);
+    return (uint8_t *)(this->_buffer) + (x * this->_bytes_per_pixel) + (y * this->_row_stride);
   }
 
   void image_t::draw(shape_t *shape) {
@@ -180,13 +220,13 @@ namespace picovector {
 
 
   uint32_t image_t::pixel_unsafe(int x, int y) {
-    return *ptr(x, y);    
+    return *((uint32_t *)ptr(x, y));
   }
 
   uint32_t image_t::pixel(int x, int y) {
     x = max(int(_bounds.x), min(x, int(_bounds.x + _bounds.w - 1)));
     y = max(int(_bounds.y), min(y, int(_bounds.y + _bounds.h - 1)));
-    return *ptr(x, y);    
+    return *((uint32_t *)ptr(x, y));
   }
 
 }

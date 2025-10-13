@@ -5,9 +5,7 @@
 #include "../image.hpp"
 #include "../brush.hpp"
 
-#define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
-#define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
-#define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
+#include "mp_helpers.hpp"
 
 using namespace picovector;
 
@@ -29,38 +27,38 @@ extern "C" {
     return mp_const_none;
   }
 
-  /* 
-    brushes class with static methods to create different brush types 
+  /*
+    brushes class with static methods to create different brush types
   */
 
   mp_obj_t brushes_color_brush(size_t n_args, const mp_obj_t *pos_args) {
-    int r = mp_obj_get_float(pos_args[0]);    
-    int g = mp_obj_get_float(pos_args[1]);    
-    int b = mp_obj_get_float(pos_args[2]);        
-    int a = n_args == 4 ? mp_obj_get_float(pos_args[3]) : 255;    
-    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);    
+    int r = mp_obj_get_float(pos_args[0]);
+    int g = mp_obj_get_float(pos_args[1]);
+    int b = mp_obj_get_float(pos_args[2]);
+    int a = n_args == 4 ? mp_obj_get_float(pos_args[3]) : 255;
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
     brush->brush = m_new_class(color_brush, r, g, b, a);
     return MP_OBJ_FROM_PTR(brush);
   }
 
   mp_obj_t brushes_blur_brush(size_t n_args, const mp_obj_t *pos_args) {
-    int passes = mp_obj_get_float(pos_args[0]);    
-    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);    
+    int passes = mp_obj_get_float(pos_args[0]);
+    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
     brush->brush = m_new_class(blur_brush, passes);
     return MP_OBJ_FROM_PTR(brush);
   }
 
   mp_obj_t brushes_xor_brush(size_t n_args, const mp_obj_t *pos_args) {
-    int r = mp_obj_get_float(pos_args[0]);    
-    int g = mp_obj_get_float(pos_args[1]);    
-    int b = mp_obj_get_float(pos_args[2]);    
+    int r = mp_obj_get_float(pos_args[0]);
+    int g = mp_obj_get_float(pos_args[1]);
+    int b = mp_obj_get_float(pos_args[2]);
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
     brush->brush = m_new_class(xor_brush, r, g, b);
     return MP_OBJ_FROM_PTR(brush);
   }
 
   mp_obj_t brushes_brighten_brush(size_t n_args, const mp_obj_t *pos_args) {
-    int amount = mp_obj_get_float(pos_args[0]);    
+    int amount = mp_obj_get_float(pos_args[0]);
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
     brush->brush = m_new_class(brighten_brush, amount);
     return MP_OBJ_FROM_PTR(brush);

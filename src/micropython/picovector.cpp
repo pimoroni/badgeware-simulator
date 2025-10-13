@@ -13,7 +13,7 @@ extern int PicoVector_working_buffer[];
 #include "input.hpp"
 #include "matrix.hpp"
 
-#define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
+#include "mp_helpers.hpp"
 
 using namespace picovector;
 

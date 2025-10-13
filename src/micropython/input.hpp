@@ -5,7 +5,7 @@
 #include "pico/stdlib.h"
 #endif
 
-#define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
+#include "mp_helpers.hpp"
 
 using namespace picovector;
 
