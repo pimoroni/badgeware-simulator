@@ -122,33 +122,28 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
-#ifdef PICO
   // Call io.poll() to set up frame stable input and tick values
   mp_obj_t input_poll(mp_obj_t self_in) {
     self(self_in, input_obj_t);
+#ifdef PICO
     uint8_t buttons = get_buttons();
     picovector_changed_buttons = buttons ^ picovector_buttons;
     picovector_buttons = buttons;
     picovector_last_ticks = picovector_ticks;
     picovector_ticks = mp_hal_ticks_ms();
+#endif
     return mp_const_none;
   }
   static MP_DEFINE_CONST_FUN_OBJ_1(input_poll_obj, input_poll);
-#endif
 
   static const mp_rom_map_elem_t input_locals_dict_table[] = {
-      // TODO ... v How does it know!?!? v
-      //{ MP_ROM_QSTR(MP_QSTR_pressed),     MP_ROM_PTR(&input_pressed_obj) },
-      //{ MP_ROM_QSTR(MP_QSTR_ticks),       MP_OBJ_SENTINEL },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_HOME), MP_ROM_INT(BUTTON::HOME) },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_A),    MP_ROM_INT(BUTTON::A) },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_B),    MP_ROM_INT(BUTTON::B) },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_C),    MP_ROM_INT(BUTTON::C) },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_UP),   MP_ROM_INT(BUTTON::UP) },
       { MP_ROM_QSTR(MP_QSTR_BUTTON_DOWN), MP_ROM_INT(BUTTON::DOWN) },
-#ifdef PICO
       { MP_ROM_QSTR(MP_QSTR_poll), MP_ROM_PTR(&input_poll_obj) },
-#endif
   };
   static MP_DEFINE_CONST_DICT(input_locals_dict, input_locals_dict_table);
 
