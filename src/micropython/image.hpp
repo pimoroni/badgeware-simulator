@@ -255,7 +255,7 @@ extern "C" {
             self->pixel_font = nullptr;
             self->image->font(&self->font->font);
           }
-          if(mp_obj_is_type(dest[1], &type_Font)) {
+          if(mp_obj_is_type(dest[1], &type_PixelFont)) {
             self->pixel_font = (pixel_font_obj_t *)dest[1];
             self->font = nullptr;
             self->image->pixel_font(self->pixel_font->font);

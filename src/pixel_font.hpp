@@ -10,7 +10,6 @@
 #include "point.hpp"
 #include "matrix.hpp"
 
-using std::unordered_map;
 using std::vector;
 using std::pair;
 using std::less;
