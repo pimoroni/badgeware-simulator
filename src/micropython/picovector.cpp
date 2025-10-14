@@ -34,8 +34,6 @@ extern "C" {
   uint32_t framebuffer[160 * 120];
   image_t screen(framebuffer, screen_width, screen_height);
 
-  extern const mp_rom_map_elem_t modpicovector_globals_table;
-
   void modpicovector_deinit() {
     debug_printf("modpicovector_deinit: Cleaning up...\n");
     mp_image = nullptr;
@@ -61,40 +59,5 @@ extern "C" {
       }
     }
   }
-
-  mp_obj_t modpicovector_brush(mp_obj_t brush_in) {
-      if(!mp_obj_is_exact_type(brush_in, &type_Brush)) {
-          mp_raise_ValueError(MP_ERROR_TEXT("brush: Must be a valid brush!"));
-      }
-      brush_obj_t *brush = (brush_obj_t *)MP_OBJ_TO_PTR(brush_in);
-      screen.brush(brush->brush);
-      return mp_const_none;
-  }
-
-  // mp_obj_t modpicovector_screen() {
-  //   return MP_OBJ_FROM_PTR(mp_screen);
-  // }
-
-  mp_obj_t modpicovector_draw(mp_obj_t shape_in) {
-      shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(shape_in);
-
-      screen.draw(shape->shape);
-
-      return mp_const_none; // It took fifteen years to figure out this was missing.
-  }
-
-  mp_obj_t modpicovector_loop(mp_obj_t self_in) {
-      self(self_in, modpicovector_obj_t);
-      //self->fb->clear();
-
-      return mp_const_none;
-  }
-
-  mp_obj_t modpicovector__del__(mp_obj_t self_in) {
-      self(self_in, modpicovector_obj_t);
-      (void)self;
-      return mp_const_none;
-  }
-
 
 }
