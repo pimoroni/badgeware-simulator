@@ -1,6 +1,6 @@
 # we need to call this in our "pre-setup code", the user shouldn't have to do it
 # it's required to setup the global 'screen' object
-from picovector import PicoVector, brushes, shapes, Image, screen, io, Font, Matrix, PixelFont
+from picovector import brushes, shapes, Image, screen, io, Font, Matrix, PixelFont
 import time
 
 # print("io imported")

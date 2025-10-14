@@ -20,8 +20,7 @@ extern "C" {
 
 
   static mp_obj_t matrix_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    matrix_obj_t *self = m_new_obj(matrix_obj_t);
-    self->base.type = type;
+    matrix_obj_t *self = mp_obj_malloc(matrix_obj_t, type);
     self->m = mat3_t();
     return MP_OBJ_FROM_PTR(self);
   }

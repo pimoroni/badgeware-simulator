@@ -12,6 +12,10 @@ extern "C" {
   #ifndef NO_QSTR
     #include "PNGdec.h"
   #endif
+  
+  typedef struct _png_handle_t {
+    mp_obj_t fhandle;
+  } png_handle_t;
 
   void *pngdec_open_callback(const char *filename, int32_t *size) {
     mp_obj_t fn = mp_obj_new_str(filename, (mp_uint_t)strlen(filename));
@@ -27,35 +31,35 @@ extern "C" {
     mp_obj_tuple_t *tuple = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(stat);
     *size = mp_obj_get_int(tuple->items[6]);
 
-    mp_obj_t fhandle = mp_vfs_open(MP_ARRAY_SIZE(args), &args[0], (mp_map_t *)&mp_const_empty_map);
+    png_handle_t *png_handle = (png_handle_t *)m_tracked_calloc(1, sizeof(png_handle_t));
+    png_handle->fhandle = mp_vfs_open(MP_ARRAY_SIZE(args), &args[0], (mp_map_t *)&mp_const_empty_map);
 
-    return (void *)fhandle;
+    return (void *)png_handle;
   }
 
   void pngdec_close_callback(void *handle) {
-    //debug_printf("pngdec_close_callback %p\n", handle);
-    mp_stream_close((mp_obj_t)handle);
+    png_handle_t *png_handle = (png_handle_t *)(handle);
+    mp_stream_close(png_handle->fhandle);
+    m_tracked_free(handle);
   }
 
   int32_t pngdec_read_callback(PNGFILE *png, uint8_t *p, int32_t c) {
-    //debug_printf("pngdec_read_callback %p\n", png->fHandle);
-    mp_obj_t fhandle = png->fHandle;
+    png_handle_t *png_handle = (png_handle_t *)(png->fHandle);
     int error;
-    return mp_stream_read_exactly(fhandle, p, c, &error);
+    return mp_stream_read_exactly(png_handle->fhandle, p, c, &error);
   }
 
   // Re-implementation of stream.c/static mp_obj_t stream_seek(size_t n_args, const mp_obj_t *args)
   int32_t pngdec_seek_callback(PNGFILE *png, int32_t p) {
-    //debug_printf("pngdec_seek_callback %p\n", png->fHandle);
-    mp_obj_t fhandle = png->fHandle;
+    png_handle_t *png_handle = (png_handle_t *)(png->fHandle);
     struct mp_stream_seek_t seek_s;
     seek_s.offset = p;
     seek_s.whence = SEEK_SET;
 
-    const mp_stream_p_t *stream_p = mp_get_stream(fhandle);
+    const mp_stream_p_t *stream_p = mp_get_stream(png_handle->fhandle);
 
     int error;
-    mp_uint_t res = stream_p->ioctl(fhandle, MP_STREAM_SEEK, (mp_uint_t)(uintptr_t)&seek_s, &error);
+    mp_uint_t res = stream_p->ioctl(png_handle->fhandle, MP_STREAM_SEEK, (mp_uint_t)(uintptr_t)&seek_s, &error);
     if (res == MP_STREAM_ERROR) {
         mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("PNG: seek failed with %d"), error);
     }

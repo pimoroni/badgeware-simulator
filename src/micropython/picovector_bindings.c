@@ -1,39 +1,8 @@
 
 #include "py/runtime.h"
 
-
-// extern mp_obj_t modpicovector_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args);
-extern mp_obj_t modpicovector_loop(mp_obj_t self_in);
-extern mp_obj_t modpicovector__del__(mp_obj_t self_in);
-
-static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector_loop_obj, modpicovector_loop);
-static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector__del___obj, modpicovector__del__);
-
-
-extern mp_obj_t modpicovector_draw(mp_obj_t shape_in);
-static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector_draw_obj, modpicovector_draw);
-static MP_DEFINE_CONST_STATICMETHOD_OBJ(modpicovector_draw_static_obj, MP_ROM_PTR(&modpicovector_draw_obj));
-
-// extern mp_obj_t modpicovector_screen();
-// static MP_DEFINE_CONST_FUN_OBJ_0(modpicovector_screen_obj, modpicovector_screen);
-// static MP_DEFINE_CONST_STATICMETHOD_OBJ(modpicovector_screen_static_obj, MP_ROM_PTR(&modpicovector_screen_obj));
-
 extern void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest);
-
-
-static const mp_rom_map_elem_t modpicovector_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_loop), MP_ROM_PTR(&modpicovector_loop_obj) },
-    { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&modpicovector__del___obj) },
-};
-static MP_DEFINE_CONST_DICT(modpicovector_locals_dict, modpicovector_locals_dict_table);
-
-MP_DEFINE_CONST_OBJ_TYPE(
-    type_PicoVector,
-    MP_QSTR_PicoVector,
-    MP_TYPE_FLAG_NONE,
-    //make_new, modpicovector_make_new,
-    locals_dict, &modpicovector_locals_dict
-);
+extern mp_obj_t modpicovector___init__(void);
 
 extern const mp_obj_type_t type_Shapes;
 extern const mp_obj_type_t type_Brushes;
@@ -42,9 +11,11 @@ extern const mp_obj_type_t type_Font;
 extern const mp_obj_type_t type_PixelFont;
 extern const mp_obj_type_t type_Matrix;
 
+static MP_DEFINE_CONST_FUN_OBJ_0(modpicovector___init___obj, modpicovector___init__);
+
 static const mp_rom_map_elem_t modpicovector_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_modpicovector) },
-    { MP_ROM_QSTR(MP_QSTR_PicoVector),  MP_ROM_PTR(&type_PicoVector) },
+    { MP_ROM_QSTR(MP_QSTR___init__), MP_ROM_PTR(&modpicovector___init___obj) },
     { MP_ROM_QSTR(MP_QSTR_brushes),  MP_ROM_PTR(&type_Brushes) },
     { MP_ROM_QSTR(MP_QSTR_shapes),  MP_ROM_PTR(&type_Shapes) },
     { MP_ROM_QSTR(MP_QSTR_Image),  MP_ROM_PTR(&type_Image) },
