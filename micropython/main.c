@@ -106,38 +106,13 @@ double picovector_last_ticks;
 static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
 
-// Various repl stuff
-int bw_repl_cursor_pos = 0;
-int bw_repl_last_cursor_pos = -1;
-int bw_repl_last_linebreak_pos = 0;
-#define BW_REPL_SIZE (1024 * 50)
-static char bw_repl_buf[BW_REPL_SIZE] = {};
-char bw_repl_continuation_buffer[8192];
-int bw_repl_continuation_ptr = 0;
-const char* BW_REPL_TAB = "    ";
-bool bw_repl_exec = false;
-bool bw_repl_exec_error_maybe = false;
-
 // Hot reloading
 volatile bool hot_reload = false;
 char hot_reload_code[PATH_MAX];
 
-static void bw_repl_print_strn(const char *str, size_t len) {
-    if (bw_repl_cursor_pos + len >= BW_REPL_SIZE) {
-        bw_repl_cursor_pos = 0;
-    }
-    memcpy(bw_repl_buf + bw_repl_cursor_pos, str, len);
-    bw_repl_cursor_pos += len;
-}
-
-static void bw_repl_print_str(const char *str) {
-    bw_repl_print_strn(str, strlen(str));
-}
-
 static void stderr_print_strn(void *env, const char *str, size_t len) {
     (void)env;
     warning_printf("%s", str);
-    bw_repl_print_strn(str, len);
 }
 
 mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
@@ -148,17 +123,8 @@ mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
     if (dupterm_res >= 0) {
         written = MIN((mp_uint_t)dupterm_res, written);
     }
-    bw_repl_print_strn(str, written);
     return written;
 }
-
-/*
-mp_uint_t mp_hal_stdout_tx_strn(const char *str, size_t len) {
-    warning_printf("%s", str);
-    bw_repl_print_strn(str, len);
-    return len;
-}
-*/
 
 // cooked is same as uncooked because the terminal does some postprocessing
 void mp_hal_stdout_tx_strn_cooked(const char *str, size_t len) {
@@ -176,8 +142,6 @@ const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
 // and lower 8 bits are SystemExit value. For all other exceptions,
 // return 1.
 static int handle_uncaught_exception(mp_obj_base_t *exc) {
-    bw_repl_exec_error_maybe = true;
-    debug_printf("handle_uncaught_exception(...\n");
     // check for SystemExit
     if (mp_obj_is_subclass_fast(MP_OBJ_FROM_PTR(exc->type), MP_OBJ_FROM_PTR(&mp_type_SystemExit))) {
         // None is an exit value of 0; an int is its value; anything else is 1
@@ -190,7 +154,7 @@ static int handle_uncaught_exception(mp_obj_base_t *exc) {
     }
 
     // Report all other exceptions
-    mp_obj_print_exception(&mp_stderr_print, MP_OBJ_FROM_PTR(exc));
+    mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(exc));
     return 1;
 }
 
@@ -206,38 +170,28 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
     mp_hal_set_interrupt_char(CHAR_CTRL_C);
 
     nlr_buf_t nlr;
-    debug_printf("nlr_push()\n");
     if (nlr_push(&nlr) == 0) {
         //micropython_gc_enabled = true;
         // create lexer based on source kind
-        debug_printf("create lexer...\n");
         mp_lexer_t *lex;
         if (source_kind == LEX_SRC_STR) {
-            debug_printf("LEX_SRC_STR...\n");
             const char *line = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, line, strlen(line), false);
         } else if (source_kind == LEX_SRC_VSTR) {
-            debug_printf("LEX_SRC_VSTR...\n");
             const vstr_t *vstr = source;
             lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, vstr->buf, vstr->len, false);
         } else if (source_kind == LEX_SRC_FILENAME) {
-            debug_printf("LEX_SRC_FILENAME...\n");
             const char *filename = (const char *)source;
-            debug_printf("qstr_from_str(%s)...\n", filename);
             qstr qfilename = qstr_from_str(filename);
-            debug_printf("mp_lexer_new_from_file(qfilename)...\n");
             lex = mp_lexer_new_from_file(qfilename);
         } else { // LEX_SRC_STDIN
-            debug_printf("LEX_SRC_STDIN...\n");
             lex = mp_lexer_new_from_fd(MP_QSTR__lt_stdin_gt_, 0, false);
         }
-        debug_printf("lexer ok...\n");
 
         qstr source_name = lex->source_name;
 
         #if MICROPY_PY___FILE__
         if (input_kind == MP_PARSE_FILE_INPUT) {
-            debug_printf("set __file__..\n");
             mp_store_global(MP_QSTR___file__, MP_OBJ_NEW_QSTR(source_name));
         }
         #endif
@@ -253,17 +207,12 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         }
         #endif
 
-        debug_printf("mp_compile\n");
         mp_obj_t module_fun = mp_compile(&parse_tree, source_name, is_repl);
 
         // execute it
-        debug_printf("mp_call_function_0\n");
         mp_call_function_0(module_fun);
-        debug_printf("hello?\n");
 
-        debug_printf("mp_hal_set_interrupt_char(-1)\n");
         mp_hal_set_interrupt_char(-1);
-        debug_printf("mp_handle_pending\n");
         mp_handle_pending(true);
         nlr_pop();
         //micropython_gc_enabled = false;
@@ -329,7 +278,6 @@ static void micropython_init(void) {
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
     #endif
 
-    debug_printf("mp_init\n");
     mp_init();
 
     #if MICROPY_EMIT_NATIVE
@@ -370,7 +318,7 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
 }
 
 static int badgeware_init(void) {
-    bw_repl_print_str("badgeware_init: Hello BadgeWare!\n");
+    debug_printf("badgeware_init: Hello BadgeWare!\n");
     const char *path = sargs_value_def("code", "test/main.py");
     char *rpath = realpath(path, NULL);
 
@@ -379,8 +327,8 @@ static int badgeware_init(void) {
         hot_reload_code[strlen(rpath)] = '\0';
 
         char *dname = dirname(rpath);
-        debug_printf("badgeware_init: Watching code: %s\n", hot_reload_code);
-        debug_printf("badgeware_init: Watching directory %s\n", dname);
+        //debug_printf("badgeware_init: Watching code: \"%s\"\n", hot_reload_code);
+        //debug_printf("badgeware_init: Watching directory \"%s\"\n", dname);
         dmon_watch(dname, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
         hot_reload = true;
         return 0;
@@ -391,15 +339,15 @@ static int badgeware_init(void) {
 }
 
 void fetch_badgeware_update_callback() {
-    debug_printf("fetching update callback...\n");
+    debug_printf("Fetching update callback...\n");
     update_callback_obj = _mp_load_global(qstr_from_str("update"));
     if(update_callback_obj == mp_const_none) {
-        warning_printf("WARNING: a function named 'update(ticks)' is not defined\n");
+        warning_printf("WARNING: a function named 'update()' is not defined\n");
     }
 }
 
 static int run_file(const char* path) {
-    debug_printf("Running....%s?\n", path);
+    debug_printf("Running \"%s\"\n\n", path);
 
     char dpath[PATH_MAX];
     memcpy(dpath, path, strlen(path));
@@ -409,8 +357,6 @@ static int run_file(const char* path) {
     mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
 
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-
-    debug_printf("done?\n");
 
     fetch_badgeware_update_callback();
 
@@ -480,44 +426,6 @@ static ImTextureRef imtexref(ImTextureID tex_id) {
     return (ImTextureRef){ ._TexID = tex_id };
 }
 
-static void _igWindowMaintainAspect(ImGuiSizeCallbackData* data)
-{
-    ImVec2 *aspect = (ImVec2 *)data->UserData;
-    data->DesiredSize.x = (data->DesiredSize.y / aspect->y) * aspect->x;
-}
-
-static int _igReplCallback(ImGuiInputTextCallbackData* data) {
-    if(bw_repl_exec) {
-        if(bw_repl_exec_error_maybe) {
-            // Remove the trailing \n
-            ImGuiInputTextCallbackData_DeleteChars(data, data->BufTextLen - 1, 1);
-            bw_repl_exec_error_maybe = false;
-        } else {
-            ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
-        }
-        bw_repl_exec = false;
-    }
-
-    char last = data->Buf[data->CursorPos - 1];
-
-    if(data->EventFlag == ImGuiInputTextFlags_CallbackCompletion) {
-        ImGuiInputTextCallbackData_InsertChars(data, data->CursorPos, BW_REPL_TAB, BW_REPL_TAB + 4);
-    }
-    if(data->EventFlag == ImGuiInputTextFlags_CallbackAlways) {
-        if (last == '\n') {
-            data->Buf[data->CursorPos - 1] = '\0';
-            bool cont = mp_repl_continue_with_input(data->Buf);
-            data->Buf[data->CursorPos - 1] = '\n';
-            if(!cont) {
-                bw_repl_exec = true;
-                return 1;
-            }
-        }
-        return 0;
-    }
-    return 0;
-}
-
 bool first_run = true;
 static void sokol_frame(void) {
 
@@ -542,58 +450,8 @@ static void sokol_frame(void) {
 
     mp_handle_pending(true);
 
-    // TODO: Why don't sapp_width and sapp_height update on window resize?
-    //ImVec2 window_size = {sapp_width(), sapp_height()};
-
-    /*=== UI CODE STARTS HERE ===*/
-    igSetNextWindowPos((ImVec2){0, 720}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){960, 120}, ImGuiCond_Once);
-
-    //igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
-    if (igBegin("MicroPython Output", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize )) {
-        igText("%s", bw_repl_buf);
-        if(!igIsWindowHovered(ImGuiHoveredFlags_RootWindow)) {
-            igSetScrollY(igGetScrollMaxY());
-        }
-    }
-    igEnd();
-
-    igSetNextWindowPos((ImVec2){0, 720 + 120}, ImGuiCond_Once);
-    igSetNextWindowSize((ImVec2){960, 120}, ImGuiCond_Once);
-    if (igBegin("MicroPython Input", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize )) {
-        const ImVec2 size = igGetContentRegionAvail();
-        // ImGuiInputTextFlags_CallbackHistory does not work with multiline :(
-        if(igInputTextMultilineEx("##TextInput", bw_repl_continuation_buffer, BW_REPL_SIZE, size, ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackAlways, _igReplCallback, NULL)){
-            if(bw_repl_exec) {
-                char *bw_repl_cont_p = bw_repl_continuation_buffer;
-                size_t bw_repl_cont_len = strlen(bw_repl_continuation_buffer);
-                size_t bw_repl_line_len = 0;
-                for(int i = 0; i < bw_repl_cont_len; i++) {
-                    const char c = bw_repl_cont_p[bw_repl_line_len];
-                    if(c == '\n') {
-                        bw_repl_print_strn(">>> ", 4);
-                        bw_repl_print_strn(bw_repl_cont_p, bw_repl_line_len + 1);
-                        bw_repl_cont_p += bw_repl_line_len + 1;
-                        bw_repl_line_len = 0;
-                    }
-                    bw_repl_line_len += 1;
-                }
-                //bw_repl_print_strn(bw_repl_continuation_buffer, strlen(bw_repl_continuation_buffer));
-                int ret = execute_from_lexer(LEX_SRC_STR, bw_repl_continuation_buffer, MP_PARSE_SINGLE_INPUT, true);
-                // The user might have deleted or replaced the update callback via the repl....
-                fetch_badgeware_update_callback();
-                (void)ret;
-            }
-        }
-    }
-    igEnd();
-    //igPopStyleVar(); // ImGuiStyleVar_WindowPadding
-
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
     igSetNextWindowSize((ImVec2){960,  720}, ImGuiCond_Once);
-    // TODO: bring this back when we figure out parent window resizing...
-    (void)_igWindowMaintainAspect;
-    //igSetNextWindowSizeConstraints((ImVec2){960, 720}, (ImVec2){1280, 960}, _igWindowMaintainAspect, &(ImVec2){4, 3});
 
     // Create the image just in time... sokol was not happy about me trying to update an existing image!?
     if(screen_width && screen_height) {
@@ -730,7 +588,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .event_cb = sokol_event,
         .window_title = "Badgeware Desktop",
         .width = 960,
-        .height = 960,
+        .height = 720,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };
