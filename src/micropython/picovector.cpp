@@ -50,6 +50,19 @@ extern "C" {
     state->image->image = &screen;
     state->input = mp_obj_malloc(input_obj_t, &type_Input);
 
+  #ifdef PICO
+    // we need a way to set this up, but if the user wants to use the
+    // interpolators in their own code they might modify the configuration..
+    // do we have to do this everytime we're about to render something to be
+    // sure or do we just say that this interpolator is out of bounds if you're
+    // using pico graphics 2?
+    interp_config cfg = interp_default_config();
+    interp_config_set_blend(&cfg, true);
+    interp_set_config(interp0, 0, &cfg);
+    cfg = interp_default_config();
+    interp_set_config(interp0, 1, &cfg);
+  #endif
+
     MP_STATE_VM(modpicovector_state) = state;
 
     return mp_const_none;
