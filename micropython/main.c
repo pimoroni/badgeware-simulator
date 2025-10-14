@@ -518,14 +518,12 @@ static int _igReplCallback(ImGuiInputTextCallbackData* data) {
     return 0;
 }
 
-extern void modpicovector_deinit();
 bool first_run = true;
 static void sokol_frame(void) {
 
     if(hot_reload) {
         if(!first_run) {
             gc_sweep_all();
-            modpicovector_deinit();
         }
         first_run = false;
         micropython_init();
