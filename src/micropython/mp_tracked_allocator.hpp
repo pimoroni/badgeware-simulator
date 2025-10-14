@@ -15,17 +15,17 @@ template<class T>
 struct MPAllocator
 {
     typedef T value_type;
- 
+
     MPAllocator() = default;
- 
+
     template<class U>
     constexpr MPAllocator(const MPAllocator <U>&) noexcept {}
- 
+
     [[nodiscard]] T* allocate(std::size_t n)
     {
         //if (n > std::numeric_limits<std::size_t>::max() / sizeof(T))
         //    throw std::bad_array_new_length();
- 
+
         //if (auto p = static_cast<T*>(std::malloc(n * sizeof(T))))
         if (auto p = static_cast<T*>(m_tracked_calloc(n, sizeof(T))))
         {
@@ -33,10 +33,10 @@ struct MPAllocator
             return p;
         }
         return NULL;
- 
+
         //throw std::bad_alloc();
     }
- 
+
     void deallocate(T* p, std::size_t n) noexcept
     {
         report(p, n, 0);
@@ -55,7 +55,7 @@ private:
 
 template<class T, class U>
 bool operator==(const MPAllocator <T>&, const MPAllocator <U>&) { return true; }
- 
+
 template<class T, class U>
 bool operator!=(const MPAllocator <T>&, const MPAllocator <U>&) { return false; }
 

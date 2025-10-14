@@ -21,7 +21,6 @@ static const mp_rom_map_elem_t modpicovector_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_Image),  MP_ROM_PTR(&type_Image) },
     { MP_ROM_QSTR(MP_QSTR_Font),  MP_ROM_PTR(&type_Font) },
     { MP_ROM_QSTR(MP_QSTR_PixelFont),  MP_ROM_PTR(&type_PixelFont) },
-    { MP_ROM_QSTR(MP_QSTR_draw),  MP_ROM_PTR(&modpicovector_draw_static_obj) },
     { MP_ROM_QSTR(MP_QSTR_Matrix),  MP_ROM_PTR(&type_Matrix) },
 };
 static MP_DEFINE_CONST_DICT(modpicovector_globals, modpicovector_globals_table);

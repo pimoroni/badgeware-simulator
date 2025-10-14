@@ -32,9 +32,10 @@ from lib import *
 #     y += test_phrase_size
 
 pixel_font = PixelFont.load("assets/nope.ppf")
-screen.pixel_font = pixel_font
+screen.font = pixel_font
 
 
 def run_test():
-  screen.text("this is a test", 5, 20, 0)
+  screen.brush = brushes.color(255, 0, 0)
+  screen.text("this is a test", 5, 20)
   # vector_font_test()

@@ -17,7 +17,7 @@ extern "C" {
 
   typedef struct _pixel_font_obj_t {
     mp_obj_base_t base;
-    pixel_font_t font;
+    pixel_font_t *font;
     uint8_t *buffer;
     uint32_t buffer_size;
   } pixel_font_obj_t;
@@ -47,34 +47,36 @@ extern "C" {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("failed to load font, missing PPF header"));
     }
 
-    uint16_t glyph_count = ru32(file);
-    uint16_t width       = ru16(file);
-    uint16_t height      = ru16(file);
+    result->font = m_new_class(pixel_font_t);
+
     uint16_t flags       = ru16(file);
+    result->font->glyph_count = ru32(file);
+    result->font->width       = ru16(file);
+    result->font->height      = ru16(file);
 
-    // load codepoints
-
-    uint8_t bpr = (width + 1) / 8;
+    uint8_t bpr = result->font->width > 8 ? 2 : 1;
 
     // allocate buffer to store glyph data
-    result->buffer_size = glyph_count * bpr * height;
+    result->font->glyph_data_size = 2 + bpr * result->font->height; // codepoint, width, and pixel data
+    result->buffer_size = result->font->glyph_count * result->font->glyph_data_size;
     result->buffer = (uint8_t*)m_malloc(result->buffer_size);
 
     if(!result->buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
     }
 
+    // read codepoint list
+    for(uint32_t i = 0; i < result->font->glyph_count; i++) {
+      uint32_t codepoint = ru32(file);
+      result->font->codepoints.push_back(codepoint);
+    }
+
     // read glyph data into buffer
     mp_stream_read_exactly(file, result->buffer, result->buffer_size, &error);
+    result->font->glyph_data = (void*)result->buffer;
 
-    for(int i = 0; i < glyph_count; i++) {
-      pixel_glyph_t glyph;
-      uint32_t codepoint = ru32(file);
-      glyph.width = ru16(file);
-      glyph.data = (void*)&result->buffer[bpr * height * i];
+    debug_printf("glyph_data = %p\n", result->font->glyph_data);
 
-      //result->font.glyphs.emplace(codepoint, glyph);
-    }
 
     mp_stream_close(file);
 

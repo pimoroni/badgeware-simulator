@@ -10,28 +10,32 @@
 #include "point.hpp"
 #include "matrix.hpp"
 
-using std::map;
+using std::unordered_map;
+using std::vector;
 using std::pair;
+using std::less;
 
 namespace picovector {
 
   class image_t;
 
-  class pixel_glyph_t {
-  public:
+  struct pixel_font_glyph_t {
     uint16_t width;
     void *data;
   };
 
-  typedef std::map<uint32_t, pixel_glyph_t, PV_STD_ALLOCATOR<pair<uint32_t, pixel_glyph_t>>> glyphs_t;
-
   class pixel_font_t {
   public:
-    int glyph_count;
-    int width;
-    int height;
+    uint32_t glyph_count;
+    uint32_t glyph_data_size;
+    uint16_t width;
+    uint16_t height;
 
-    glyphs_t glyphs;
+    std::vector<uint32_t, PV_STD_ALLOCATOR<uint32_t>> codepoints;
+    void *glyph_data;
+
+    uint32_t codepoint_index(uint32_t codepoint);
+    pixel_font_glyph_t *glyph(uint32_t codepoint);
 
     void draw(image_t *target, const char *text, int x, int y);
     rect_t measure(image_t *target, const char *text);

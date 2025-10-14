@@ -85,15 +85,22 @@ extern "C" {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);
 
-    if(!self->image->font()) {
+    if(!self->font && !self->pixel_font) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));
     }
 
-    float x = mp_obj_get_float(pos_args[2]);
-    float y = mp_obj_get_float(pos_args[3]);
-    float size = mp_obj_get_float(pos_args[4]);
+    if(self->font) {
+      float x = mp_obj_get_float(pos_args[2]);
+      float y = mp_obj_get_float(pos_args[3]);
+      float size = mp_obj_get_float(pos_args[4]);
+      self->image->font()->draw(self->image, text, x, y, size);
+    }
 
-    self->image->font()->draw(self->image, text, x, y, size);
+    if(self->pixel_font) {
+      int x = mp_obj_get_int(pos_args[2]);
+      int y = mp_obj_get_int(pos_args[3]);
+      self->image->pixel_font()->draw(self->image, text, x, y);
+    }
 
     return mp_const_none;
   }
@@ -102,17 +109,25 @@ extern "C" {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);
 
-    if(!self->image->font()) {
+    if(!self->font && !self->pixel_font) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));
     }
 
-    float size = mp_obj_get_float(pos_args[2]);
-
-    rect_t r = self->image->font()->measure(self->image, text, size);
-
     mp_obj_t result[2];
-    result[0] = mp_obj_new_float(r.w);
-    result[1] = mp_obj_new_float(size);
+
+    if(self->font) {
+      float size = mp_obj_get_float(pos_args[2]);
+      rect_t r = self->image->font()->measure(self->image, text, size);
+      result[0] = mp_obj_new_float(r.w);
+      result[1] = mp_obj_new_float(r.h);
+    }
+
+    if(self->pixel_font) {
+      rect_t r = self->image->pixel_font()->measure(self->image, text);
+      result[0] = mp_obj_new_float(r.w);
+      result[1] = mp_obj_new_float(r.h);
+    }
+
     return mp_obj_new_tuple(2, result);
   }
 
@@ -219,8 +234,12 @@ extern "C" {
 
       case MP_QSTR_font: {
         if(action == GET) {
-          if(self->font) {
-            dest[0] = MP_OBJ_FROM_PTR(self->font);
+          if(self->font || self->pixel_font) {
+            if(self->font) {
+              dest[0] = MP_OBJ_FROM_PTR(self->font);
+            }else{
+              dest[0] = MP_OBJ_FROM_PTR(self->pixel_font);
+            }
           }else{
             dest[0] = mp_const_none;
           }
@@ -228,33 +247,19 @@ extern "C" {
         }
 
         if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_Font)) {
-            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Font"));
+          if(!mp_obj_is_type(dest[1], &type_Font) && !mp_obj_is_type(dest[1], &type_PixelFont)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Font or PixelFont"));
           }
-          self->font = (font_obj_t *)dest[1];
-          self->image->font(&self->font->font);
-          dest[0] = MP_OBJ_NULL;
-          return;
-        }
-      };
-
-
-      case MP_QSTR_pixel_font: {
-        if(action == GET) {
-          if(self->pixel_font) {
-            dest[0] = MP_OBJ_FROM_PTR(self->pixel_font);
-          }else{
-            dest[0] = mp_const_none;
+          if(mp_obj_is_type(dest[1], &type_Font)) {
+            self->font = (font_obj_t *)dest[1];
+            self->pixel_font = nullptr;
+            self->image->font(&self->font->font);
           }
-          return;
-        }
-
-        if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_PixelFont)) {
-            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type PixelFont"));
+          if(mp_obj_is_type(dest[1], &type_Font)) {
+            self->pixel_font = (pixel_font_obj_t *)dest[1];
+            self->font = nullptr;
+            self->image->pixel_font(self->pixel_font->font);
           }
-          self->pixel_font = (pixel_font_obj_t *)dest[1];
-          self->image->pixel_font(&self->pixel_font->font);
           dest[0] = MP_OBJ_NULL;
           return;
         }
@@ -278,8 +283,8 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 5, image_text);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 3, image_measure_text);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 3, image_text);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 2, image_measure_text);
 
   static const mp_rom_map_elem_t image_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
