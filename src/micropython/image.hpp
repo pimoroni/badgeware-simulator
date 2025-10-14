@@ -35,8 +35,7 @@ extern "C" {
   }
 
   static mp_obj_t image_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    image_obj_t *self = m_new_obj(image_obj_t);
-    self->base.type = type;
+    image_obj_t *self = mp_obj_malloc(image_obj_t, type);
 
     int w = mp_obj_get_int(args[0]);
     int h = mp_obj_get_int(args[1]);

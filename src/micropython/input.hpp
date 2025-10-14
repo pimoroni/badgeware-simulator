@@ -53,8 +53,7 @@ extern "C" {
   } input_obj_t;
 
   static mp_obj_t input_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
-    input_obj_t *self = m_new_obj(input_obj_t);
-    self->base.type = type;
+    input_obj_t *self = mp_obj_malloc(input_obj_t, type);
     return MP_OBJ_FROM_PTR(self);
   }
 
