@@ -10,6 +10,7 @@ def vector_font_test():
   y = math.sin(io.ticks / 1000) * (overflow / 2) - (overflow / 2)
   for line in lines:
     text, width = line
+
     screen.brush = brushes.color(0, 0, 0)
     screen.text(text, 5 + 1, y + 1, test_phrase_size)
     screen.brush = brushes.color(255, 255, 255)

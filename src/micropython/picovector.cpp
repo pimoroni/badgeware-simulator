@@ -9,6 +9,7 @@ extern int PicoVector_working_buffer[];
 #include "brush.hpp"
 #include "shape.hpp"
 #include "font.hpp"
+#include "pixel_font.hpp"
 #include "image.hpp"
 #include "input.hpp"
 #include "matrix.hpp"

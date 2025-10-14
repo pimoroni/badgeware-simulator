@@ -6,7 +6,7 @@ font = Font.load("assets/MonaSans-Medium-Low.af")
 screen.font = font
 screen.antialias = Image.X4
 
-test = "vector_fonts"
+test = "pixel_fonts"
 
 test_module = __import__(f"tests/{test}")
 

@@ -27,6 +27,7 @@ namespace picovector {
 
   class mat3_t;
   class font_t;
+  class pixel_font_t;
   class shape_t;
   class brush_t;
 
@@ -44,6 +45,7 @@ namespace picovector {
       bool            _has_palette = false;
       brush_t        *_brush = nullptr;
       font_t         *_font = nullptr;
+      pixel_font_t   *_pixel_font = nullptr;
       palette_t       _palette;
 
     public:
@@ -80,6 +82,9 @@ namespace picovector {
 
       font_t *font();
       void font(font_t *font);
+
+      pixel_font_t *pixel_font();
+      void pixel_font(pixel_font_t *pixel_font);
 
       uint32_t pixel_unsafe(int x, int y);
       uint32_t pixel(int x, int y);

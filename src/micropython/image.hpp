@@ -6,6 +6,8 @@
 #include "../image.hpp"
 #include "../span.hpp"
 #include "../font.hpp"
+#include "../pixel_font.hpp"
+#include "../brush.hpp"
 
 #include "image_png.hpp"
 
@@ -24,6 +26,9 @@ extern "C" {
   typedef struct _image_obj_t {
     mp_obj_base_t base;
     image_t *image;
+    brush_obj_t *brush;
+    font_obj_t *font;
+    pixel_font_obj_t *pixel_font;
   } image_obj_t;
 
   mp_obj_t image__del__(mp_obj_t self_in) {
@@ -194,11 +199,9 @@ extern "C" {
 
       case MP_QSTR_brush: {
         if(action == GET) {
-          if(self->image->brush()) {
-            brush_obj_t *out = mp_obj_malloc_with_finaliser(brush_obj_t, &type_Brush);
-            out->brush = self->image->brush();
-            dest[0] = MP_OBJ_FROM_PTR(out);
-          } else {
+          if(self->brush) {
+            dest[0] = MP_OBJ_FROM_PTR(self->brush);
+          }else{
             dest[0] = mp_const_none;
           }
           return;
@@ -208,8 +211,8 @@ extern "C" {
           if(!mp_obj_is_type(dest[1], &type_Brush)) {
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Brush"));
           }
-          brush_obj_t *in = (brush_obj_t *)MP_OBJ_TO_PTR(dest[1]);
-          self->image->brush(in->brush);
+          self->brush = (brush_obj_t *)dest[1];
+          self->image->brush(self->brush->brush);
           dest[0] = MP_OBJ_NULL;
           return;
         }
@@ -217,11 +220,9 @@ extern "C" {
 
       case MP_QSTR_font: {
         if(action == GET) {
-          if(self->image->font()) {
-            font_obj_t *out = mp_obj_malloc_with_finaliser(font_obj_t, &type_Font);
-            out->font = *self->image->font();
-            dest[0] = MP_OBJ_FROM_PTR(out);
-          } else {
+          if(self->font) {
+            dest[0] = MP_OBJ_FROM_PTR(self->font);
+          }else{
             dest[0] = mp_const_none;
           }
           return;
@@ -231,9 +232,30 @@ extern "C" {
           if(!mp_obj_is_type(dest[1], &type_Font)) {
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Font"));
           }
+          self->font = (font_obj_t *)dest[1];
+          self->image->font(&self->font->font);
+          dest[0] = MP_OBJ_NULL;
+          return;
+        }
+      };
 
-          font_obj_t *in = (font_obj_t *)MP_OBJ_TO_PTR(dest[1]);
-          self->image->font(&in->font);
+
+      case MP_QSTR_pixel_font: {
+        if(action == GET) {
+          if(self->pixel_font) {
+            dest[0] = MP_OBJ_FROM_PTR(self->pixel_font);
+          }else{
+            dest[0] = mp_const_none;
+          }
+          return;
+        }
+
+        if(action == SET) {
+          if(!mp_obj_is_type(dest[1], &type_PixelFont)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type PixelFont"));
+          }
+          self->pixel_font = (pixel_font_obj_t *)dest[1];
+          self->image->pixel_font(&self->pixel_font->font);
           dest[0] = MP_OBJ_NULL;
           return;
         }

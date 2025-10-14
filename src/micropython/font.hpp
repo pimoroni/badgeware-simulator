@@ -1,5 +1,4 @@
 #include "mp_tracked_allocator.hpp"
-#include "../picovector.hpp"
 #include "../font.hpp"
 #include "../span.hpp"
 
@@ -31,28 +30,6 @@ extern "C" {
     m_free(self->buffer, self->buffer_size);
 #endif
     return mp_const_none;
-  }
-
-  // file reading helpers
-  uint16_t ru16(mp_obj_t file) {
-    int error;
-    uint16_t result;
-    mp_stream_read_exactly(file, &result, 2, &error);
-    return __builtin_bswap16(result);
-  }
-
-  uint8_t ru8(mp_obj_t file) {
-    int error;
-    uint8_t result;
-    mp_stream_read_exactly(file, &result, 1, &error);
-    return result;
-  }
-
-  int8_t rs8(mp_obj_t file) {
-    int error;
-    int8_t result;
-    mp_stream_read_exactly(file, &result, 1, &error);
-    return result;
   }
 
   mp_obj_t font_load(mp_obj_t path) {

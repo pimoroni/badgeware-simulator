@@ -130,6 +130,14 @@ namespace picovector {
     this->_font = font;
   }
 
+  pixel_font_t* image_t::pixel_font() {
+    return this->_pixel_font;
+  }
+
+  void image_t::pixel_font(pixel_font_t *pixel_font) {
+    this->_pixel_font = pixel_font;
+  }
+
   image_t image_t::window(rect_t r) {
     rect_t i = _bounds.intersection(r);
     image_t window = image_t(this, rect_t(i.x, i.y, i.w, i.h));
