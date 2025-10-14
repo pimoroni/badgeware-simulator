@@ -56,24 +56,33 @@ extern "C" {
 
     uint8_t bpr = result->font->width > 8 ? 2 : 1;
 
-    // allocate buffer to store glyph data
-    result->font->glyph_data_size = 2 + bpr * result->font->height; // codepoint, width, and pixel data
-    result->buffer_size = result->font->glyph_count * result->font->glyph_data_size;
+    size_t glyph_buffer_size = sizeof(pixel_font_glyph_t) * result->font->glyph_count;
+    size_t glyph_data_buffer_size = bpr * result->font->height;
+
+    // allocate buffer to store font glyph, path, and point data
+    result->buffer_size = glyph_buffer_size + glyph_data_buffer_size;
     result->buffer = (uint8_t*)m_malloc(result->buffer_size);
 
     if(!result->buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
     }
 
+    pixel_font_glyph_t *glyphs = (pixel_font_glyph_t*)result->buffer;
+    uint8_t *glyph_data = (uint8_t*)(result->buffer + glyph_buffer_size);
+
     // read codepoint list
+    result->font->glyphs       = glyphs;
+    result->font->glyph_data   = glyph_data;
+
     for(uint32_t i = 0; i < result->font->glyph_count; i++) {
-      uint32_t codepoint = ru32(file);
-      result->font->codepoints.push_back(codepoint);
+      pixel_font_glyph_t *glyph = &result->font->glyphs[i];
+      glyph->codepoint = ru32(file);
+      glyph->width = ru16(file);
     }
 
     // read glyph data into buffer
-    mp_stream_read_exactly(file, result->buffer, result->buffer_size, &error);
-    result->font->glyph_data = (void*)result->buffer;
+    mp_stream_read_exactly(file, result->buffer + glyph_buffer_size, result->buffer_size - glyph_buffer_size, &error);
+    result->font->glyph_data = result->buffer + glyph_buffer_size;
 
     debug_printf("glyph_data = %p\n", result->font->glyph_data);
 

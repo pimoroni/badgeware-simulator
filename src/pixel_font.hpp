@@ -20,8 +20,8 @@ namespace picovector {
   class image_t;
 
   struct pixel_font_glyph_t {
+    uint32_t codepoint;
     uint16_t width;
-    void *data;
   };
 
   class pixel_font_t {
@@ -31,8 +31,8 @@ namespace picovector {
     uint16_t width;
     uint16_t height;
 
-    std::vector<uint32_t, PV_STD_ALLOCATOR<uint32_t>> codepoints;
-    void *glyph_data;
+    pixel_font_glyph_t *glyphs;
+    uint8_t *glyph_data;
 
     uint32_t codepoint_index(uint32_t codepoint);
     pixel_font_glyph_t *glyph(uint32_t codepoint);
