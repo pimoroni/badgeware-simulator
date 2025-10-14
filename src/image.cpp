@@ -56,7 +56,11 @@ namespace picovector {
 
   image_t::~image_t() {
     if(this->_managed_buffer) {
+#ifdef PICO
+      PV_FREE(this->_buffer);
+#else
       PV_FREE(this->_buffer, this->buffer_size());
+#endif
     }
   }
 
