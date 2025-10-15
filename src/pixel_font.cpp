@@ -12,9 +12,19 @@ using std::max;
 namespace picovector {
 
   int pixel_font_t::glyph_index(int codepoint) {
-    for(unsigned i = 0; i < this->glyph_count; i++) {
-      if(this->glyphs[i].codepoint == (uint32_t)codepoint) {
-        return i;
+    uint l = 0;
+    uint u = this->glyph_count;
+    uint m = (u - l) / 2;
+    while(true) {
+      uint32_t compare = this->glyphs[m].codepoint;
+      if(codepoint < compare) {
+        u = m;
+        m = l + ((u - l) / 2);
+      } else if(codepoint > compare) {
+        l = m;
+        m = l + ((u - l) / 2);
+      } else {
+        return m;
       }
     }
     return -1;
@@ -26,6 +36,13 @@ namespace picovector {
 
     point_t caret(0, 0);
     while(*text != '\0') {
+      // special case for "space"
+      if(*text == 32) {
+        caret.x += this->width / 3;
+        text++;
+        continue;
+      }
+
       int glyph_index = this->glyph_index(*text);
       if(glyph_index != -1) {
         pixel_font_glyph_t *glyph = &this->glyphs[glyph_index];

@@ -36,7 +36,7 @@ def wrap_and_measure(image, text, size, max_width):
 
         # measure the text up to the space
         width, _ = image.measure_text(line[start:end], size)
-        if width > max_width:
+        if width >= max_width:
           # line exceeded max length
           new_end = line.rfind(" ", start, end)
           if new_end == -1:
