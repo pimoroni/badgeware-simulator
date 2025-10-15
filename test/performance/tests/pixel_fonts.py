@@ -45,6 +45,12 @@ def run_test():
   i = round(io.ticks / 500) % len(pixel_fonts)
   name = list(pixel_fonts.keys())[i]
 
+
+  screen.font = pixel_fonts["bacteria"]
+  screen.brush = brushes.color(255, 255, 255)
+  screen.text("W", 0, 0)
+  return
+
   max_width = math.sin(io.ticks / 1000) * 60 + 100
 
   screen.brush = brushes.color(0, 0, 0, 100)

@@ -47,18 +47,17 @@ namespace picovector {
     int yoff = max(0, int(bounds.y - y));
     int yf = y + yoff;
     int yc = this->height - yoff;
-    yc = min(yc, (int)bounds.h - yf);
+    yc = min(yc, int(bounds.h - yf));
 
     int xoff = max(0, int(bounds.x - x));
     int xf = x + xoff;
     int xc = glyph->width - xoff;
-    xc = min(xc, (int)bounds.w - xf);
+    xc = min(xc, int(bounds.w - xf));
 
     uint32_t *dst = (uint32_t *)target->ptr(0, yf);
     uint32_t row_stride = target->row_stride() / 4;
 
     for(int yo = yf; yo < yf + yc; yo++) {
-
       for(int xo = xf; xo < xf + xc; xo++) {
         int bit = xo - x;
         uint8_t b = data[bit >> 3];

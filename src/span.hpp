@@ -24,7 +24,13 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
   uint8_t *pd = (uint8_t *)dst;
   uint8_t *ps = (uint8_t *)src;
   uint8_t a = ps[3];
-
+  if(a == 255) {
+    *dst = *src;
+    return;
+  }
+  if(a == 0) {
+    return;
+  }
   #ifdef PICO
     interp0->accum[1] = a; // alpha
 
@@ -42,13 +48,7 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
 
     pd[3] = 255; // TODO: this is wrong
   #else
-    if(a == 255) {
-      *dst = *src;
-      return;
-    }
-    if(a == 0) {
-      return;
-    }
+
 
     pd[0] = (uint8_t)((ps[0] * a + pd[0] * (255 - a)) >> 8);
     pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
@@ -60,9 +60,20 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
 inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, uint8_t a) {
   uint8_t *pd = (uint8_t *)dst;
   uint8_t *ps = (uint8_t *)src;
-  #ifdef PICO
+
     uint16_t t = a * ps[3] + 128;       // add 128 for rounding
     a = (t + (t >> 8)) >> 8;
+
+    //a = (a * ps[3]) / 255;
+    if(a == 255) {
+      *dst = *src;
+      return;
+    }
+    if(a == 0) {
+      return;
+    }
+
+  #ifdef PICO
 
     interp0->accum[1] = a; // alpha
 
@@ -80,17 +91,7 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, ui
 
     pd[3] = 255; // TODO: this is wrong
   #else
-    uint16_t t = a * ps[3] + 128;       // add 128 for rounding
-    a = (t + (t >> 8)) >> 8;
 
-    //a = (a * ps[3]) / 255;
-    if(a == 255) {
-      *dst = *src;
-      return;
-    }
-    if(a == 0) {
-      return;
-    }
 
     pd[0] = (uint8_t)((ps[0] * a + pd[0] * (255 - a)) >> 8);
     pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
