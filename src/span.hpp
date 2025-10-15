@@ -24,10 +24,37 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
   uint8_t *pd = (uint8_t *)dst;
   uint8_t *ps = (uint8_t *)src;
   uint8_t a = ps[3];
-  pd[0] = ((pd[0] * (255 - a)) + (ps[0] * a)) / 255;
-  pd[1] = ((pd[1] * (255 - a)) + (ps[1] * a)) / 255;
-  pd[2] = ((pd[2] * (255 - a)) + (ps[2] * a)) / 255;
-  pd[3] = 255; // TODO: this is wrong
+
+  #ifdef PICO
+    interp0->accum[1] = a; // alpha
+
+    interp0->base[0] = pd[0];
+    interp0->base[1] = ps[0]; // red
+    pd[0] = (uint8_t)interp0->peek[1];
+
+    interp0->base[0] = pd[1];
+    interp0->base[1] = ps[1]; // green
+    pd[1] = (uint8_t)interp0->peek[1];
+
+    interp0->base[0] = pd[2];
+    interp0->base[1] = ps[2]; // blue
+    pd[2] = (uint8_t)interp0->peek[1];
+
+    pd[3] = 255; // TODO: this is wrong
+  #else
+    if(a == 255) {
+      *dst = *src;
+      return;
+    }
+    if(a == 0) {
+      return;
+    }
+
+    pd[0] = (uint8_t)((ps[0] * a + pd[0] * (255 - a)) >> 8);
+    pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
+    pd[2] = (uint8_t)((ps[2] * a + pd[2] * (255 - a)) >> 8);
+    pd[3] = 255;
+  #endif
 }
 
 inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, uint8_t a) {
@@ -69,11 +96,6 @@ inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, ui
     pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
     pd[2] = (uint8_t)((ps[2] * a + pd[2] * (255 - a)) >> 8);
     pd[3] = 255;
-
-    //pd[0] = ((pd[0] * (255 - a)) + (ps[0] * a)) / 255;
-    // pd[1] = ((pd[1] * (255 - a)) + (ps[1] * a)) / 255;
-    // pd[2] = ((pd[2] * (255 - a)) + (ps[2] * a)) / 255;
-    // pd[3] = 255; // TODO: this is wrong
   #endif
 }
 
