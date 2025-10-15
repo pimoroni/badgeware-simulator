@@ -20,14 +20,15 @@ import time
 # wrapping. returns a line of lines and their widths as a result.
 def wrap_and_measure(image, text, size, max_width):
   result = []
-
   for line in text.splitlines():
     # if max_width is specified then perform word wrapping
     if max_width:
       # setup a start and end cursor to traverse the text
       start, end = 0, 0
       last_width = 0
+      i = 0
       while True:
+        i += 1
         # search for the next space
         end = line.find(" ", end)
         if end == -1:
@@ -37,9 +38,13 @@ def wrap_and_measure(image, text, size, max_width):
         width, _ = image.measure_text(line[start:end], size)
         if width > max_width:
           # line exceeded max length
-          end = line.rfind(" ", start, end)
-          result.append((line[start:end], last_width))
-          start = end + 1
+          new_end = line.rfind(" ", start, end)
+          if new_end == -1:
+            result.append((line[start:end], last_width))
+            start = end + 1
+          else:
+            result.append((line[start:new_end], last_width))
+            start = new_end + 1
         elif end == len(line):
           # reached the end of the string
           result.append((line[start:end], width))
@@ -48,7 +53,6 @@ def wrap_and_measure(image, text, size, max_width):
         # step past the last space
         end += 1
         last_width = width
-
     else:
       # no wrapping needed, just return the original line with its width
       width, _ = image.measure_text(line, size)

@@ -2,8 +2,8 @@ import json
 import math
 from lib import *
 
-font = Font.load("assets/MonaSans-Medium-Low.af")
-screen.font = font
+font = PixelFont.load("assets/sins.ppf")
+
 screen.antialias = Image.X4
 
 test = "pixel_fonts"
@@ -30,10 +30,11 @@ def update():
 
   # draw average FPS
   fps = round(1000000 / max(1, (sum(_samples) / float(len(_samples)))))
+  screen.font = font
   width, height = screen.measure_text(f"{fps} FPS", 16)
-  screen.brush = brushes.color(0, 0, 0)
-  screen.draw(shapes.rectangle(0, 0, width + 4, height))
+  screen.brush = brushes.color(155, 0, 0)
+  screen.draw(shapes.rectangle(0, 0, width + 4, height + 4))
   screen.brush = brushes.color(255, 255, 255)
-  screen.text(f"{fps} FPS", 2, -3, 16)
+  screen.text(f"{fps} FPS", 2, 2, 16)
 
   return True

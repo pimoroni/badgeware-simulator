@@ -9,53 +9,81 @@
 
 namespace picovector {
 
-  pixel_font_glyph_t *pixel_font_t::glyph(uint32_t codepoint) {
+  int pixel_font_t::glyph_index(int codepoint) {
     for(int i = 0; i < this->glyph_count; i++) {
       if(this->glyphs[i].codepoint == codepoint) {
-        uint8_t *p = (uint8_t*)this->glyph_data;
-        pixel_font_glyph_t *glyph = (pixel_font_glyph_t*)(p + (i * this->glyph_data_size));
-        debug_printf("p = %p, glyph = %p, %d\n", p, glyph, this->glyph_data_size);
-        return glyph;
+        return i;
       }
     }
-
-    return nullptr;
+    return -1;
   }
 
   rect_t pixel_font_t::measure(image_t *target, const char *text) {
+    rect_t tb = target->bounds();
+    rect_t b(tb.x + tb.w, tb.y + tb.h, 0, this->height);
 
-    return rect_t(0, 0, 0, 0);
+    point_t caret(0, 0);
+    while(*text != '\0') {
+      int glyph_index = this->glyph_index(*text);
+      if(glyph_index != -1) {
+        pixel_font_glyph_t *glyph = &this->glyphs[glyph_index];
+        caret.x += glyph->width + 1;
+
+        b.x = min(caret.x, b.x);
+        b.w = max(caret.x, b.w);
+      }
+      text++;
+    }
+    return b;
   }
 
   void pixel_font_t::draw(image_t *target, const char *text, int x, int y) {
-    int bpr = this->width > 8 ? 2 : 1;
+    uint32_t bpr = 1;
+    if(this->width > 8) {bpr = 2;}
+    if(this->width > 16) {bpr = 3;}
+
     int len = strlen(text);
-    for(int i = 0; i < len; i++) {
-      char c = text[i];
-      //debug_printf("char is %d\n", c);
-      // find the glyph
 
-      pixel_font_glyph_t *glyph = this->glyph(c);
-      if(glyph) {
-        //debug_printf("glyph found! width %d\n", glyph->width);
+    rect_t bounds = target->bounds();
 
+    while(*text != '\0') {
+      if(*text == 32) {
+        x += this->width / 3;
+        text++;
+        continue;
+      }
+
+      int glyph_index = this->glyph_index(*text);
+      if(glyph_index != -1) {
+        pixel_font_glyph_t *glyph = &this->glyphs[glyph_index];
+
+        uint8_t *data = &this->glyph_data[this->glyph_data_size * glyph_index];
         for(int yo = 0; yo < this->height; yo++) {
-
-          for(int xo = 0; xo < glyph->width; xo++) {
-            uint8_t *data = &this->glyph_data[this->glyph_data_size * i];
-            uint8_t b = data[(yo * bpr) + (x / 8)];
-            uint8_t m = 0x80 >> (xo * 0b111);
-
-            if(b & m) {
-              target->brush()->render_span(target, x + xo, y + yo, 1);
+          if((y + yo) >= bounds.y && (y + yo) < bounds.y + bounds.h) {
+            int xo = 0;
+            for(int byte = 0; byte < bpr; byte++) {
+              uint8_t b = *data;
+              for(int bit = 0; bit < 8; bit++) {
+                if(b & 0x80) {
+                  if((x + xo) >= bounds.x && (x + xo) < bounds.x + bounds.w) {
+                    target->brush()->render_span(target, x + xo, y + yo, 1);
+                  }
+                }
+                b <<= 1;
+                xo++;
+              }
+              data++;
             }
+          } else {
+            data += bpr;
           }
         }
 
         x += glyph->width + 1;
+
       }
 
-
+      text++;
     }
 
   }

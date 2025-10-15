@@ -33,8 +33,7 @@ namespace picovector {
     pixel_font_glyph_t *glyphs;
     uint8_t *glyph_data;
 
-    uint32_t codepoint_index(uint32_t codepoint);
-    pixel_font_glyph_t *glyph(uint32_t codepoint);
+    int glyph_index(int codepoint);
 
     void draw(image_t *target, const char *text, int x, int y);
     rect_t measure(image_t *target, const char *text);

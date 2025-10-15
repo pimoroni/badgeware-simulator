@@ -41,13 +41,6 @@ extern "C" {
     return MP_OBJ_FROM_PTR(brush);
   }
 
-  mp_obj_t brushes_blur_brush(size_t n_args, const mp_obj_t *pos_args) {
-    int passes = mp_obj_get_float(pos_args[0]);
-    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_Brush);
-    brush->brush = m_new_class(blur_brush, passes);
-    return MP_OBJ_FROM_PTR(brush);
-  }
-
   mp_obj_t brushes_xor_brush(size_t n_args, const mp_obj_t *pos_args) {
     int r = mp_obj_get_float(pos_args[0]);
     int g = mp_obj_get_float(pos_args[1]);
@@ -89,9 +82,6 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(brushes_xor_obj, 3, brushes_xor_brush);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(brushes_xor_static_obj, MP_ROM_PTR(&brushes_xor_obj));
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brushes_blur_obj, 1, brushes_blur_brush);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brushes_blur_static_obj, MP_ROM_PTR(&brushes_blur_obj));
-
   static MP_DEFINE_CONST_FUN_OBJ_VAR(brushes_brighten_obj, 1, brushes_brighten_brush);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(brushes_brighten_static_obj, MP_ROM_PTR(&brushes_brighten_obj));
 
@@ -99,7 +89,6 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_color), MP_ROM_PTR(&brushes_color_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_xor), MP_ROM_PTR(&brushes_xor_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_brighten), MP_ROM_PTR(&brushes_brighten_static_obj) },
-      { MP_ROM_QSTR(MP_QSTR_blur), MP_ROM_PTR(&brushes_blur_static_obj) },
   };
   static MP_DEFINE_CONST_DICT(brushes_locals_dict, brushes_locals_dict_table);
 

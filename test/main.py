@@ -1,6 +1,8 @@
 import os, sys, gc
 from lib import *
 
+gc.threshold(10000)
+
 # sets up the sys path and current working directory for the app to be launched
 # then imports the app and returns it
 def run_app(name):

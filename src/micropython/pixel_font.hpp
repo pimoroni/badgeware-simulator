@@ -18,16 +18,20 @@ extern "C" {
   typedef struct _pixel_font_obj_t {
     mp_obj_base_t base;
     pixel_font_t *font;
-    uint8_t *buffer;
-    uint32_t buffer_size;
+    uint8_t *glyph_buffer;
+    uint32_t glyph_buffer_size;
+    uint8_t *glyph_data_buffer;
+    uint32_t glyph_data_buffer_size;
   } pixel_font_obj_t;
 
   mp_obj_t pixel_font__del__(mp_obj_t self_in) {
     self(self_in, pixel_font_obj_t);
 #if PICO
-    m_free(self->buffer);
+    m_free(self->glyph_buffer);
+    m_free(self->glyph_data_buffer);
 #else
-    m_free(self->buffer, self->buffer_size);
+    m_free(self->glyph_buffer, self->glyph_buffer_size);
+    m_free(self->glyph_data_buffer, self->glyph_data_buffer_size);
 #endif
     return mp_const_none;
   }
@@ -40,56 +44,87 @@ extern "C" {
 
     int error;
 
+    debug_printf("load pixel font\n");
+
+    // check for ppf file header
     char marker[4];
     mp_stream_read_exactly(file, &marker, sizeof(marker), &error);
-
     if(memcmp(marker, "ppf!", 4) != 0) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("failed to load font, missing PPF header"));
     }
+    debug_printf("- valid header\n");
 
-    result->font = m_new_class(pixel_font_t);
+    uint16_t flags        = ru16(file);
+    uint32_t glyph_count  = ru32(file);
+    uint16_t glyph_width  = ru16(file);
+    uint16_t glyph_height = ru16(file);
+    debug_printf("- glyph width = %d, height = %d, count = %d\n", glyph_width, glyph_height, glyph_count);
 
-    uint16_t flags       = ru16(file);
-    result->font->glyph_count = ru32(file);
-    result->font->width       = ru16(file);
-    result->font->height      = ru16(file);
+    // calculate how much data needed to store each glyphs pixel data
+    uint32_t bpr = 1;
+    if(glyph_width > 8) {bpr = 2;}
+    if(glyph_width > 16) {bpr = 3;}
+    uint32_t glyph_data_size = bpr * glyph_height;
+    debug_printf("- glyph data size = %d (%d byes per row)\n", glyph_data_size, bpr);
 
-    uint8_t bpr = result->font->width > 8 ? 2 : 1;
+    // allocate buffers to store glyph and pixel data
+    result->glyph_buffer_size = sizeof(pixel_font_glyph_t) * glyph_count;
+    result->glyph_buffer = (uint8_t*)m_malloc(result->glyph_buffer_size);
 
-    size_t glyph_buffer_size = sizeof(pixel_font_glyph_t) * result->font->glyph_count;
-    size_t glyph_data_buffer_size = bpr * result->font->height;
+    result->glyph_data_buffer_size = glyph_data_size * glyph_count;
+    result->glyph_data_buffer = (uint8_t*)m_malloc(result->glyph_data_buffer_size);
 
-    // allocate buffer to store font glyph, path, and point data
-    result->buffer_size = glyph_buffer_size + glyph_data_buffer_size;
-    result->buffer = (uint8_t*)m_malloc(result->buffer_size);
+    debug_printf("- glyph buffer at %p (%d bytes)\n", result->glyph_buffer, result->glyph_buffer_size);
+    debug_printf("- glyph data buffer at %p (%d bytes)\n", result->glyph_data_buffer, result->glyph_data_buffer_size);
 
-    if(!result->buffer) {
+    if(!result->glyph_buffer || !result->glyph_data_buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
     }
 
-    pixel_font_glyph_t *glyphs = (pixel_font_glyph_t*)result->buffer;
-    uint8_t *glyph_data = (uint8_t*)(result->buffer + glyph_buffer_size);
-
     // read codepoint list
-    result->font->glyphs       = glyphs;
-    result->font->glyph_data   = glyph_data;
-
-    for(uint32_t i = 0; i < result->font->glyph_count; i++) {
-      pixel_font_glyph_t *glyph = &result->font->glyphs[i];
-      glyph->codepoint = ru32(file);
-      glyph->width = ru16(file);
+    pixel_font_glyph_t *glyphs = (pixel_font_glyph_t*)result->glyph_buffer;
+    for(uint32_t i = 0; i < glyph_count; i++) {
+      glyphs[i].codepoint = ru32(file);
+      glyphs[i].width = ru16(file);
     }
+    debug_printf("- read codepoint list\n");
 
     // read glyph data into buffer
-    mp_stream_read_exactly(file, result->buffer + glyph_buffer_size, result->buffer_size - glyph_buffer_size, &error);
-    result->font->glyph_data = result->buffer + glyph_buffer_size;
+    debug_printf("- writing into glyph data buffer\n");
+    mp_stream_read_exactly(file, result->glyph_data_buffer, result->glyph_data_buffer_size, &error);
+    debug_printf("- read pixel data\n");
 
-    debug_printf("glyph_data = %p\n", result->font->glyph_data);
-
+    result->font = m_new_class(pixel_font_t);
+    result->font->glyph_count     = glyph_count;
+    result->font->width           = glyph_width;
+    result->font->height          = glyph_height;
+    result->font->glyph_data_size = glyph_data_size;
+    result->font->glyphs          = glyphs;
+    result->font->glyph_data      = result->glyph_data_buffer;
 
     mp_stream_close(file);
 
     return MP_OBJ_FROM_PTR(result);
+  }
+
+
+  static void pixel_font_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+    self(self_in, pixel_font_obj_t);
+
+    action_t action = m_attr_action(dest);
+
+    switch(attr) {
+      case MP_QSTR_height: {
+        if(action == GET) {
+          dest[0] = mp_obj_new_int(self->font->height);
+          return;
+        }
+      };
+
+    }
+
+    // we didn't handle this, fall back to alternative methods
+    dest[1] = MP_OBJ_SENTINEL;
   }
 
   static MP_DEFINE_CONST_FUN_OBJ_1(pixel_font__del___obj, pixel_font__del__);
@@ -108,6 +143,7 @@ extern "C" {
       type_PixelFont,
       MP_QSTR_PixelFont,
       MP_TYPE_FLAG_NONE,
+      attr, (const void *)pixel_font_attr,
       locals_dict, &pixel_font_locals_dict
   );
 
