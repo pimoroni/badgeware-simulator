@@ -19,11 +19,11 @@ namespace picovector {
     while(low < high) {
       uint32_t mid = low + (high - low) / 2;
       uint32_t compare = this->glyphs[mid].codepoint;
-      if (compare == codepoint) {
+      if (compare == (uint32_t)codepoint) {
         return mid;
       }
 
-      if(compare < codepoint) {
+      if(compare < (uint32_t)codepoint) {
         low = mid + 1;
       } else {
         high = mid;
