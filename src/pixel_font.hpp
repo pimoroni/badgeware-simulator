@@ -29,6 +29,7 @@ namespace picovector {
     uint32_t glyph_data_size;
     uint16_t width;
     uint16_t height;
+    char name[32];
 
     pixel_font_glyph_t *glyphs;
     uint8_t *glyph_data;

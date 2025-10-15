@@ -60,6 +60,10 @@ extern "C" {
     uint16_t glyph_height = ru16(file);
     debug_printf("- glyph width = %d, height = %d, count = %d\n", glyph_width, glyph_height, glyph_count);
 
+    char name[32];
+    mp_stream_read_exactly(file, name, sizeof(name), &error);
+    debug_printf("- font name '%s'\n", name);
+
     // calculate how much data needed to store each glyphs pixel data
     uint32_t bpr = 1;
     if(glyph_width > 8) {bpr = 2;}
@@ -101,6 +105,7 @@ extern "C" {
     result->font->glyph_data_size = glyph_data_size;
     result->font->glyphs          = glyphs;
     result->font->glyph_data      = result->glyph_data_buffer;
+    strcpy(result->font->name, name);
 
     mp_stream_close(file);
 
@@ -121,6 +126,12 @@ extern "C" {
         }
       };
 
+      case MP_QSTR_name: {
+        if(action == GET) {
+          dest[0] = mp_obj_new_str(self->font->name, strlen(self->font->name));
+          return;
+        }
+      };
     }
 
     // we didn't handle this, fall back to alternative methods

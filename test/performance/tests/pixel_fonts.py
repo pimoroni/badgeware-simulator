@@ -51,6 +51,7 @@ def run_test():
   screen.draw(shapes.rectangle(0, 0, max_width, 120))
   screen.font = pixel_fonts[name]
   screen.brush = brushes.color(255, 255, 255)
+  print(screen.font.name)
 
   lines = wrap_and_measure(screen, phrase, 1, max_width=max_width)
   x = 0
