@@ -31,10 +31,12 @@ def update():
   # draw average FPS
   fps = round(1000000 / max(1, (sum(_samples) / float(len(_samples)))))
   screen.font = font
-  width, height = screen.measure_text(f"{fps} FPS", 16)
+  width, height = screen.measure_text(f"{fps}FPS", 16)
+  width = int(width + 4)
+  height = int(height - 1)
   screen.brush = brushes.color(155, 0, 0)
-  screen.draw(shapes.rectangle(0, 0, width + 4, height + 4))
+  screen.draw(shapes.rectangle(screen.width - width, 0, width, height))
   screen.brush = brushes.color(255, 255, 255)
-  screen.text(f"{fps} FPS", 2, 2, 16)
+  screen.text(f"{fps}FPS", screen.width - width + 1, -1, 16)
 
   return True
