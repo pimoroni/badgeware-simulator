@@ -12,22 +12,25 @@ using std::max;
 namespace picovector {
 
   int pixel_font_t::glyph_index(int codepoint) {
-    uint l = 0;
-    uint u = this->glyph_count;
-    uint m = (u - l) / 2;
-    while(true) {
-      uint32_t compare = this->glyphs[m].codepoint;
-      if(codepoint < compare) {
-        u = m;
-        m = l + ((u - l) / 2);
-      } else if(codepoint > compare) {
-        l = m;
-        m = l + ((u - l) / 2);
+
+    uint32_t low = 0;
+    uint32_t high = this->glyph_count;
+
+    while(low < high) {
+      uint32_t mid = low + (high - low) / 2;
+      uint32_t compare = this->glyphs[mid].codepoint;
+      if (compare == codepoint) {
+        return mid;
+      }
+
+      if(compare < codepoint) {
+        low = mid + 1;
       } else {
-        return m;
+        high = mid;
       }
     }
-    return -1;
+
+    return -1;  // not found
   }
 
   rect_t pixel_font_t::measure(image_t *target, const char *text) {
