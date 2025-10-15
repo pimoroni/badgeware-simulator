@@ -38,6 +38,15 @@ namespace picovector {
   }
 
   void pixel_font_t::draw(image_t *target, const char *text, int x, int y) {
+    // check if text is within clipping area
+    rect_t tb = this->measure(target, text);
+    tb.x = x;
+    tb.y = y;
+
+    if(!tb.intersects(target->bounds())) {
+      return;
+    }
+
     uint32_t bpr = 1;
     if(this->width > 8) {bpr = 2;}
     if(this->width > 16) {bpr = 3;}
