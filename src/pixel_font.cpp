@@ -6,6 +6,8 @@
 #include "brush.hpp"
 #include "matrix.hpp"
 
+using std::min;
+using std::max;
 
 namespace picovector {
 
@@ -37,24 +39,56 @@ namespace picovector {
     return b;
   }
 
+  void pixel_font_t::draw_glyph(image_t *target, const pixel_font_glyph_t *glyph, uint8_t *data, brush_t *brush, const rect_t &bounds, int x, int y) {
+    // calculate the number of bytes per glyph pixel data row
+    uint32_t bytes_per_row = (this->width + 7) >> 3;
+
+    // clip the x and y ranges to within bounds
+    int yoff = max(0, int(bounds.y - y));
+    int yf = y + yoff;
+    int yc = this->height - yoff;
+    yc = min(yc, (int)bounds.h);
+
+    int xoff = max(0, int(bounds.x - x));
+    int xf = x + xoff;
+    int xc = glyph->width - xoff;
+    xc = min(xc, (int)bounds.w);
+
+    uint32_t *dst = (uint32_t *)target->ptr(0, yf);
+    uint32_t row_stride = target->row_stride() / 4;
+
+    for(int yo = yf; yo < yf + yc; yo++) {
+
+      for(int xo = xf; xo < xf + xc; xo++) {
+        int bit = xo - x;
+        uint8_t b = data[bit >> 3];
+        if(b & (0b1 << (7 - (bit & 0b111)))) {
+          brush->pixel(&dst[xo]);
+        }
+      }
+
+      dst += row_stride;
+      data += bytes_per_row;
+    }
+  }
+
   void pixel_font_t::draw(image_t *target, const char *text, int x, int y) {
     // check if text is within clipping area
-    rect_t tb = this->measure(target, text);
-    tb.x = x;
-    tb.y = y;
+    rect_t text_bounds = this->measure(target, text);
+    text_bounds.x = x;
+    text_bounds.y = y;
 
-    if(!tb.intersects(target->bounds())) {
+    // text isn't within the target bounds at all, escape early
+    if(!text_bounds.intersects(target->bounds())) {
       return;
     }
 
-    // calculate the number of bytes per glyph pixel data row
-    uint32_t bpr = floor((this->width + 7) / 8);
-
-    int len = strlen(text);
-
     rect_t bounds = target->bounds();
 
+    brush_t *brush = target->brush();
+
     while(*text != '\0') {
+      // special case for "space"
       if(*text == 32) {
         x += this->width / 3;
         text++;
@@ -64,31 +98,11 @@ namespace picovector {
       int glyph_index = this->glyph_index(*text);
       if(glyph_index != -1) {
         pixel_font_glyph_t *glyph = &this->glyphs[glyph_index];
-
         uint8_t *data = &this->glyph_data[this->glyph_data_size * glyph_index];
-        for(int yo = 0; yo < this->height; yo++) {
-          if((y + yo) >= bounds.y && (y + yo) < bounds.y + bounds.h) {
-            int xo = 0;
-            for(int byte = 0; byte < bpr; byte++) {
-              uint8_t b = *data;
-              for(int bit = 0; bit < 8; bit++) {
-                if(b & 0x80) {
-                  if((x + xo) >= bounds.x && (x + xo) < bounds.x + bounds.w) {
-                    target->brush()->render_span(target, x + xo, y + yo, 1);
-                  }
-                }
-                b <<= 1;
-                xo++;
-              }
-              data++;
-            }
-          } else {
-            data += bpr;
-          }
-        }
+
+        draw_glyph(target, glyph, data, brush, bounds, x, y);
 
         x += glyph->width + 1;
-
       }
 
       text++;

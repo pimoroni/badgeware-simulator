@@ -20,6 +20,10 @@ namespace picovector {
     this->color = _make_col(r, g, b, a);
   }
 
+  void color_brush::pixel(uint32_t *dst) {
+    span_argb8(dst, 1, color);
+  }
+
   void color_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = (uint32_t*)target->ptr(x, y);
     span_argb8(dst, w, color);
@@ -31,6 +35,10 @@ namespace picovector {
   }
 
   brighten_brush::brighten_brush(int amount) : amount(amount) {}
+
+  void brighten_brush::pixel(uint32_t *dst) {
+    return;
+  }
 
   void brighten_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = (uint32_t*)target->ptr(x, y);
@@ -58,6 +66,10 @@ namespace picovector {
 
   xor_brush::xor_brush(int r, int g, int b) {
     this->color = _make_col(r, g, b);
+  }
+
+  void xor_brush::pixel(uint32_t *dst) {
+    return;
   }
 
   void xor_brush::render_span(image_t *target, int x, int y, int w) {

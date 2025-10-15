@@ -76,6 +76,10 @@ namespace picovector {
     return this->_palette == other->_palette && this->_pixel_format == other->_pixel_format;
   }
 
+  uint32_t image_t::row_stride() {
+    return this->_row_stride;
+  }
+
   rect_t image_t::bounds() {
     return this->_bounds;
   }

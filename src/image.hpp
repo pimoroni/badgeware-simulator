@@ -61,6 +61,7 @@ namespace picovector {
       void window(image_t *source, rect_t viewport);
       image_t window(rect_t r);
       void* ptr(int x, int y);
+      uint32_t row_stride();
 
       rect_t bounds();
 
