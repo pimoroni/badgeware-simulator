@@ -47,9 +47,8 @@ namespace picovector {
       return;
     }
 
-    uint32_t bpr = 1;
-    if(this->width > 8) {bpr = 2;}
-    if(this->width > 16) {bpr = 3;}
+    // calculate the number of bytes per glyph pixel data row
+    uint32_t bpr = floor((this->width + 7) / 8);
 
     int len = strlen(text);
 

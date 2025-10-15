@@ -42,10 +42,10 @@ pixel_fonts = {
 phrase = "Prow scuttle parrel provost Sail ho shrouds spirits boom mizzenmast yardarm. Pinnace holystone mizzenmast quarter crow's nest nipperkin grog yardarm hempen halter furl. Swab barque interloper chantey doubloon starboard grog black jack gangway rutters."
 
 def run_test():
-  i = round(io.ticks / 1000) % len(pixel_fonts)
+  i = round(io.ticks / 500) % len(pixel_fonts)
   name = list(pixel_fonts.keys())[i]
 
-  max_width = math.sin(io.ticks / 1000) * 50 + 100
+  max_width = math.sin(io.ticks / 1000) * 60 + 100
 
   screen.brush = brushes.color(0, 0, 0, 100)
   screen.draw(shapes.rectangle(0, 0, max_width, 120))
@@ -58,4 +58,4 @@ def run_test():
   for line in lines:
     text, width = line
     screen.text(text, x, y)
-    y += int(screen.font.height * 0.9)
+    y += int(screen.font.height * 0.95)

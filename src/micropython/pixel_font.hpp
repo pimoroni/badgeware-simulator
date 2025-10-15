@@ -65,9 +65,7 @@ extern "C" {
     debug_printf("- font name '%s'\n", name);
 
     // calculate how much data needed to store each glyphs pixel data
-    uint32_t bpr = 1;
-    if(glyph_width > 8) {bpr = 2;}
-    if(glyph_width > 16) {bpr = 3;}
+    uint32_t bpr = floor((glyph_width + 7) / 8);
     uint32_t glyph_data_size = bpr * glyph_height;
     debug_printf("- glyph data size = %d (%d byes per row)\n", glyph_data_size, bpr);
 
