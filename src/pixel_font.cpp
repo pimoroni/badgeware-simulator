@@ -12,8 +12,8 @@ using std::max;
 namespace picovector {
 
   int pixel_font_t::glyph_index(int codepoint) {
-    for(int i = 0; i < this->glyph_count; i++) {
-      if(this->glyphs[i].codepoint == codepoint) {
+    for(unsigned i = 0; i < this->glyph_count; i++) {
+      if(this->glyphs[i].codepoint == (uint32_t)codepoint) {
         return i;
       }
     }
@@ -47,12 +47,12 @@ namespace picovector {
     int yoff = max(0, int(bounds.y - y));
     int yf = y + yoff;
     int yc = this->height - yoff;
-    yc = min(yc, (int)bounds.h);
+    yc = min(yc, (int)bounds.h - yf);
 
     int xoff = max(0, int(bounds.x - x));
     int xf = x + xoff;
     int xc = glyph->width - xoff;
-    xc = min(xc, (int)bounds.w);
+    xc = min(xc, (int)bounds.w - xf);
 
     uint32_t *dst = (uint32_t *)target->ptr(0, yf);
     uint32_t row_stride = target->row_stride() / 4;
