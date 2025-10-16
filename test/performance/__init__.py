@@ -2,11 +2,9 @@ import json
 import math
 from lib import *
 
-font = PixelFont.load("assets/sins.ppf")
+font = PixelFont.load("../assets/fonts/sins.ppf")
 
-screen.antialias = Image.X4
-
-test = "pixel_fonts"
+test = "sprites"
 
 test_module = __import__(f"tests/{test}")
 

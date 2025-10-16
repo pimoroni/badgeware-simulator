@@ -176,31 +176,34 @@ namespace picovector {
       }else{
         span_blit_argb8(src, dst, tr.w, this->alpha());
       }
-
-
-
     }
   }
 
   void image_t::blit(image_t *target, rect_t tr) {
+    bool invert_x = tr.w < 0.0f;
+    bool invert_y = tr.h < 0.0f;
+
+    tr.w = abs(tr.w);
+    tr.h = abs(tr.h);
+
     // clip the target rect to the target bounds
     rect_t ctr = tr.intersection(target->bounds());
     if(ctr.empty()) {return;}
 
     // calculate the source step
-    float srcstepx = this->_bounds.w / tr.w;
-    float srcstepy = this->_bounds.h / tr.h;
+    float srcstepx = (invert_x ? -1 : 1) * this->_bounds.w / tr.w;
+    float srcstepy = (invert_y ? -1 : 1) * this->_bounds.h / tr.h;
 
     // calculate the source offset
-    float srcx = ctr.w < 0 ? this->_bounds.w : 0;
-    float srcy = ctr.h < 0 ? this->_bounds.h : 0;
+    float srcx = invert_x ? this->_bounds.w - 1 : 0;
+    float srcy = invert_y ? this->_bounds.h - 1 : 0;
     srcx += (ctr.x - tr.x) * srcstepx;
     srcy += (ctr.y - tr.y) * srcstepy;
 
-    int sy = min(ctr.y, ctr.y + ctr.h);
-    int ey = max(ctr.y, ctr.y + ctr.h);
+    int sy = ctr.y;// min(ctr.y, ctr.y + ctr.h);
+    int ey = ctr.y + ctr.h;//max(ctr.y, ctr.y + ctr.h);
 
-    for(int y = sy; y != ey; y++) {
+    for(int y = sy; y < ey; y++) {
       void *dst = target->ptr(ctr.x, y);
 
       if(this->_has_palette) {

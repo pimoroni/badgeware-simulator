@@ -81,11 +81,6 @@ class Mona:
 
   # change monas mood
   def set_mood(self, mood):
-    if mood != self._mood:
-      # load mood animation
-      sprites = SpriteSheet(f"assets/mona-{mood}.gif.png", animations[mood], 1)
-      self._animation = sprites.animation()
-
     self._mood = mood
     self._mood_changed_at = time.time()
 
@@ -131,7 +126,7 @@ animations = {
 # load the spritesheets for monas animations
 print("load spritesheets")
 for name, frame_count in animations.items():
-  sprites = SpriteSheet(f"assets/mona-{name}.gif.png", frame_count, 1)
+  sprites = SpriteSheet(f"../assets/mona-sprites/mona-{name}.png", frame_count, 1)
   Mona._animations[name] = sprites.animation()
 print("done")
 

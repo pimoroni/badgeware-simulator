@@ -1,7 +1,7 @@
 import os, sys, gc
 from lib import *
 
-gc.threshold(10000)
+sys.path.append("assets")
 
 # sets up the sys path and current working directory for the app to be launched
 # then imports the app and returns it

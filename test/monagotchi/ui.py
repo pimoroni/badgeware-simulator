@@ -3,13 +3,12 @@ import math
 from lib import *
 
 # load user interface sprites
-icons = SpriteSheet(f"assets/icons.png", 10, 1)
+icons = SpriteSheet(f"assets/icons.png", 4, 1)
 
 # load in the font - font sheet generated from
 # https://qwerasd205.github.io/PixelCode/
 #pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
-monasans = Font.load("assets/MonaSans-Medium-Low.af")
-screen.font = monasans
+screen.font = PixelFont.load("../assets/fonts/vest.ppf")
 
 # brushes to match monas stats
 stats_brushes = {
@@ -81,7 +80,6 @@ def background(mona):
   # draw background fill
   floor.brush = brushes.color(30, 40, 20)
   floor.draw(shapes.rectangle(0, 0, 160, 120 - floor_y))
-
   # draw floorboards
   floor.brush = brushes.color(100, 200, 100, 15)
   for i in range(0, 300, 10):
@@ -96,9 +94,11 @@ def background(mona):
 def draw_header():
   screen.brush = outline_brush
   screen.draw(shapes.rounded_rectangle(30, -5, 160 - 60, 24, 3))
-  screen.brush = brushes.color(255, 255, 255)
   w, _ = screen.measure_text("monagotchi", 18)
-  screen.text("monagotchi", 80 - (w / 2), -4, 18)
+  screen.brush = brushes.color(0, 0, 0, 100)
+  screen.text("monagotchi", 80 - (w / 2) + 2, + 2,  18)
+  screen.brush = brushes.color(255, 255, 255)
+  screen.text("monagotchi", 80 - (w / 2), 0, 18)
 
 def draw_buttons():
   draw_button(  4, 102, stats_brushes["happy"], "A", "play")
@@ -117,9 +117,9 @@ def draw_button(x, y, brush, button, label):
   screen.brush = brushes.color(60, 80, 100)
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, button_width - 2, 15 - 2, 4))
   screen.brush = brushes.color(0, 0, 0, 100)
-  screen.text(label, x + 17, y - 2, 14)
+  screen.text(label, x + 17, y - 0, 14)
   screen.brush = brushes.color(255, 255, 255)
-  screen.text(label, x + 16, y - 3, 14)
+  screen.text(label, x + 16, y - 1, 14)
 
   #pixel_code.text(screen, x + 17, y + 1, label)
 
@@ -127,7 +127,7 @@ def draw_button(x, y, brush, button, label):
   screen.brush = brush
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 4))
   screen.brush = brushes.color(255, 255, 255)
-  screen.text(button, x + 3, y - 2, 14)
+  screen.text(button, x + 3, y, 14)
 
 # draw a statistics bar with icon and fill level
 def draw_bar(name, x, y, amount):

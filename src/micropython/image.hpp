@@ -97,8 +97,8 @@ extern "C" {
     }
 
     if(self->pixel_font) {
-      int x = mp_obj_get_int(pos_args[2]);
-      int y = mp_obj_get_int(pos_args[3]);
+      int x = mp_obj_get_float(pos_args[2]);
+      int y = mp_obj_get_float(pos_args[3]);
       self->image->pixel_font()->draw(self->image, text, x, y);
     }
 

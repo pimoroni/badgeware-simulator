@@ -109,7 +109,4 @@ def update():
 
   ui.draw_header()
 
-  import debug
-  debug.update()
-
   return True

@@ -161,10 +161,10 @@ inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_
     int ca = (ps[3] * (a)) / 255; // apply global alpha
 
     if(ca == 0) {
-      // zero alpha, skip pixel
     } else if (ca == 255) {
       // full alpha copy pixel
-      *dst = *src;
+      *dst = sc;
+      pd[3] = 255;
     } else {
 #ifdef PICO
       // alpha requires blending pixel
@@ -188,7 +188,6 @@ inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_
       pd[3] = 255;
 #endif
     }
-
     src++;
     dst++;
   }
