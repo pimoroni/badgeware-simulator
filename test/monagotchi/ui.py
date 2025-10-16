@@ -92,12 +92,18 @@ def background(mona):
 
 # draw the title banner
 def draw_header():
+  screen.brush = brushes.color(39, 106, 171)
+  screen.draw(shapes.rounded_rectangle(28, -10, 160 - 56, 30.5, 5))
+
   screen.brush = outline_brush
   screen.draw(shapes.rounded_rectangle(30, -5, 160 - 60, 24, 3))
+
   w, _ = screen.measure_text("monagotchi", 18)
   screen.brush = brushes.color(0, 0, 0, 100)
   screen.text("monagotchi", 80 - (w / 2) + 2, + 2,  18)
-  screen.brush = brushes.color(255, 255, 255)
+
+  pulse = math.sin(io.ticks / 250) * 50
+  screen.brush = brushes.color(200 + pulse, 200 + pulse, 200 + pulse)
   screen.text("monagotchi", 80 - (w / 2), 0, 18)
 
 def draw_buttons():
@@ -121,11 +127,11 @@ def draw_button(x, y, brush, button, label):
   screen.brush = brushes.color(255, 255, 255)
   screen.text(label, x + 16, y - 1, 14)
 
-  #pixel_code.text(screen, x + 17, y + 1, label)
-
   # draw the button action key
   screen.brush = brush
   screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 4))
+  screen.brush = brushes.color(0, 0, 0, 100)
+  screen.text(button, x + 4, y + 1, 14)
   screen.brush = brushes.color(255, 255, 255)
   screen.text(button, x + 3, y, 14)
 
@@ -135,7 +141,7 @@ def draw_bar(name, x, y, amount):
 
   # draw the bar background
   screen.brush = outline_brush
-  screen.draw(shapes.rounded_rectangle(x + 7, y, bar_width, 8, 3))
+  screen.draw(shapes.rounded_rectangle(x + 7, y, bar_width, 10, 2))
 
   #calculate how wide the bar "fill" is and clamp it to at least 3 pixels
   fill_width = max(((bar_width - 2) / 100) * amount, 6)
@@ -147,7 +153,7 @@ def draw_bar(name, x, y, amount):
     blink = round(ticks / 250) % 2 == 0
     if blink:
       screen.brush = stats_brushes["warning"]
-  screen.draw(shapes.rounded_rectangle(x + 7 + 1, y + 1, fill_width, 6, 3))
+  screen.draw(shapes.rounded_rectangle(x + 7 + 1, y + 1, fill_width, 8, 2))
 
   screen.blit(stats_icons[name], x, y - 3)
 

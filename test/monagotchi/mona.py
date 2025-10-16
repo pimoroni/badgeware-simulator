@@ -49,7 +49,7 @@ class Mona:
     floating = math.sin(ticks / 250) * 5 + 5 if self._mood == "dead" else 0
 
     # offset sprite
-    x -= (width / 2)
+    x -= abs(width / 2)
     y -= height + floating
 
     # draw mona
@@ -59,7 +59,7 @@ class Mona:
 
     # draw monas reflection
     image.alpha = int(alpha * 0.2)
-    screen.scale_blit(image, x, self._position[1] - 2 + 22 + (floating / 2) + 1, width, -20)
+    screen.scale_blit(image, x, self._position[1] + (floating / 2) + 1, width, -20)
     image.alpha = 255
 
   # set a new target position for mona to move to
