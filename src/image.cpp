@@ -165,11 +165,9 @@ namespace picovector {
     int sxo = p.x < 0 ? -p.x : 0;
     int syo = p.y < 0 ? -p.y : 0;
 
-
     for(int i = 0; i < tr.h; i++) {
       uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
       uint32_t *dst = (uint32_t *)t->ptr(tr.x, tr.y + i);
-
 
       if(this->_has_palette) {
         span_blit_argb8_palette(src, dst, &this->_palette[0], tr.w, this->alpha());

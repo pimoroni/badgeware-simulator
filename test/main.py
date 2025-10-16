@@ -12,7 +12,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("monagotchi")
+app = run_app("sketch")
 
 _last_free_mem_debug = None
 def update():
