@@ -18,11 +18,11 @@ def draw_background():
 
   # draw the embossed gold logo
   screen.font = font
-  w, _ = screen.measure_text("monasketch")
+  w, _ = screen.measure_text("MonaSketch")
   screen.brush = brushes.color(240, 210, 160)
-  screen.text("monasketch", 80 - (w / 2) - 1, -1)
+  screen.text("MonaSketch", 80 - (w / 2) - 1, -1)
   screen.brush = brushes.color(190, 140, 80, 100)
-  screen.text("monasketch", 80 - (w / 2), 0)
+  screen.text("MonaSketch", 80 - (w / 2), 0)
 
   # draw the canvas area grey background and screen shadows
   screen.brush = brushes.color(210, 210, 210)
@@ -39,7 +39,7 @@ def draw_background():
 left_dial_angle = 0
 right_dial_angle = 0
 def draw_dial(angle, pos):
-  radius = 15
+  radius = 16
 
   # calculate an offset to fake perspective on the dials
   offset = (80 - pos[0]) / 35
