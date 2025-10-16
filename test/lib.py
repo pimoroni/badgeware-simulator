@@ -97,6 +97,7 @@ class AnimatedSprite:
         y += 1
 
   def frame(self, frame_index = 0):
+    frame_index = int(frame_index)
     frame_index %= len(self.frames)
     return self.spritesheet.sprite(self.frames[frame_index][0], self.frames[frame_index][1])
 

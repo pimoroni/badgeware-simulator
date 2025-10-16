@@ -59,6 +59,10 @@ def draw_thumbnails():
 
     screen.blit(thumbnail_image, *pos)
 
+  mona_off = abs(((thumbnail_scroll - int(thumbnail_scroll)) * math.pi))
+  mona_y = math.sin(mona_off) * 20
+  screen.scale_blit(mona.frame(io.ticks / 100), 130, 68 - mona_y, -24, 24)
+
 
 # start up with the first image in the gallery
 index = 0
