@@ -46,7 +46,6 @@ namespace picovector {
     _has_palette = has_palette;
     _buffer = buffer;
     _managed_buffer = false;
-    debug_printf("has p %d\n", this->_has_palette);
     _bytes_per_pixel = this->_has_palette ? sizeof(uint8_t) : sizeof(uint32_t);
     _row_stride = w * _bytes_per_pixel;
     if(_has_palette) {

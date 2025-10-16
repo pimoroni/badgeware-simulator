@@ -1,13 +1,15 @@
 import math
 import random
 from lib import *
+from mona import *
 
-sprites = SpriteSheet(f"assets/sprites.png", 7, 2)
 background = Image.load(f"assets/background.png")
 grass = Image.load(f"assets/grass.png")
 cloud = Image.load(f"assets/cloud.png")
-large_font = PixelFont.load("../assets/fonts/ignore.ppf")
+large_font = PixelFont.load("../assets/fonts/ziplock.ppf")
 small_font = PixelFont.load("../assets/fonts/nope.ppf")
+
+mona = Mona()
 
 class GameState:
   INTRO = 1
@@ -24,8 +26,8 @@ class Obstacle:
 
   def __init__(self):
     self.x = screen.width
-    self.gap_height = 50
-    self.gap_y = random.randint(5, screen.height - self.gap_height - 15)
+    self.gap_height = 60
+    self.gap_y = random.randint(15, screen.height - self.gap_height - 15)
 
   def update(self):
     self.x -= 1
@@ -44,29 +46,29 @@ def intro():
 
   screen.font = large_font
   screen.brush = brushes.color(20, 40, 60, 100)
-  screen.text("FLAPPY MONA", 16, 31)
+  screen.text("FLAPPY MONA", 21, 38)
   screen.brush = brushes.color(255, 255, 255)
-  screen.text("FLAPPY MONA", 15, 30)
+  screen.text("FLAPPY MONA", 20, 37)
 
   screen.font = small_font
   on = int(io.ticks / 500) % 2
   if on == 0:
     screen.brush = brushes.color(255, 255, 255)
-    screen.text("Press A to start", 30, 70)
+    screen.text("Press A to start", 28, 70)
 
   if io.BUTTON_A in io.pressed:
     state = GameState.PLAYING
-    Obstacle.next_spawn_time = io.ticks + 3000
+    Obstacle.next_spawn_time = io.ticks + 2000
 
 def play():
   if io.BUTTON_A in io.pressed:
-    pass # do a jump
+    mona.jump()
 
   # update player and check for collision
+  mona.update()
 
-  # update background
 
-  # create new obstacles
+  # spawn new obstacles
   if Obstacle.next_spawn_time and io.ticks > Obstacle.next_spawn_time:
     Obstacle.spawn()
 
@@ -75,6 +77,9 @@ def play():
     obstacle.update()
     obstacle.draw()
     #print("draw")
+
+
+  mona.draw()
 
 background_offset = 0
 def draw_background():
@@ -101,16 +106,9 @@ def game_over():
 
 
 state = GameState.INTRO
-
+Obstacle.next_spawn_time = io.ticks + 2000
 
 def update():
-
-
-  screen.brush = brushes.color(73, 219, 255)
-  screen.draw(shapes.rectangle(0, 0, 160, 120))
-  screen.blit(cloud, 0, 0)
-  time.sleep(1)
-  return True
   screen.brush = brushes.color(73, 219, 255)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
