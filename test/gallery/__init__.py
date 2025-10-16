@@ -59,6 +59,7 @@ def draw_thumbnails():
 
     screen.blit(thumbnail_image, *pos)
 
+  # draw a jumping mona
   mona_off = abs(((thumbnail_scroll - int(thumbnail_scroll)) * math.pi))
   mona_y = math.sin(mona_off) * 20
   screen.scale_blit(mona.frame(io.ticks / 100), 130, 68 - mona_y, -24, 24)
@@ -92,13 +93,6 @@ def update():
 
   # draw the thumbnail ui
   draw_thumbnails()
-
-  # screen.brush = brushes.color(0, 0, 0, 50)
-  # screen.draw(shapes.circle(12, 101, 22))
-  # screen.brush = brushes.color(255, 255, 255)
-  # screen.draw(shapes.circle(12, 101, 20))
-
-  # screen.blit(mona.frame(int(io.ticks / 100)), 1, 86)
 
   title = files[clamp_index(index)]["title"]
   width, _ = screen.measure_text(title)

@@ -149,7 +149,7 @@ inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, i
   }
 }
 
-inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_t *vdst, uint32_t *palette, int w, int a = 255) {
+inline void __not_in_flash_func(span_blit_argb8_palette)(uint8_t *vsrc, uint32_t *vdst, uint32_t *palette, int w, int a = 255) {
   uint8_t *src = (uint8_t*)vsrc;
   uint32_t *dst = (uint32_t*)vdst;
 
@@ -161,10 +161,12 @@ inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_
     int ca = (ps[3] * (a)) / 255; // apply global alpha
 
     if(ca == 0) {
+      debug_printf("_");
     } else if (ca == 255) {
       // full alpha copy pixel
       *dst = sc;
-      pd[3] = 255;
+      debug_printf("!");
+      //pd[3] = 255;
     } else {
 #ifdef PICO
       // alpha requires blending pixel
@@ -182,15 +184,18 @@ inline void __not_in_flash_func(span_blit_argb8_palette)(uint32_t *vsrc, uint32_
       interp0->base[1] = ps[2]; // blue
       pd[2] = (uint8_t)interp0->peek[1];
 #else
-      pd[0] = (uint8_t)((ps[0] * ca + pd[0] * (255 - ca)) >> 8);
-      pd[1] = (uint8_t)((ps[1] * ca + pd[1] * (255 - ca)) >> 8);
-      pd[2] = (uint8_t)((ps[2] * ca + pd[2] * (255 - ca)) >> 8);
-      pd[3] = 255;
+      debug_printf(".");
+      pd[0] = ((pd[0] * (255 - ca)) + (ps[0] * ca)) / 255;
+      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
+      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
+   //   pd[3] = 255;
 #endif
     }
     src++;
     dst++;
   }
+
+  debug_printf("\n");
 }
 
 

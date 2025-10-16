@@ -6,8 +6,6 @@ from lib import *
 icons = SpriteSheet(f"assets/icons.png", 4, 1)
 
 # load in the font - font sheet generated from
-# https://qwerasd205.github.io/PixelCode/
-#pixel_code = BitmapFont("assets/pixelcode-font.6x12.png", 6, 12)
 screen.font = PixelFont.load("../assets/fonts/vest.ppf")
 
 # brushes to match monas stats

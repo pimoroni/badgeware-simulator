@@ -166,12 +166,14 @@ namespace picovector {
     int syo = p.y < 0 ? -p.y : 0;
 
     for(int i = 0; i < tr.h; i++) {
-      uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
+
       uint32_t *dst = (uint32_t *)t->ptr(tr.x, tr.y + i);
 
       if(this->_has_palette) {
+        uint8_t *src = (uint8_t *)this->ptr(sxo, syo + i);
         span_blit_argb8_palette(src, dst, &this->_palette[0], tr.w, this->alpha());
       }else{
+        uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
         span_blit_argb8(src, dst, tr.w, this->alpha());
       }
     }
