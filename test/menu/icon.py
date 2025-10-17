@@ -25,7 +25,7 @@ faded = [
 class Icon:
 
 
-  def __init__(self, pos, index, icon, name):
+  def __init__(self, pos, name, index, icon):
     self.active = False
     self.pos = pos
     self.icon = icon

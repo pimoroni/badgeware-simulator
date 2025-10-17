@@ -3,6 +3,20 @@ import random
 from lib import *
 import icon
 
+# define the list of installed apps
+#
+# - hack them!
+# - replace them with your own
+# - reorder them
+# - what would mona do...?
+apps = [
+  ("mona's quest", "quest"),
+  ("monagotchi", "monagotchi"),
+  ("flappy mona", "flappy"),
+  ("gallery", "gallery"),
+  ("monasketch", "sketch"),
+  ("badge", "badge")
+]
 
 mona = SpriteSheet(f"../assets/mona-sprites/mona-default.png", 11, 1)
 screen.font = PixelFont.load("../assets/fonts/ark.ppf")
@@ -10,14 +24,16 @@ screen.antialias = Image.X2
 
 # find installed apps and create icons
 icons = []
-for path in os.listdir(".."):
+for app in apps:
+  name, path = app[0], app[1]
+
   if is_dir(f"../{path}"):
     if file_exists(f"../{path}/icon.png"):
       x = len(icons) % 3
       y = math.floor(len(icons) / 3)
       pos = (x * 48 + 33, y * 48 + 42)
       sprite = Image.load(f"../{path}/icon.png")
-      icons.append(icon.Icon(pos, len(icons), sprite, path))
+      icons.append(icon.Icon(pos, name, len(icons), sprite))
 
 terminal = []
 for i in range(0, 25):
