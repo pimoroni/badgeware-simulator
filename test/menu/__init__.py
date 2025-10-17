@@ -11,7 +11,7 @@ import icon
 # - what would mona do...?
 apps = [
   ("mona's quest", "quest"),
-  ("monagotchi", "monagotchi"),
+  ("mona pet", "monagotchi"),
   ("flappy mona", "flappy"),
   ("gallery", "gallery"),
   ("monasketch", "sketch"),

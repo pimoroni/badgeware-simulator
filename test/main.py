@@ -12,7 +12,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("menu")
+app = run_app("startup")
 
 _last_free_mem_debug = None
 def update():

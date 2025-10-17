@@ -98,11 +98,11 @@ def draw_header():
 
   w, _ = screen.measure_text("monagotchi", 18)
   screen.brush = brushes.color(0, 0, 0, 100)
-  screen.text("monagotchi", 80 - (w / 2) + 2, + 2,  18)
+  screen.text("mona pet", 80 - (w / 2) + 2, + 2,  18)
 
   pulse = math.sin(io.ticks / 250) * 50
   screen.brush = brushes.color(200 + pulse, 200 + pulse, 200 + pulse)
-  screen.text("monagotchi", 80 - (w / 2), 0, 18)
+  screen.text("mona pet", 80 - (w / 2), 0, 18)
 
 def draw_buttons():
   draw_button(  4, 102, stats_brushes["happy"], "A", "play")

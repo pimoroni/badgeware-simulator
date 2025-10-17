@@ -16,12 +16,12 @@ def show_frame(i, alpha=255):
   global current_frame, current_frame_filename
   filename = f"frames/intro_{i:05d}.png"
   if current_frame_filename != filename:
-    current_frame = Image.load(filename)
+    screen.load_into(filename)
 
-  current_frame.alpha = int(alpha)
+  #current_frame.alpha = int(alpha)
 
   # render the frame
-  screen.blit(current_frame, 0, 0)
+  #screen.blit(current_frame, 0, 0)
   current_frame_filename = filename
 
 button_pressed_at = None
@@ -30,8 +30,8 @@ def update():
 
   time = io.ticks / 1000 # execution time in seconds
 
-  screen.brush = brushes.color(0, 0, 0)
-  screen.draw(shapes.rectangle(0, 0, 160, 120))
+  # screen.brush = brushes.color(0, 0, 0)
+  # screen.draw(shapes.rectangle(0, 0, 160, 120))
 
   frame, alpha = hold_frame, 255
 

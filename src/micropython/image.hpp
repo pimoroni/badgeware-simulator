@@ -64,6 +64,18 @@ extern "C" {
   }
 
 
+  mp_obj_t image_load_into(mp_obj_t self_in, mp_obj_t path) {
+    self(self_in, image_obj_t);
+    //const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    PNG *png = new(PicoVector_working_buffer) PNG();
+    int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
+    bool has_palette = png->getPixelType() == PNG_PIXEL_INDEXED;
+    png->decode((void *)self->image, 0);
+    png->close();
+    return mp_const_none;
+  }
+
+
   mp_obj_t image_window(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     int x = mp_obj_get_int(pos_args[1]);
@@ -276,6 +288,8 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_1(image_load_obj, image_load);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(image_load_static_obj, MP_ROM_PTR(&image_load_obj));
 
+  static MP_DEFINE_CONST_FUN_OBJ_2(image_load_into_obj, image_load_into);
+
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
 
   static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
@@ -297,6 +311,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&image_load_static_obj) },
+      { MP_ROM_QSTR(MP_QSTR_load_into), MP_ROM_PTR(&image_load_into_obj) },
       { MP_ROM_QSTR(MP_QSTR_X4), MP_ROM_INT(antialias_t::X4)},
       { MP_ROM_QSTR(MP_QSTR_X2), MP_ROM_INT(antialias_t::X2)},
       { MP_ROM_QSTR(MP_QSTR_OFF), MP_ROM_INT(antialias_t::OFF)},
