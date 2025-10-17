@@ -222,7 +222,12 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         // uncaught exception
         mp_hal_set_interrupt_char(-1);
         mp_handle_pending(false);
-        return handle_uncaught_exception(nlr.ret_val);
+        int result = handle_uncaught_exception(nlr.ret_val);
+        if(result & FORCED_EXIT) {
+            printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
+            hot_reload = true;
+        }
+        return result;
     }
 }
 
@@ -513,7 +518,11 @@ static void sokol_frame(void) {
             nlr_pop();
         } else {
             update_callback_obj = mp_const_none;
-            handle_uncaught_exception(nlr.ret_val);
+            int result = handle_uncaught_exception(nlr.ret_val);
+            if (result & FORCED_EXIT) {
+                printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
+                hot_reload = true;
+            }
         }
     }
 
