@@ -80,11 +80,12 @@ def update():
 
   for i in range(0, len(icons)):
     if i == active:
-      w, _ = screen.measure_text(icons[i].name)
-      screen.brush = brushes.color(211, 250, 55, 75)
+      label = f"{icons[i].name}"
+      w, _ = screen.measure_text(label)
+      screen.brush = brushes.color(211, 250, 55)
       screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
-      screen.brush = brushes.color(255, 255, 255)
-      screen.text(icons[i].name, 80 - (w / 2), 101)
+      screen.brush = brushes.color(0, 0, 0, 150)
+      screen.text(label, 80 - (w / 2), 101)
 
 
   draw_header()
