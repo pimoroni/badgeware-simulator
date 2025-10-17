@@ -1,8 +1,8 @@
 # we need to call this in our "pre-setup code", the user shouldn't have to do it
 # it's required to setup the global 'screen' object
-from picovector import brushes, shapes, Image, screen, io, Font, Matrix, PixelFont
 import time
-
+import os
+from picovector import brushes, shapes, Image, screen, io, Font, Matrix, PixelFont
 # print("io imported")
 #print(io.ticks)
 
@@ -63,6 +63,20 @@ def wrap_and_measure(image, text, size, max_width):
 def clamp(v, vmin, vmax):
   return max(vmin, min(v, vmax))
 
+def file_exists(path):
+  try:
+    os.stat(path)
+    return True
+  except OSError:
+    return False
+
+def is_dir(path):
+  try:
+    flags = os.stat(path)
+    return flags[0] & 0x4000 # is a directory
+  except:
+    return False
+
 class SpriteSheet:
   def __init__(self, file, columns, rows):
     self.image = Image.load(file)
@@ -100,6 +114,9 @@ class AnimatedSprite:
     frame_index = int(frame_index)
     frame_index %= len(self.frames)
     return self.spritesheet.sprite(self.frames[frame_index][0], self.frames[frame_index][1])
+
+  def count(self):
+    return len(self.frames)
 
 class BitmapFont:
   def __init__(self, file, char_width, char_height):

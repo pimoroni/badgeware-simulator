@@ -15,22 +15,22 @@ def show_frame(i, alpha=255):
   # check if this frame needs loading
   global current_frame, current_frame_filename
   filename = f"frames/intro_{i:05d}.png"
-  if current_frame_filename != filename:  
+  if current_frame_filename != filename:
     current_frame = Image.load(filename)
-  
-  current_frame.alpha(alpha)
 
-  # render the frame  
+  current_frame.alpha = int(alpha)
+
+  # render the frame
   screen.blit(current_frame, 0, 0)
   current_frame_filename = filename
 
 button_pressed_at = None
-def update(ticks):
+def update():
   global button_pressed_at
 
   time = io.ticks / 1000 # execution time in seconds
 
-  screen.brush(brushes.color(0, 0, 0))
+  screen.brush = brushes.color(0, 0, 0)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
   frame, alpha = hold_frame, 255
@@ -38,7 +38,7 @@ def update(ticks):
   # determine which phase of the animation we're in (animation, hold, or fadeout)
   if time < animation_duration:
     # calculate which frame we're on and display it
-    frame = round((time / animation_duration) * hold_frame)  
+    frame = round((time / animation_duration) * hold_frame)
   else:
     # if the startup animation has completed then check if the user has pressed a button
     if io.pressed:
@@ -51,9 +51,10 @@ def update(ticks):
       frame = round((time_since_pressed / fade_duration) * (frame_count - hold_frame)) + hold_frame
       alpha = 255 - ((time_since_pressed / fade_duration) * 255)
     else:
+
       # this is where we would return control to the menu
       return
 
   show_frame(frame, alpha)
-  
+
   return True

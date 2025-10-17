@@ -63,6 +63,7 @@ extern "C" {
     return MP_OBJ_FROM_PTR(result);
   }
 
+
   mp_obj_t image_window(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     int x = mp_obj_get_int(pos_args[1]);
