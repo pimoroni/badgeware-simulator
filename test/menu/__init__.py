@@ -1,6 +1,8 @@
 import math
+import random
 from lib import *
 import icon
+
 
 mona = SpriteSheet(f"../assets/mona-sprites/mona-default.png", 11, 1)
 screen.font = PixelFont.load("../assets/fonts/ark.ppf")
@@ -17,14 +19,18 @@ for path in os.listdir(".."):
       sprite = Image.load(f"../{path}/icon.png")
       icons.append(icon.Icon(pos, len(icons), sprite, path))
 
+terminal = []
+for i in range(0, 25):
+  terminal.append(random.randint(20, 100))
+last_terminal_line_added = None
+
 active = 0
 def update():
-  global active, icons
+  global active, icons, terminal, last_terminal_line_added
   screen.brush = brushes.color(0, 0, 0)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
   screen.brush = brushes.color(35, 41, 37)
   screen.draw(shapes.rounded_rectangle(0, 0, 160, 120, 8))
-
 
   if io.BUTTON_C in io.pressed:
     active += 1
@@ -40,16 +46,28 @@ def update():
 
   active %= len(icons)
 
+  new_line_speed = 250
+  if not last_terminal_line_added or io.ticks - last_terminal_line_added > new_line_speed:
+    terminal = terminal[1:]
+    terminal.append(random.randint(0, 100))
+    last_terminal_line_added = io.ticks
+
+  screen.brush = brushes.color(211, 250, 55, 50)
+  for i in range(0, 25):
+    y = 20 + i * 5
+    yo = ((io.ticks - last_terminal_line_added) / new_line_speed) * 5
+    y = int(y - yo)
+    screen.draw(shapes.rectangle(6, y, terminal[i], 2))
+
+  screen.brush = brushes.color(35, 41, 37, 100)
+  screen.draw(shapes.rectangle(0, 15, 160, 5))
+  screen.draw(shapes.rectangle(0, 15, 160, 3))
+  screen.draw(shapes.rectangle(0, 15, 160, 1))
+
   for i in range(0, len(icons)):
     icon = icons[i]
     icon.activate(active == i)
     icon.draw()
-  # for i in range(0, len(apps)):
-  #   x = i % 3
-  #   y = math.floor(i / 3)
-  #   index = (y * 3 + x)
-  #   is_active = index == active
-  #   draw_icon((x * 48 + 33, y * 48 + 44), index, is_active, apps[i])
 
   for i in range(0, len(icons)):
     if i == active:

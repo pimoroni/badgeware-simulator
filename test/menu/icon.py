@@ -1,15 +1,29 @@
 import math
 from lib import *
 
+bold = [
+  brushes.color(211, 250, 55),
+  brushes.color(48, 148, 255),
+  brushes.color(95, 237, 131),
+  brushes.color(225, 46, 251),
+  brushes.color(216, 189, 14),
+  brushes.color(255, 128, 210)
+]
+
+
+fade = 1.8
+faded = [
+  brushes.color(211 / fade, 250 / fade, 55 / fade),
+  brushes.color(48 / fade, 148 / fade, 255 / fade),
+  brushes.color(95 / fade, 237 / fade, 131 / fade),
+  brushes.color(225 / fade, 46 / fade, 251 / fade),
+  brushes.color(216 / fade, 189 / fade, 14 / fade),
+  brushes.color(255 / fade, 128 / fade, 210 / fade)
+]
+
+
 class Icon:
-  brushes = [
-    brushes.color(211, 250, 55, 255),
-    brushes.color(48, 148, 255),
-    brushes.color(95, 237, 131, 255),
-    brushes.color(225, 46, 251, 255),
-    brushes.color(216, 189, 14, 255),
-    brushes.color(255, 128, 210, 255),
-  ]
+
 
   def __init__(self, pos, index, icon, name):
     self.active = False
@@ -52,7 +66,10 @@ class Icon:
     squircle.transform = squircle.transform.scale(1.1, 1.1)
     screen.draw(squircle)
     squircle.transform = squircle.transform.scale(1 / 1.1, 1 / 1.1)
-    screen.brush = Icon.brushes[self.index]
+    if self.active:
+      screen.brush = bold[self.index]
+    else:
+      screen.brush = faded[self.index]
     squircle.transform = squircle.transform.translate(-1, -1)
     screen.draw(squircle)
     squircle.transform = squircle.transform.translate(2, 2)
@@ -60,8 +77,9 @@ class Icon:
     screen.draw(squircle)
 
     if sprite_width > 0:
+      self.icon.alpha = 255 if self.active else 100
       screen.scale_blit(self.icon, self.pos[0] - sprite_offset - 1, self.pos[1] - 13, sprite_width, 24)
 
-    if not self.active:
-      screen.brush = brushes.color(35, 41, 37, 125)
-      screen.draw(shapes.rectangle(self.pos[0] - 24, self.pos[1] - 24, 48, 48))
+    # if not self.active:
+    #   screen.brush = brushes.color(35, 41, 37, 125)
+    #   screen.draw(shapes.rectangle(self.pos[0] - 24, self.pos[1] - 24, 48, 48))
