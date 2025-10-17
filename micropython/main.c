@@ -222,7 +222,12 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         // uncaught exception
         mp_hal_set_interrupt_char(-1);
         mp_handle_pending(false);
-        return handle_uncaught_exception(nlr.ret_val);
+        int result = handle_uncaught_exception(nlr.ret_val);
+        if(result & FORCED_EXIT) {
+            printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
+            hot_reload = true;
+        }
+        return result;
     }
 }
 
@@ -436,6 +441,8 @@ static void sokol_frame(void) {
         first_run = false;
         micropython_init();
         stm_setup();
+        picovector_last_ticks = 0;
+        picovector_ticks = stm_ms(stm_now());
 
         run_file(hot_reload_code);
         hot_reload = false;
@@ -511,7 +518,11 @@ static void sokol_frame(void) {
             nlr_pop();
         } else {
             update_callback_obj = mp_const_none;
-            handle_uncaught_exception(nlr.ret_val);
+            int result = handle_uncaught_exception(nlr.ret_val);
+            if (result & FORCED_EXIT) {
+                printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
+                hot_reload = true;
+            }
         }
     }
 
@@ -538,19 +549,16 @@ static void sokol_event(const sapp_event* ev) {
             case SAPP_KEYCODE_LEFT: // A
                 mask = 0b010000;
                 break;
-            case SAPP_KEYCODE_DOWN: // B
+            case SAPP_KEYCODE_SPACE: // B
                 mask = 0b001000;
                 break;
             case SAPP_KEYCODE_RIGHT: // C
                 mask = 0b000100;
                 break;
-            case SAPP_KEYCODE_RIGHT_SHIFT: // UP
-            case SAPP_KEYCODE_LEFT_SHIFT: // macOS does not disambiguate?
-            case SAPP_KEYCODE_PAGE_UP:
+            case SAPP_KEYCODE_UP: // Up
                 mask = 0b000010;
                 break;
-            case SAPP_KEYCODE_UP: // Down
-            case SAPP_KEYCODE_PAGE_DOWN:
+            case SAPP_KEYCODE_DOWN: // Down
                 mask = 0b000001;
                 break;
             default:
