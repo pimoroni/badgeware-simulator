@@ -23,10 +23,11 @@ terminal = []
 for i in range(0, 25):
   terminal.append(random.randint(20, 100))
 last_terminal_line_added = None
+added_terminal_lines = 0
 
 active = 0
 def update():
-  global active, icons, terminal, last_terminal_line_added
+  global active, icons, terminal, last_terminal_line_added, added_terminal_lines
   screen.brush = brushes.color(0, 0, 0)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
   screen.brush = brushes.color(35, 41, 37)
@@ -49,15 +50,23 @@ def update():
   new_line_speed = 250
   if not last_terminal_line_added or io.ticks - last_terminal_line_added > new_line_speed:
     terminal = terminal[1:]
+    random.seed(io.ticks)
     terminal.append(random.randint(0, 100))
     last_terminal_line_added = io.ticks
+    added_terminal_lines += 1
 
-  screen.brush = brushes.color(211, 250, 55, 50)
+  screen.brush = brushes.color(211 / 3.5, 250 / 3.5, 55 / 3.5)
   for i in range(0, 25):
     y = 20 + i * 5
     yo = ((io.ticks - last_terminal_line_added) / new_line_speed) * 5
     y = int(y - yo)
-    screen.draw(shapes.rectangle(6, y, terminal[i], 2))
+
+    random.seed(i + added_terminal_lines)
+    cx = 0
+    while cx < terminal[i]:
+      w = random.randint(3, 10)
+      screen.draw(shapes.rectangle(cx + 6, y, w, 2))
+      cx += w + 2
 
   screen.brush = brushes.color(35, 41, 37, 100)
   screen.draw(shapes.rectangle(0, 15, 160, 5))
@@ -72,7 +81,7 @@ def update():
   for i in range(0, len(icons)):
     if i == active:
       w, _ = screen.measure_text(icons[i].name)
-      screen.brush = brushes.color(20, 40, 60, 200)
+      screen.brush = brushes.color(211, 250, 55, 75)
       screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
       screen.brush = brushes.color(255, 255, 255)
       screen.text(icons[i].name, 80 - (w / 2), 101)
