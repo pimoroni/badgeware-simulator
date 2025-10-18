@@ -38,20 +38,20 @@ namespace picovector {
     for(int i = 0; i <= steps; i++) {
       float xo = sin(theta) * r, yo = cos(theta) * r;
       path->add_point((point_t){x + xo, y + yo});
-      theta += delta;      
+      theta += delta;
     }
   }
 
   shape_t* rounded_rectangle(float x, float y, float w, float h, float r1, float r2, float r3, float r4) {
     shape_t *result = new(PV_MALLOC(sizeof(shape_t))) shape_t(1);
     path_t poly(4);
-    
+
     // render corners (either hard if radius == 0 or calculate rounded corner points)
     r1 == 0 ? poly.add_point((point_t){x    , y    }) : _build_rounded_rectangle_corner(&poly, x + 0 + r1, y + 0 + r1, r1, 3);
     r2 == 0 ? poly.add_point((point_t){x + w, y    }) : _build_rounded_rectangle_corner(&poly, x + w - r2, y + 0 + r2, r2, 2);
     r3 == 0 ? poly.add_point((point_t){x + w, y + h}) : _build_rounded_rectangle_corner(&poly, x + w - r3, y + h - r3, r3, 1);
     r4 == 0 ? poly.add_point((point_t){x    , y + h}) : _build_rounded_rectangle_corner(&poly, x + 0 + r4, y + h - r4, r4, 0);
-    
+
     result->add_path(poly);
     return result;
   }
@@ -60,7 +60,7 @@ namespace picovector {
     // static shape rounded_rectangle(float x1, float y1, float x2, float y2, float r1, float r2, float r3, float r4, float stroke=0.0f) {
     // }
 
-  shape_t* squircle(float x, float y, float size, float n) {    
+  shape_t* squircle(float x, float y, float size, float n) {
     shape_t *result = new(PV_MALLOC(sizeof(shape_t))) shape_t(1);
 
     //shape *result = new shape(1);

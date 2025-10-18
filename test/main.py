@@ -13,7 +13,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("sketch")
+app = run_app("badge")
 
 _last_free_mem_debug = None
 def update():
