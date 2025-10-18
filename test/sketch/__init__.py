@@ -37,14 +37,13 @@ def update_cursor():
   left_dial_angle = -cursor[0] * 3
   right_dial_angle = cursor[1] * 3
 
-
   if not last_cursor or int(last_cursor[0]) != int(cursor[0]) or int(last_cursor[1]) != int(cursor[1]):
     # draw to the canvas at the cursor position
     canvas.brush = brushes.color(105, 105, 105)
     canvas.draw(shapes.rectangle(int(cursor[0]), int(cursor[1]), 1, 1))
   last_cursor = cursor
 
-
+# animate mona to her target location
 def update_mona():
   global mona_position, mona_direction
   if mona_position[0] < mona_target[0]:
@@ -64,6 +63,7 @@ def update():
 
   ui.draw_background()
 
+  # if the users cursor is too near to mona then make her run away
   if cursor[0] < 30:
     mona_target = (120, 76)
   if cursor[0] > ui.canvas_area[2] - 30:
