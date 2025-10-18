@@ -43,7 +43,8 @@ class Icon:
       self.spin = True
       self.spin_start = io.ticks
     self.active = active
-    Icon.active_icon = self
+    if active:
+      Icon.active_icon = self
 
   def draw(self):
     width = 1
