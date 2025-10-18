@@ -135,7 +135,6 @@ def draw_bar(name, x, y, amount):
   screen.blit(stats_icons[name], x, y)
 
 
-
 def center_text(text, y, sx = 0, ex = 160):
   w, _ = screen.measure_text(text)
   screen.text(text, sx + ((ex - sx) / 2) - (w / 2), y)

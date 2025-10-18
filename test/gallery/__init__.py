@@ -5,6 +5,8 @@ mona = SpriteSheet(f"../assets/mona-sprites/mona-heart.png", 14, 1).animation()
 screen.font = PixelFont.load("../assets/fonts/nope.ppf")
 screen.antialias = Image.X2
 
+ui_hidden = False
+
 # create a dictionary of all the images in the images directory
 files = []
 for file in os.listdir("images"):
@@ -21,11 +23,9 @@ thumbnails = []
 for file in files:
   thumbnails.append(Image.load(f"thumbnails/{file["name"]}"))
 
-
 # given a gallery image index it clamps it into the range of available images
 def clamp_index(index):
   return index % len(files)
-
 
 # load the main image based on the gallery index provided
 def load_image(index):
@@ -33,9 +33,11 @@ def load_image(index):
   index = clamp_index(index)
   image = Image.load(f"images/{files[index]["name"]}")
 
-
 # render the thumbnail strip
 def draw_thumbnails():
+  if ui_hidden:
+    return
+
   spacing = 36
   # render the thumbnail strip
   for i in range(-3, 4):
@@ -70,17 +72,29 @@ index = 0
 load_image(index)
 
 thumbnail_scroll = index
+image_changed_at = None
 def update():
-  global index, thumbnail_scroll
+  global index, thumbnail_scroll, ui_hidden, image_changed_at
 
   # if the user presses left or right then switch image
   if io.BUTTON_A in io.pressed:
     index -= 1
+    ui_hidden = False
+    image_changed_at = io.ticks
     load_image(index)
 
   if io.BUTTON_C in io.pressed:
     index += 1
+    ui_hidden = False
+    image_changed_at = io.ticks
     load_image(index)
+
+  if io.BUTTON_B in io.pressed:
+    ui_hidden = not ui_hidden
+    image_changed_at = io.ticks
+
+  if image_changed_at and (io.ticks - image_changed_at) > 2000:
+    ui_hidden = True
 
   # draw the currently selected image
   screen.blit(image, 0, 0)
@@ -97,10 +111,11 @@ def update():
   title = files[clamp_index(index)]["title"]
   width, _ = screen.measure_text(title)
 
-  screen.brush = brushes.color(0, 0, 0, 100)
-  screen.draw(shapes.rounded_rectangle(80 - (width / 2) - 8, -6, width + 16, 22, 6))
-  screen.text(title, 80 - (width / 2) + 1, 1)
-  screen.brush = brushes.color(255, 255, 255)
-  screen.text(title, 80 - (width / 2), 0)
+  if not ui_hidden:
+    screen.brush = brushes.color(0, 0, 0, 100)
+    screen.draw(shapes.rounded_rectangle(80 - (width / 2) - 8, -6, width + 16, 22, 6))
+    screen.text(title, 80 - (width / 2) + 1, 1)
+    screen.brush = brushes.color(255, 255, 255)
+    screen.text(title, 80 - (width / 2), 0)
 
   return True
