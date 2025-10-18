@@ -1,6 +1,7 @@
 import math
 from lib import *
 
+# bright icon colours
 bold = [
   brushes.color(211, 250, 55),
   brushes.color(48, 148, 255),
@@ -10,7 +11,7 @@ bold = [
   brushes.color(255, 128, 210)
 ]
 
-
+# create faded out variants for inactive icons
 fade = 1.8
 faded = [
   brushes.color(211 / fade, 250 / fade, 55 / fade),
@@ -21,10 +22,11 @@ faded = [
   brushes.color(255 / fade, 128 / fade, 210 / fade)
 ]
 
+# icon shape
+squircle = shapes.squircle(0, 0, 20, 4)
+shade_brush = brushes.color(0, 0, 0, 30)
 
 class Icon:
-
-
   def __init__(self, pos, name, index, icon):
     self.active = False
     self.pos = pos
@@ -34,37 +36,42 @@ class Icon:
     self.spin = False
 
   def activate(self, active):
+    # if this icon wasn't already activated then flag it for the spin animation
     if not self.active and active:
       self.spin = True
       self.spin_start = io.ticks
-
     self.active = active
 
   def draw(self):
+    width = 1
+    sprite_width = self.icon.width
+    sprite_offset = sprite_width / 2
+
     if self.spin:
-      duration = 100
+      # create a spin animation that runs over 100ms
+      speed = 100
       frame = io.ticks - self.spin_start
-      c = round(math.cos(frame / duration) * 3) / 3
-      width = c # don't allow it to dissapear completely
-      if width >= 0 and width < 0.1:
-        width = 0.1
-      if width <= 0 and width > -0.1:
-        width = -0.1
-      sprite_width = c * self.icon.width
+
+      # calculate the width of the tile during this part of the animation
+      width = round(math.cos(frame / speed) * 3) / 3
+
+      # ensure the width never reduces to zero or the icon disappears
+      width = max(0.1, width) if width > 0 else min(-0.1, width)
+
+      # determine how to offset and scale the sprite to match the tile width
+      sprite_width = width * self.icon.width
       sprite_offset = abs(sprite_width) / 2
 
-      if frame > (duration * 6):
+      # once the animation has completed unset the spin flag
+      if frame > (speed * 6):
         self.spin = False
-    else:
-      width = 1
-      sprite_width = self.icon.width
-      sprite_offset = sprite_width / 2
 
-    squircle = shapes.squircle(0, 0, 20, 4)
     squircle.transform = Matrix().translate(*self.pos).scale(width, 1)
-    screen.brush = brushes.color(0, 0, 0, 25)
+    screen.brush = shade_brush
     squircle.transform = squircle.transform.scale(1.1, 1.1)
     screen.draw(squircle)
+
+
     squircle.transform = squircle.transform.scale(1 / 1.1, 1 / 1.1)
     if self.active:
       screen.brush = bold[self.index]
@@ -73,7 +80,7 @@ class Icon:
     squircle.transform = squircle.transform.translate(-1, -1)
     screen.draw(squircle)
     squircle.transform = squircle.transform.translate(2, 2)
-    screen.brush = brushes.color(0, 0, 0, 50)
+    screen.brush = shade_brush
     screen.draw(squircle)
 
     if sprite_width > 0:

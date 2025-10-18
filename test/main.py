@@ -13,7 +13,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("flappy")
+app = run_app("menu")
 
 _last_free_mem_debug = None
 def update():
