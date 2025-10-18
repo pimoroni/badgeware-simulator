@@ -13,9 +13,9 @@ import ui
 apps = [
   ("mona's quest", "quest"),
   ("mona pet", "monagotchi"),
+  ("monasketch", "sketch"),
   ("flappy mona", "flappy"),
   ("gallery", "gallery"),
-  ("monasketch", "sketch"),
   ("badge", "badge")
 ]
 
