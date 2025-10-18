@@ -15,9 +15,9 @@ class Mona:
   _animations = {}
 
   def __init__(self, y):
-    self._happy = 50
-    self._hunger = 80
-    self._clean = 40
+    self._happy = 100
+    self._hunger = 100
+    self._clean = 100
     self._animation = None
     self._mood = None
     self._mood_changed_at = time.time()
@@ -52,7 +52,7 @@ class Mona:
     width *= self._direction
 
     # is mona floating?
-    floating = math.sin(ticks / 250) * 5 + 5 if self._mood == "dead" else 0
+    floating = math.sin(io.ticks / 250) * 5 + 5 if self._mood == "dead" else 0
 
     # offset sprite
     x -= abs(width / 2)
@@ -71,6 +71,11 @@ class Mona:
   # set a new target position for mona to move to
   def move_to(self, target):
     self._target = target
+    self._position_changed_at = time.time()
+
+  # move mona back into centre frame
+  def move_to_center(self):
+    self._target = 80
     self._position_changed_at = time.time()
 
   # select a random position for mona to move to
@@ -97,15 +102,21 @@ class Mona:
   def current_action(self):
     return self._action
 
+  def is_dead(self):
+    return self._happy == 0 or self._clean == 0 or self._hunger == 0
+
   # increase or decrease monas statistics
-  def happy(self, amount):
+  def happy(self, amount=0):
     self._happy = clamp(self._happy + amount, 0, 100)
+    return self._happy
 
-  def clean(self, amount):
+  def clean(self, amount=0):
     self._clean = clamp(self._clean + amount, 0, 100)
+    return self._clean
 
-  def hunger(self, amount):
+  def hunger(self, amount=0):
     self._hunger = clamp(self._hunger + amount, 0, 100)
+    return self._hunger
 
   # update monas position
   def update(self):
@@ -124,7 +135,7 @@ class Mona:
 
   # select a random mood for mona
   def random_idle(self):
-    idles = ["code", "default", "heart", "dance", "notify"]
+    idles = ["code", "default", "heart", "dance"]
     self.set_mood(random.choice(idles))
 
   # return the number of seconds since monas mood changed

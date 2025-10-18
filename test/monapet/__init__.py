@@ -5,90 +5,60 @@ from mona import Mona
 
 mona = Mona(82) # create mona!
 
-# Max values for stats. Value is the number of seconds to go from 100% to 0%
-MAX_HUNGER = 1200
-MAX_HAPPINESS = 1800
-MAX_CLEANLINESS = 2400
-
-# Stat increase values are 30% of the MAX
-FEED_VALUE = 0.3 * MAX_HUNGER
-PLAY_VALUE = 0.3 * MAX_HAPPINESS
-CLEAN_VALUE = 0.3 * MAX_CLEANLINESS
-
-dead = False
-hunger = MAX_HUNGER
-happiness = MAX_HAPPINESS
-cleanliness = MAX_CLEANLINESS
-last_update = 0
-
-
-def reset_mona():
-  global dead, happiness, hunger, cleanliness, last_update
-
-  dead = False
-  hunger = MAX_HUNGER
-  happiness = MAX_HAPPINESS
-  cleanliness = MAX_CLEANLINESS
-  last_update = 0
-  mona.set_mood("default")
-
+# speed at which each statistic goes from 100% to 0%
+happiness_duration = 1800
+hunger_duration = 1200
+cleanliness_duration = 2400
 
 def game_update():
-  global dead, happiness, hunger, cleanliness, last_update
+  global mona
 
-  if not dead:
-    mona.happy = (happiness / MAX_HAPPINESS) * 100
-    mona.hunger = (hunger / MAX_HUNGER) * 100
-    mona.clean = (cleanliness / MAX_CLEANLINESS) * 100
+  if not mona.is_dead():
+    # calculate mona's new stats based on the time since last update
+    seconds = io.ticks_delta / 1000
 
-    # Update the stats once a second
-    if (io.ticks / 1000) - (last_update / 1000) > 1:
-      hunger -= 1
-      happiness -= 1
-      cleanliness -= 1
-      last_update = io.ticks
+    # work out how much mona's stats have reduce since the last frame
+    happy_delta = (seconds / happiness_duration) * 100
+    mona.happy(-happy_delta)
+    hunger_delta = (seconds / hunger_duration) * 100
+    mona.hunger(-hunger_delta)
+    clean_delta = (seconds / cleanliness_duration) * 100
+    mona.clean(-clean_delta)
 
+    # play with mona!
     if io.BUTTON_A in io.pressed:
-      if happiness < MAX_HAPPINESS:
-        mona.do_action("heart")
-        happiness += PLAY_VALUE
+      mona.happy(30)
+      mona.do_action("heart")
 
+    # feed mona!
     if io.BUTTON_B in io.pressed:
-      if hunger < MAX_HUNGER:
-        mona.do_action("eating")
-        hunger += FEED_VALUE
+      mona.hunger(30)
+      mona.do_action("eating")
 
+    # clean mona!
     if io.BUTTON_C in io.pressed:
-      if cleanliness < MAX_CLEANLINESS:
-        mona.do_action("dance")
-        cleanliness += CLEAN_VALUE
+      mona.clean(30)
+      mona.do_action("dance")
 
+    # every five seconds mona will move to a new location
     if mona.time_since_last_position_change() > 5:
       mona.move_to_random()
 
+    # every eight seconds mona will select a new idle animation
     if mona.time_since_last_mood_change() > 8:
       mona.random_idle()
 
-    # clamp the values
-    hunger = max(0, min(hunger, MAX_HUNGER))
-    happiness = max(0, min(happiness, MAX_HAPPINESS))
-    cleanliness = max(0, min(cleanliness, MAX_CLEANLINESS))
-    #print(mona.hunger, mona.happy, mona.clean)
-
-    # If any of the stats are <= 30% then play the notify animation
-    if min(mona.hunger, mona.happy, mona.clean) <= 30:
+    # yikes, mona is in a bad way!
+    if min(mona.hunger(), mona.happy(), mona.clean()) < 30:
       mona.set_mood("notify")
-
-    # end the game if any of the stats reach zero
-    if 0 in (mona.hunger, mona.happy, mona.clean):
-      dead = True
 
   else:
       mona.set_mood("dead")
-      if io.BUTTON_B in io.pressed:
-        reset_mona()
+      mona.move_to_center()
 
-  # end of game logic here
+      # if user pressed button b then reset mona's stats
+      if io.BUTTON_B in io.pressed:
+        mona = Mona(82)
 
 def update():
   # update the game state based on user input and timed events
@@ -104,16 +74,16 @@ def update():
   mona.draw()
 
   # draw the user interface elements
-  if not dead:
-    ui.draw_bar("happy",  2, 41, mona.happy)
-    ui.draw_bar("hunger", 2, 58, mona.hunger)
-    ui.draw_bar("clean",  2, 75, mona.clean)
+  if not mona.is_dead():
+    ui.draw_bar("happy",  2, 41, mona.happy())
+    ui.draw_bar("hunger", 2, 58, mona.hunger())
+    ui.draw_bar("clean",  2, 75, mona.clean())
 
-    ui.draw_button(  4, 100, "play", mona.current_action() == "heart")
-    ui.draw_button( 55, 100, "feed", mona.current_action() == "eating")
+    ui.draw_button(  4, 100,  "play", mona.current_action() == "heart")
+    ui.draw_button( 55, 100,  "feed", mona.current_action() == "eating")
     ui.draw_button(106, 100, "clean", mona.current_action() == "dance")
   else:
-    ui.draw_button(55, 102, brushes.color(30, 40, 50, 100), "B", "Reset")
+    ui.draw_button( 55, 100, "reset", True)
 
   ui.draw_header()
 

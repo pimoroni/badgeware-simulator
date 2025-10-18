@@ -114,13 +114,12 @@ def draw_bar(name, x, y, amount):
   screen.brush = outline_brush
   screen.draw(shapes.rounded_rectangle(x, y, bar_width, 12, 3))
 
-
   # draw the bar background
   screen.brush = outline_brush
   screen.draw(shapes.rounded_rectangle(x + 14, y + 3, bar_width - 17, 6, 2))
 
   #calculate how wide the bar "fill" is and clamp it to at least 3 pixels
-  fill_width = int(max(((bar_width - 17) / 100) * amount, 6))
+  fill_width = round(max(((bar_width - 17) / 100) * amount, 3))
 
   # if bar level is low then alternate fill with red to show a warning
   screen.brush = stats_brushes[name]
@@ -133,7 +132,7 @@ def draw_bar(name, x, y, amount):
   screen.brush = brushes.color(210, 230, 250, 50)
   screen.draw(shapes.rounded_rectangle(x + 15, y + 3, fill_width - 2, 1, 1))
 
-  screen.blit(stats_icons[name], x, y - 1)
+  screen.blit(stats_icons[name], x, y)
 
 
 
