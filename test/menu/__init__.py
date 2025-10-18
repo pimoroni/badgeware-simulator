@@ -40,21 +40,19 @@ active = 0
 def update():
   global active, icons
 
+  # process button inputs to switch between icons
   if io.BUTTON_C in io.pressed:
     active += 1
-
   if io.BUTTON_A in io.pressed:
     active -= 1
-
   if io.BUTTON_UP in io.pressed:
     active -= 3
-
   if io.BUTTON_DOWN in io.pressed:
     active += 3
-
-  active %= len(icons)
+  active %= len(icons) #
 
   ui.draw_background()
+  ui.draw_header()
 
   # draw menu icons
   for i in range(0, len(icons)):
@@ -71,11 +69,3 @@ def update():
       screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
       screen.brush = brushes.color(0, 0, 0, 150)
       screen.text(label, 80 - (w / 2), 101)
-
-  ui.draw_header()
-
-
-
-
-
-
