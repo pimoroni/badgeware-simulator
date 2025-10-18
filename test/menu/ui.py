@@ -14,8 +14,8 @@ def draw_background():
   screen.brush = black
   screen.draw(shapes.rectangle(0, 0, 10, 10))
   screen.draw(shapes.rectangle(150, 0, 10, 10))
-  screen.draw(shapes.rectangle(0, 0, 110, 10))
-  screen.draw(shapes.rectangle(150, 0, 110, 10))
+  screen.draw(shapes.rectangle(0, 110, 10, 10))
+  screen.draw(shapes.rectangle(150, 110, 10, 10))
 
   # draw the faux crt shape background area
   screen.brush = background
