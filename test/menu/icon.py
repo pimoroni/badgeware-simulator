@@ -27,6 +27,8 @@ squircle = shapes.squircle(0, 0, 20, 4)
 shade_brush = brushes.color(0, 0, 0, 30)
 
 class Icon:
+  active_icon = None
+
   def __init__(self, pos, name, index, icon):
     self.active = False
     self.pos = pos
@@ -41,6 +43,7 @@ class Icon:
       self.spin = True
       self.spin_start = io.ticks
     self.active = active
+    Icon.active_icon = self
 
   def draw(self):
     width = 1
@@ -66,12 +69,15 @@ class Icon:
       if frame > (speed * 6):
         self.spin = False
 
+    # transform to the icon position
     squircle.transform = Matrix().translate(*self.pos).scale(width, 1)
+
+    # draw the icon shading
     screen.brush = shade_brush
     squircle.transform = squircle.transform.scale(1.1, 1.1)
     screen.draw(squircle)
 
-
+    # draw the icon body
     squircle.transform = squircle.transform.scale(1 / 1.1, 1 / 1.1)
     if self.active:
       screen.brush = bold[self.index]
@@ -83,6 +89,7 @@ class Icon:
     screen.brush = shade_brush
     screen.draw(squircle)
 
+    # draw the icon sprite
     if sprite_width > 0:
       self.icon.alpha = 255 if self.active else 100
       screen.scale_blit(self.icon, self.pos[0] - sprite_offset - 1, self.pos[1] - 13, sprite_width, 24)

@@ -1,7 +1,7 @@
 import math
 import random
 from lib import *
-import icon
+from icon import Icon
 import ui
 
 # define the list of installed apps
@@ -21,7 +21,6 @@ apps = [
 
 mona = SpriteSheet(f"../assets/mona-sprites/mona-default.png", 11, 1)
 screen.font = PixelFont.load("../assets/fonts/ark.ppf")
-#screen.antialias = Image.X2
 
 # find installed apps and create icons
 icons = []
@@ -34,7 +33,7 @@ for app in apps:
       y = math.floor(len(icons) / 3)
       pos = (x * 48 + 33, y * 48 + 42)
       sprite = Image.load(f"../{path}/icon.png")
-      icons.append(icon.Icon(pos, name, len(icons), sprite))
+      icons.append(Icon(pos, name, len(icons), sprite))
 
 active = 0
 def update():
@@ -51,21 +50,20 @@ def update():
     active += 3
   active %= len(icons) #
 
+  # draw the mona os ui
   ui.draw_background()
   ui.draw_header()
 
   # draw menu icons
   for i in range(0, len(icons)):
-    icon = icons[i]
-    icon.activate(active == i)
-    icon.draw()
+    icons[i].activate(active == i)
+    icons[i].draw()
 
   # draw label for active menu icon
-  for i in range(0, len(icons)):
-    if i == active:
-      label = f"{icons[i].name}"
-      w, _ = screen.measure_text(label)
-      screen.brush = brushes.color(211, 250, 55)
-      screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
-      screen.brush = brushes.color(0, 0, 0, 150)
-      screen.text(label, 80 - (w / 2), 101)
+  if Icon.active_icon:
+    label = f"{Icon.active_icon.name}"
+    w, _ = screen.measure_text(label)
+    screen.brush = brushes.color(211, 250, 55)
+    screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
+    screen.brush = brushes.color(0, 0, 0, 150)
+    screen.text(label, 80 - (w / 2), 101)

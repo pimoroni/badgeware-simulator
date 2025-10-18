@@ -56,7 +56,7 @@ def draw_terminal():
 
   # draw the terminal lines
   rect = shapes.rectangle(0, 0, 1, 1)
-  for i in range(0, 25):
+  for i in range(0, 21):
     # work out the position of screen that this line will be rendered
     y = 20 + i * 5
     yo = ((io.ticks - Terminal.line_added_at) / Terminal.speed) * 5
