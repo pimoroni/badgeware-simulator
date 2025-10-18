@@ -79,7 +79,3 @@ class Icon:
     if sprite_width > 0:
       self.icon.alpha = 255 if self.active else 100
       screen.scale_blit(self.icon, self.pos[0] - sprite_offset - 1, self.pos[1] - 13, sprite_width, 24)
-
-    # if not self.active:
-    #   screen.brush = brushes.color(35, 41, 37, 125)
-    #   screen.draw(shapes.rectangle(self.pos[0] - 24, self.pos[1] - 24, 48, 48))

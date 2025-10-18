@@ -10,10 +10,10 @@ class Obstacle:
 
   def spawn():
     Obstacle.obstacles.append(Obstacle())
-    Obstacle.next_spawn_time = io.ticks + 1000
+    Obstacle.next_spawn_time = io.ticks + 2000
 
     # clean up any obstacles that are now off screen and can be removed
-    Obstacle.obstacles = [o for o in Obstacle.obstacles if o.x > 0]
+    Obstacle.obstacles = [o for o in Obstacle.obstacles if o.x > -24]
 
   def __init__(self):
     self.x = screen.width

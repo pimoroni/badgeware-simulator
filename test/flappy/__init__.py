@@ -47,7 +47,7 @@ def play():
   mona.update()
 
   # spawn a new obstacle if the spawn timer has elapsed
-  if Obstacle.next_spawn_time and io.ticks > Obstacle.next_spawn_time:
+  if not mona.is_dead() and Obstacle.next_spawn_time and io.ticks > Obstacle.next_spawn_time:
     Obstacle.spawn()
 
   # update obstacle positions and draw them
@@ -80,16 +80,16 @@ def game_over():
   center_text(f"Final score: {mona.score}", 40)
 
   # draw spooky mona! wooOoooOooOOOooooOOo
-  xo = math.sin(io.ticks / 1000) * 3
-  yo = math.cos(io.ticks / 1000) * 5
-  frame = ghost.frame(io.ticks / 100)
-  frame.alpha = 150
-  screen.blit(frame, 70 + xo, 60 + yo)
+  # xo = math.sin(io.ticks / 1000) * 3
+  # yo = math.cos(io.ticks / 1000) * 5
+  # frame = ghost.frame(io.ticks / 100)
+  # frame.alpha = 150
+  # screen.blit(frame, 70 + xo, 60 + yo)
 
   # flash press button message
   if int(io.ticks / 500) % 2:
     screen.brush = brushes.color(255, 255, 255)
-    center_text(f"Press A to restart", 90)
+    center_text(f"Press A to restart", 70)
 
   if io.BUTTON_A in io.pressed:
     # return game to intro state
@@ -100,21 +100,21 @@ background_offset = 0
 def draw_background():
   global background_offset
 
-  if not mona or not mona.is_dead():
-    background_offset += 1
+  if not mona or not mona.is_dead() or state == GameState.INTRO:
+    background_offset += 0.5
 
   # draw the distance background
   for i in range(0, 3):
-    bo = ((-background_offset / 3) % background.width) - screen.width
+    bo = ((-background_offset / 4) % background.width) - screen.width
     screen.blit(background, bo + (background.width * i), 120 - background.height)
 
     # draw the cloud background
-    bo = ((-background_offset / 3) % (cloud.width * 2)) - screen.width
+    bo = ((-background_offset / 4) % (cloud.width * 2)) - screen.width
     screen.blit(cloud, bo + (cloud.width * 2 * i), 20)
 
   for i in range(0, 3):
     # draw the grass layer
-    bo = ((-background_offset / 1.5) % (grass.width)) - screen.width
+    bo = ((-background_offset / 2) % (grass.width)) - screen.width
     screen.blit(grass, bo + (grass.width * i), 120 - grass.height)
 
 

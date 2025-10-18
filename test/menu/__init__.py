@@ -20,7 +20,7 @@ apps = [
 
 mona = SpriteSheet(f"../assets/mona-sprites/mona-default.png", 11, 1)
 screen.font = PixelFont.load("../assets/fonts/ark.ppf")
-screen.antialias = Image.X2
+#screen.antialias = Image.X2
 
 # find installed apps and create icons
 icons = []

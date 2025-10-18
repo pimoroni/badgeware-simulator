@@ -1,6 +1,7 @@
 import os, sys, gc
 from lib import *
 
+gc.threshold(10000)
 sys.path.append("assets")
 
 # sets up the sys path and current working directory for the app to be launched
@@ -12,7 +13,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("quest")
+app = run_app("flappy")
 
 _last_free_mem_debug = None
 def update():

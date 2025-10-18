@@ -12,7 +12,7 @@ class Mona:
     self.pos = (10, 50)
     self.score = 0
     self.velocity = 0
-    self.gravity = 9.88
+    self.gravity = 7
     self.last_update = None
     self.died_at = None
     self.done_dying = False
@@ -65,7 +65,7 @@ class Mona:
       self.died_at = io.ticks
 
   def jump(self):
-    self.velocity = -2.5
+    self.velocity = -2
 
   def bounds(self):
     # be a little generous with monas bounding box for collisions
