@@ -18,9 +18,11 @@ class Mona:
     self._happy = 50
     self._hunger = 80
     self._clean = 40
-    self._mood = None
     self._animation = None
+    self._mood = None
     self._mood_changed_at = time.time()
+    self._action = None
+    self._action_changed_at = None
     self._position_changed_at = time.time()
     self._position = (80, y + 2)
     self._direction = 1
@@ -33,8 +35,12 @@ class Mona:
     x, y = self._position
 
     # select sprite for current animation frame
-    ticks = time.ticks_ms()
-    image = Mona._animations[self._mood].frame(round(ticks / 100))
+    if self._action:
+      action_time = time.time() - self._action_changed_at
+      image = Mona._animations[self._action].frame(round(action_time * 10))
+    else:
+      image = Mona._animations[self._mood].frame(round(io.ticks / 100))
+
     width, height = image.width * 2, image.height * 2
 
     # draw monas shadow
@@ -84,6 +90,13 @@ class Mona:
     self._mood = mood
     self._mood_changed_at = time.time()
 
+  def do_action(self, action):
+    self._action = action
+    self._action_changed_at = time.time()
+
+  def current_action(self):
+    return self._action
+
   # increase or decrease monas statistics
   def happy(self, amount):
     self._happy = clamp(self._happy + amount, 0, 100)
@@ -100,13 +113,19 @@ class Mona:
     x, y = self._position
 
     # if mona isn't at their target position then move towards it
-    if x != self._target:
+    if x != self._target and not self._action:
       self._direction = 1 if x > self._target else -1
       self._position = (x - (self._speed * self._direction), y)
 
+    # if mona is performing an action then let it run for 2 seconds and end it
+    if self._action:
+      if time.time() - self._action_changed_at > 2:
+        self._action = None
+
   # select a random mood for mona
-  def random_mood(self):
-    self.set_mood(random.choice(Mona._moods))
+  def random_idle(self):
+    idles = ["code", "default", "heart", "dance", "notify"]
+    self.set_mood(random.choice(idles))
 
   # return the number of seconds since monas mood changed
   def time_since_last_mood_change(self):
@@ -114,17 +133,21 @@ class Mona:
 
 # define monas animations and the number of frames
 animations = {
-  "dance": 6,
-  "code": 4,
-  "dead": 7,
+  # actions
+  "heart":   14, # play
+  "eating":  12, # eat
+  "dance":    6, # clean
+
+  # idles
+  "code":     4,
   "default": 11,
-  "eating": 12,
-  "heart": 14,
-  "notify": 11
+  "notify":  11,
+
+  # sad.
+  "dead":     7, # oh no, mona!
 }
 
 # load the spritesheets for monas animations
-print("load spritesheets")
 for name, frame_count in animations.items():
   sprites = SpriteSheet(f"../assets/mona-sprites/mona-{name}.png", frame_count, 1)
   Mona._animations[name] = sprites.animation()

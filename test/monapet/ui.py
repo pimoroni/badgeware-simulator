@@ -4,9 +4,10 @@ from lib import *
 
 # load user interface sprites
 icons = SpriteSheet(f"assets/icons.png", 4, 1)
+arrows = SpriteSheet(f"assets/arrows.png", 3, 1)
 
 # load in the font - font sheet generated from
-screen.font = PixelFont.load("../assets/fonts/vest.ppf")
+screen.font = PixelFont.load("../assets/fonts/ark.ppf")
 
 # brushes to match monas stats
 stats_brushes = {
@@ -25,12 +26,11 @@ stats_icons = {
 
 # ui outline (contrast) colour
 outline_brush = brushes.color(20, 30, 40, 150)
+outline_brush_bold = brushes.color(20, 30, 40, 200)
 
 # draw the background scenery
 def background(mona):
   floor_y, mona_x = mona.position()[1] - 5, mona.position()[0]
-
-  screen.antialias = Image.OFF
 
   # fill the wall background
   screen.brush = brushes.color(30, 50, 70)
@@ -58,9 +58,6 @@ def background(mona):
   screen.brush = brushes.color(120, 130, 140, 255)
   screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
   portrait = mona._animations["heart"].frame(7)
-  #print(portrait.has_palette)
-  portrait.alpha = 180
-
   screen.blit(portrait, px + 8, 20)
 
   # draw the skirting board
@@ -69,8 +66,7 @@ def background(mona):
   screen.draw(shapes.rectangle(0, floor_y - 4, 160, 1))
 
   # draw the outlet
-  outlet = icons.sprite(3, 0)
-  screen.blit(outlet, px - 90, floor_y - 18)
+  screen.blit(icons.sprite(3, 0), px - 20, floor_y - 18)
 
   # draw the floor
   floor = screen.window(0, floor_y, 160, 120) # clip drawing to floor area
@@ -78,85 +74,76 @@ def background(mona):
   # draw background fill
   floor.brush = brushes.color(30, 40, 20)
   floor.draw(shapes.rectangle(0, 0, 160, 120 - floor_y))
-  # draw floorboards
-  floor.brush = brushes.color(100, 200, 100, 15)
+
+  # draw angled "floorboard" lines centered on mona
+  floor.brush = brushes.color(100, 200, 100, 25)
   for i in range(0, 300, 10):
     x1 = i - ((mona_x - i) * 1.5)
     x2 = i - ((mona_x - i) * 2)
     line = shapes.line(x1, 5, x2, 19, 2)
     floor.draw(line)
 
-  screen.antialias = Image.X4
-
 # draw the title banner
 def draw_header():
-  screen.brush = brushes.color(39, 106, 171)
-  screen.draw(shapes.rounded_rectangle(28, -10, 160 - 56, 30.5, 5))
-
   screen.brush = outline_brush
-  screen.draw(shapes.rounded_rectangle(30, -5, 160 - 60, 24, 3))
+  screen.draw(shapes.rounded_rectangle(40, -5, 160 - 80, 18, 3))
 
-  w, _ = screen.measure_text("monagotchi", 18)
-  screen.brush = brushes.color(0, 0, 0, 100)
-  screen.text("mona pet", 80 - (w / 2) + 2, + 2,  18)
-
-  pulse = math.sin(io.ticks / 250) * 50
-  screen.brush = brushes.color(200 + pulse, 200 + pulse, 200 + pulse)
-  screen.text("mona pet", 80 - (w / 2), 0, 18)
-
-def draw_buttons():
-  draw_button(  4, 102, stats_brushes["happy"], "A", "play")
-  draw_button( 55, 102, stats_brushes["hunger"], "B", "feed")
-  draw_button(106, 102, stats_brushes["clean"], "C", "clean")
+  screen.brush = brushes.color(255, 255, 255)
+  center_text("mona pet", 0)
 
 # draw a user action button with button name and label
-def draw_button(x, y, brush, button, label):
-  button_width = 50
+def draw_button(x, y, label, active):
+  width = 50
 
-  # draw the button outline
-  screen.brush = outline_brush
-  screen.draw(shapes.rounded_rectangle(x, y, button_width, 15, 6))
+  # create an animated bounce effect
+  bounce = math.sin(((io.ticks / 20) - x) / 10) * 2
 
-  # draw the button fill
-  screen.brush = brushes.color(60, 80, 100)
-  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, button_width - 2, 15 - 2, 4))
-  screen.brush = brushes.color(0, 0, 0, 100)
-  screen.text(label, x + 17, y - 0, 14)
-  screen.brush = brushes.color(255, 255, 255)
-  screen.text(label, x + 16, y - 1, 14)
+  # draw the button label
+  screen.brush = brushes.color(255, 255, 255, 255 if active else 150)
+  shadow_text(label, y + (bounce / 2), x, x + width)
 
-  # draw the button action key
-  screen.brush = brush
-  screen.draw(shapes.rounded_rectangle(x + 1, y + 1, 13, 13, 4))
-  screen.brush = brushes.color(0, 0, 0, 100)
-  screen.text(button, x + 4, y + 1, 14)
-  screen.brush = brushes.color(255, 255, 255)
-  screen.text(button, x + 3, y, 14)
+  # draw the button arrow
+  arrows.sprite(2, 0).alpha = 255 if active else 150
+  screen.blit(arrows.sprite(2, 0), x + (width / 2) - 4, y + bounce + 10)
+
 
 # draw a statistics bar with icon and fill level
 def draw_bar(name, x, y, amount):
-  bar_width = 40
+  bar_width = 50
+
+  screen.brush = outline_brush
+  screen.draw(shapes.rounded_rectangle(x, y, bar_width, 12, 3))
+
 
   # draw the bar background
   screen.brush = outline_brush
-  screen.draw(shapes.rounded_rectangle(x + 7, y, bar_width, 10, 2))
+  screen.draw(shapes.rounded_rectangle(x + 14, y + 3, bar_width - 17, 6, 2))
 
   #calculate how wide the bar "fill" is and clamp it to at least 3 pixels
-  fill_width = max(((bar_width - 2) / 100) * amount, 6)
+  fill_width = int(max(((bar_width - 17) / 100) * amount, 6))
 
   # if bar level is low then alternate fill with red to show a warning
   screen.brush = stats_brushes[name]
   if amount <= 30:
-    ticks = time.ticks_ms()
-    blink = round(ticks / 250) % 2 == 0
+    blink = round(io.ticks / 250) % 2 == 0
     if blink:
       screen.brush = stats_brushes["warning"]
-  screen.draw(shapes.rounded_rectangle(x + 7 + 1, y + 1, fill_width, 8, 2))
+  screen.draw(shapes.rounded_rectangle(x + 14, y + 3, fill_width, 6, 2))
 
-  screen.blit(stats_icons[name], x, y - 3)
+  screen.brush = brushes.color(210, 230, 250, 50)
+  screen.draw(shapes.rounded_rectangle(x + 15, y + 3, fill_width - 2, 1, 1))
 
-# draw monas statistics bars
-def draw_stat_bars(mona):
-  draw_bar("happy",  2, 41, mona.happy)
-  draw_bar("hunger", 2, 58, mona.hunger)
-  draw_bar("clean",  2, 75, mona.clean)
+  screen.blit(stats_icons[name], x, y - 1)
+
+
+
+def center_text(text, y, sx = 0, ex = 160):
+  w, _ = screen.measure_text(text)
+  screen.text(text, sx + ((ex - sx) / 2) - (w / 2), y)
+
+def shadow_text(text, y, sx = 0, ex = 160):
+  temp = screen.brush
+  screen.brush = brushes.color(0, 0, 0, 100)
+  center_text(text, y + 1, sx + 1, ex + 1)
+  screen.brush = temp
+  center_text(text, y, sx, ex)
