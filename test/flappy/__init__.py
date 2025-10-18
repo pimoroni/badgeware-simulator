@@ -17,6 +17,24 @@ class GameState:
   PLAYING = 2
   GAME_OVER = 3
 
+state = GameState.INTRO
+
+def update():
+  draw_background()
+
+  if state == GameState.INTRO:
+    intro()
+
+  if state == GameState.PLAYING:
+    play()
+
+  if state == GameState.GAME_OVER:
+    game_over()
+
+  return True
+
+# handle the intro screen of the game, shows the game title and a message to
+# tell the player how to start the game
 def intro():
   global state, mona
 
@@ -36,6 +54,9 @@ def intro():
     Obstacle.next_spawn_time = io.ticks + 500
     mona = Mona()
 
+# handle the main game loop and user input. each tick we'll update the game
+# state (read button input, move mona, create new obstacles, etc..) then
+# draw the background and sprites
 def play():
   global state
 
@@ -68,6 +89,8 @@ def play():
     if mona.is_done_dying():
       state = GameState.GAME_OVER
 
+# handle the GAME OVER screen. show the player what score they achieved and
+# provide instructions for how to start again
 def game_over():
   global state
 
@@ -79,13 +102,6 @@ def game_over():
   screen.font = small_font
   center_text(f"Final score: {mona.score}", 40)
 
-  # draw spooky mona! wooOoooOooOOOooooOOo
-  # xo = math.sin(io.ticks / 1000) * 3
-  # yo = math.cos(io.ticks / 1000) * 5
-  # frame = ghost.frame(io.ticks / 100)
-  # frame.alpha = 150
-  # screen.blit(frame, 70 + xo, 60 + yo)
-
   # flash press button message
   if int(io.ticks / 500) % 2:
     screen.brush = brushes.color(255, 255, 255)
@@ -95,52 +111,34 @@ def game_over():
     # return game to intro state
     state = GameState.INTRO
 
-
+# draw the scrolling background with parallax layers
 background_offset = 0
 def draw_background():
   global background_offset
 
-  if not mona or not mona.is_dead() or state == GameState.INTRO:
-    background_offset += 0.5
+  # clear the whole screen in a bright blue
+  screen.brush = brushes.color(73, 219, 255)
+  screen.draw(shapes.rectangle(0, 0, 160, 120))
 
-  # draw the distance background
+  # if we're on the intro screen or mona is alive then scroll the background
+  if not mona or not mona.is_dead() or state == GameState.INTRO:
+    background_offset += 1
+
   for i in range(0, 3):
-    bo = ((-background_offset / 4) % background.width) - screen.width
+    # draw the distance background
+    bo = ((-background_offset / 8) % background.width) - screen.width
     screen.blit(background, bo + (background.width * i), 120 - background.height)
 
     # draw the cloud background
-    bo = ((-background_offset / 4) % (cloud.width * 2)) - screen.width
+    bo = ((-background_offset / 8) % (cloud.width * 2)) - screen.width
     screen.blit(cloud, bo + (cloud.width * 2 * i), 20)
 
   for i in range(0, 3):
     # draw the grass layer
-    bo = ((-background_offset / 2) % (grass.width)) - screen.width
+    bo = ((-background_offset / 4) % (grass.width)) - screen.width
     screen.blit(grass, bo + (grass.width * i), 120 - grass.height)
 
-
-
-state = GameState.INTRO
-
-def update():
-  screen.brush = brushes.color(73, 219, 255)
-  screen.draw(shapes.rectangle(0, 0, 160, 120))
-
-  draw_background()
-
-  if state == GameState.INTRO:
-    intro()
-
-  if state == GameState.PLAYING:
-    play()
-
-  if state == GameState.GAME_OVER:
-    game_over()
-
-  return True
-
-
-
-
+# a couple of helper functions for formatting text
 def shadow_text(text, x, y):
   screen.brush = brushes.color(20, 40, 60, 100)
   screen.text(text, x + 1, y + 1)
