@@ -43,7 +43,7 @@ class Terminal:
       Terminal.lines = Terminal.lines[len(Terminal.lines) - Terminal.max_lines:]
 
 # pre populate the terminal
-for i in range(0, 25):
+for _ in range(0, 25):
   Terminal.add_line()
 
 # the terminal effect creates a rolling window of text that is infinitely
