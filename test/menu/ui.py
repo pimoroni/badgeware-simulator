@@ -5,8 +5,8 @@ from lib import *
 black = brushes.color(0, 0, 0)
 background = brushes.color(35, 41, 37)
 phosphor = brushes.color(211, 250, 55)
-phosphor_glow = brushes.color(211, 250, 55, 20)
 terminal_text = brushes.color(60, 71, 16)
+terminal_fade = brushes.color(35, 41, 37, 150)
 
 def draw_background():
   # draw over the corners in black ready for the rounded rectangle that makes
@@ -46,6 +46,8 @@ class Terminal:
 for i in range(0, 25):
   Terminal.add_line()
 
+# the terminal effect creates a rolling window of text that is infinitely
+# populated with new lines
 def draw_terminal():
   screen.brush = terminal_text
 
@@ -55,20 +57,26 @@ def draw_terminal():
   # draw the terminal lines
   rect = shapes.rectangle(0, 0, 1, 1)
   for i in range(0, 25):
+    # work out the position of screen that this line will be rendered
     y = 20 + i * 5
     yo = ((io.ticks - Terminal.line_added_at) / Terminal.speed) * 5
     y = int(y - yo)
 
+    # force the random seed so that word widths will always be consistent for
+    # each line...
     random.seed(i + Terminal.lines_added)
     cx = 0
     while cx < Terminal.lines[i]:
+      # pick a random word width
       w = random.randint(3, 10)
+      # draw the "greeked" word
       rect.transform = Matrix().translate(cx + 5, y).scale(w, 2)
       screen.draw(rect)
+      # add a space
       cx += w + 2
 
   # draw the terminal fade at top
-  screen.brush = brushes.color(35, 41, 37, 150)
+  screen.brush = terminal_fade
   screen.draw(shapes.rectangle(0, 15, 160, 5))
   screen.draw(shapes.rectangle(0, 15, 160, 3))
 
@@ -78,12 +86,6 @@ def draw_header():
   label = f"Mona-OS v4.03{dots}"
   pos = (5, 2)
 
-  # fake a bit of phosphor glow
-  screen.brush = phosphor_glow
-  for y in range(-1, 2):
-    for x in range(-1, 2):
-      screen.text(label, pos[0] + x, pos[1] + y)
-
   # draw the OS title
   screen.brush = phosphor
   screen.text(label, *pos)
@@ -92,13 +94,9 @@ def draw_header():
   battery_level = 100
   pos = (137, 4)
   size = (16, 8)
-  screen.brush = phosphor_glow
-  for y in range(-1, 2):
-    for x in range(-1, 2):
-      screen.draw(shapes.rectangle(pos[0] + x, pos[1] + y, *size))
   screen.brush = phosphor
   screen.draw(shapes.rectangle(*pos, *size))
-  screen.draw(shapes.rectangle(pos[0] + size[0], pos[1] + 2, 2, 4))
+  screen.draw(shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4))
   screen.brush = background
   screen.draw(shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2))
 
