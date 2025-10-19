@@ -20,10 +20,10 @@ class Mona:
     self._clean = 100
     self._animation = None
     self._mood = None
-    self._mood_changed_at = time.time()
+    self._mood_changed_at = (io.ticks / 1000)
     self._action = None
     self._action_changed_at = None
-    self._position_changed_at = time.time()
+    self._position_changed_at = (io.ticks / 1000)
     self._position = (80, y + 2)
     self._direction = 1
     self._target = 80
@@ -36,7 +36,7 @@ class Mona:
 
     # select sprite for current animation frame
     if self._action:
-      action_time = time.time() - self._action_changed_at
+      action_time = (io.ticks / 1000) - self._action_changed_at
       image = Mona._animations[self._action].frame(round(action_time * 10))
     else:
       image = Mona._animations[self._mood].frame(round(io.ticks / 100))
@@ -71,12 +71,12 @@ class Mona:
   # set a new target position for mona to move to
   def move_to(self, target):
     self._target = target
-    self._position_changed_at = time.time()
+    self._position_changed_at = (io.ticks / 1000)
 
   # move mona back into centre frame
   def move_to_center(self):
     self._target = 80
-    self._position_changed_at = time.time()
+    self._position_changed_at = (io.ticks / 1000)
 
   # select a random position for mona to move to
   def move_to_random(self):
@@ -84,7 +84,7 @@ class Mona:
 
   # return the number of seconds since mona moved
   def time_since_last_position_change(self):
-    return time.time() - self._position_changed_at
+    return (io.ticks / 1000) - self._position_changed_at
 
   # return monas current position
   def position(self):
@@ -93,11 +93,11 @@ class Mona:
   # change monas mood
   def set_mood(self, mood):
     self._mood = mood
-    self._mood_changed_at = time.time()
+    self._mood_changed_at = (io.ticks / 1000)
 
   def do_action(self, action):
     self._action = action
-    self._action_changed_at = time.time()
+    self._action_changed_at = (io.ticks / 1000)
 
   def current_action(self):
     return self._action
@@ -130,7 +130,7 @@ class Mona:
 
     # if mona is performing an action then let it run for 2 seconds and end it
     if self._action:
-      if time.time() - self._action_changed_at > 2:
+      if (io.ticks / 1000) - self._action_changed_at > 2:
         self._action = None
 
   # select a random mood for mona
@@ -140,7 +140,7 @@ class Mona:
 
   # return the number of seconds since monas mood changed
   def time_since_last_mood_change(self):
-    return time.time() - self._mood_changed_at
+    return (io.ticks / 1000) - self._mood_changed_at
 
 # define monas animations and the number of frames
 animations = {

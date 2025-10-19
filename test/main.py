@@ -13,7 +13,7 @@ def run_app(name):
   module = __import__(name)
   return module
 
-app = run_app("msc")
+app = run_app("monapet")
 
 _last_free_mem_debug = None
 def update():
