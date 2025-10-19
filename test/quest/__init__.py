@@ -16,14 +16,14 @@ class Quest:
 
 quests = [
   Quest(1, 0x11, "Hack Your Badge"),
-  Quest(2, 0x22, "The Thinking Machine"),
-  Quest(3, 0x33, "Open Source Zone"),
-  Quest(4, 0x44, "GitHub Learn"),
-  Quest(5, 0x55, "The Makerspace"),
+  Quest(2, 0x22, "Whats up Docs"),
+  Quest(3, 0x33, "Stars Lounge"),
+  Quest(4, 0x44, "GitHub Next"),
+  Quest(5, 0x55, "Open Source Zone"),
   Quest(6, 0x66, "Demos & Donuts"),
-  Quest(7, 0x77, "Octocat Generator"),
-  Quest(8, 0x88, "Stars Lounge"),
-  Quest(9, 0x99, "GitHub Next")
+  Quest(7, 0x77, "GitHub Learn"),
+  Quest(8, 0x88, "Octocat Generator"),
+  Quest(9, 0x99, "Makerspace")
 ]
 
 # setup handled ir button codes
