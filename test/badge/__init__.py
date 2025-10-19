@@ -114,8 +114,56 @@ user = User()
 user.handle = None
 user.name = None
 
+# tell the user where to fill in their details
+def no_secrets_error():
+  screen.font = large_font
+  screen.brush = white
+  center_text("Missing Details!", 5)
+
+  screen.text("1:", 10, 23)
+  screen.text("2:", 10, 55)
+  screen.text("3:", 10, 87)
+
+  screen.brush = phosphor
+  screen.font = small_font
+  wrap_text("""Put your badge into\ndisk mode (tap\nRESET twice)""", 30, 24)
+
+  wrap_text("""Edit 'secrets.py' to\nset WiFi details and\nGitHub username.""", 30, 56)
+
+  wrap_text("""Reload to see your\nsweet sweet stats!""", 30, 88)
+
+# tell the user that the connection failed :-(
+def connection_error():
+  screen.font = large_font
+  screen.brush = white
+  center_text("Connection Failed!", 5)
+
+  screen.text("1:", 10, 63)
+  screen.text("2:", 10, 95)
+
+  screen.brush = phosphor
+  screen.font = small_font
+  wrap_text("""Could not connect\nto the WiFi network.\n\n:-(""", 16, 20)
+
+  wrap_text("""Edit 'secrets.py' to\nset WiFi details and\nGitHub username.""", 30, 65)
+
+  wrap_text("""Reload to see your\nsweet sweet stats!""", 30, 96)
+
+def center_text(text, y):
+  w, h = screen.measure_text(text)
+  screen.text(text, 80 - (w / 2), y)
+
+
+def wrap_text(text, x, y):
+  lines = text.splitlines()
+  for line in lines:
+    _, h = screen.measure_text(line)
+    screen.text(line, x, y)
+    y += h * 0.8
+
 def update():
   screen.brush = brushes.color(0, 0, 0)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
+
 
   user.draw()
