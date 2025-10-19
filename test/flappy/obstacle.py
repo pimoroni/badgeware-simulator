@@ -12,7 +12,7 @@ class Obstacle:
   def spawn():
     # create a new obstacle and reset the obstacle spawn timer
     Obstacle.obstacles.append(Obstacle())
-    Obstacle.next_spawn_time = io.ticks + 2000
+    Obstacle.next_spawn_time = io.ticks + 1500
 
     # clean up any obstacles that are now off screen and can be removed
     Obstacle.obstacles = [o for o in Obstacle.obstacles if o.x > -24]
