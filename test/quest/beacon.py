@@ -11,15 +11,15 @@ class GithubUniverseBeacon(RemoteDescriptor):
   ADDRESS = 0x45
 
   BUTTON_CODES = {
-    "QUEST1": 0x11,
-    "QUEST2": 0x22,
-    "QUEST3": 0x33,
-    "QUEST4": 0x44,
-    "QUEST5": 0x55,
-    "QUEST6": 0x66,
-    "QUEST7": 0x77,
-    "QUEST8": 0x88,
-    "QUEST9": 0x99
+    1: 0x11,
+    2: 0x22,
+    3: 0x33,
+    4: 0x44,
+    5: 0x55,
+    6: 0x66,
+    7: 0x77,
+    8: 0x88,
+    9: 0x99
   }
 
   def __init__(self):

@@ -4,40 +4,111 @@ from lib import *
 from beacon import GithubUniverseBeacon
 import ui
 
+small_font = PixelFont.load("../assets/fonts/ark.ppf")
+large_font = PixelFont.load("../assets/fonts/absolute.ppf")
+splash = Image.load("assets/splash.png")
+
 class Quest:
-  def __init__(self, name, code, description):
+  def __init__(self, id, code, name):
+    self.id = id
     self.name = name
-    self.description = description
     self.code = code
 
 quests = [
-  Quest("QUEST1", 0x11, "Hack Your Badge"),
-  Quest("QUEST2", 0x22, "The Thinking Machine"),
-  Quest("QUEST3", 0x33, "Open Source Zone"),
-  Quest("QUEST4", 0x44, "GitHub Learn"),
-  Quest("QUEST5", 0x55, "The Makerspace"),
-  Quest("QUEST6", 0x66, "Demos & Donuts"),
-  Quest("QUEST7", 0x77, "Octocat Generator"),
-  Quest("QUEST8", 0x88, "Stars Lounge"),
-  Quest("QUEST9", 0x99, "GitHub Next")
+  Quest(1, 0x11, "Hack Your Badge"),
+  Quest(2, 0x22, "The Thinking Machine"),
+  Quest(3, 0x33, "Open Source Zone"),
+  Quest(4, 0x44, "GitHub Learn"),
+  Quest(5, 0x55, "The Makerspace"),
+  Quest(6, 0x66, "Demos & Donuts"),
+  Quest(7, 0x77, "Octocat Generator"),
+  Quest(8, 0x88, "Stars Lounge"),
+  Quest(9, 0x99, "GitHub Next")
 ]
 
 # setup handled ir button codes
 for quest in quests:
-  GithubUniverseBeacon.BUTTON_CODES[quest.name] = quest.code
+  GithubUniverseBeacon.BUTTON_CODES[quest.id] = quest.code
 
-# do this!
-# receiver = NECReceiver(21, 0, 0)
-# receiver.bind(self.remote)
-# receiver.start()
+state = {
+  "completed": []
+}
+
+# load state here
+state_load("monas_quest", state)
+
+_last_task_completed = None
+_last_task_completed_at = None
+def complete_quest(id):
+  global _last_task_completed_at, _last_task_completed
+  if id not in state["completed"] and id <= len(quests ):
+    _last_task_completed_at = io.ticks
+    _last_task_completed = quests[id - 1]
+    state["completed"].append(id)
+    state_save("monas_quest", state)
+
+# setup the ir receiver to callback to our complete quest method when a code
+# is received...
+ir = GithubUniverseBeacon()
+ir.remote.on_known = complete_quest
+receiver = NECReceiver(21, 0, 0)
+receiver.bind(ir)
+receiver.start()
 
 def update():
+  global _last_task_completed_at
+
+  # decode any ir events that have occurred
+  receiver.decode()
+
   # clear the screen
   screen.brush = brushes.color(35, 41, 37)
   screen.draw(shapes.rectangle(0, 0, 160, 120))
 
-  #receiver.decode()
+  # draw the quest tile grid
+  ui.draw_status(state["completed"])
+  ui.draw_tiles(state["completed"])
 
-  ui.draw_status()
+  # if button pressed and we're showing a quest completed screen then dismiss it
+  if io.pressed and _last_task_completed_at:
+    _last_task_completed_at = None
 
-  ui.draw_tiles()
+  if _last_task_completed_at:
+    # if you find a new location then show well done screen
+    width, height = 160, 120
+    zoom_speed = 250
+    if io.ticks - _last_task_completed_at < zoom_speed:
+      # for first 250ms of well done screen animate it zooming in
+      alpha = ((io.ticks - _last_task_completed_at) / zoom_speed)
+      zoom = ((io.ticks - _last_task_completed_at) / zoom_speed) * 10
+      width *= (zoom / 10)
+      height *= (zoom / 10)
+      splash.alpha = int(alpha * 255)
+      screen.scale_blit(splash, 80 - width / 2, 60 - height / 2, width, height)
+    else:
+      splash.alpha = 255
+      screen.blit(splash, 0, 0)
+
+      label = _last_task_completed.name
+      message = "Location Unlocked!"
+      if len(state["completed"]) == len(quests):
+        message = "Side Quest Complete!"
+
+      screen.font = large_font
+      lw, _ = screen.measure_text(label)
+      screen.font = small_font
+      mw, _ = screen.measure_text(message)
+
+      # draw message bubble
+      screen.brush = brushes.color(46, 160, 67, 200)
+      lw_corners = (4, 4, 0, 0) if lw < mw else (4, 4, 4, 4)
+      mw_corners = (4, 4, 4, 4) if lw < mw else (0, 0, 4, 4)
+      screen.draw(shapes.rounded_rectangle(80 - (lw / 2) - 4, 2, lw + 8, 18, *lw_corners))
+      screen.draw(shapes.rounded_rectangle(80 - (mw / 2) - 4, 20 , mw + 8, 12, *mw_corners))
+
+      # draw task label and message
+      screen.brush = brushes.color(255, 255, 255, 255)
+      screen.font = large_font
+      screen.text(label, 80 - (lw / 2), 2)
+      screen.font = small_font
+      screen.text(message, 80 - (mw / 2), 19)
