@@ -29,5 +29,17 @@
 
 #define MICROPY_PY_SYS_STDFILES (0)
 
+#ifndef MICROPY_PY_SOCKET
+#define MICROPY_PY_SOCKET       (1)
+#endif
+
+#ifndef MICROPY_PY_SSL
+#define MICROPY_PY_SSL           (1)
+#endif
+
+#ifndef MICROPY_SSL_MBEDTLS
+#define MICROPY_SSL_MBEDTLS       (1)
+#endif
+
 // Enable extra Unix features.
 #include "../mpconfigvariant_common.h"

@@ -70,7 +70,7 @@ find_package(CIMGUI CONFIG REQUIRED PATHS ${LIB_DIR})
 
 add_executable(${MICROPY_TARGET})
 
-target_link_libraries(${MICROPY_TARGET} sokol cimgui)
+target_link_libraries(${MICROPY_TARGET} sokol cimgui micropy_lib_mbedtls)
 
 set(MICROPY_QSTRDEFS_PORT
     ${MICROPY_PORT_DIR}/qstrdefsport.h
@@ -96,7 +96,7 @@ set(MICROPY_SOURCE_PORT
 	${MICROPY_PORT_DIR}/mpbtstackport_usb.c
 	${MICROPY_PORT_DIR}/mpnimbleport.c
 	#${MICROPY_PORT_DIR}/modtermios.c
-	#${MICROPY_PORT_DIR}/modsocket.c
+	${MICROPY_PORT_DIR}/modsocket.c
 	${MICROPY_PORT_DIR}/modffi.c
 	${MICROPY_PORT_DIR}/modjni.c
 )
@@ -164,6 +164,7 @@ target_include_directories(${MICROPY_TARGET} PRIVATE
 # Need these to make the QSTR parser happy
 list(APPEND MICROPY_CPP_FLAGS
     "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+    "-I${MICROPY_DIR}/lib/mbedtls/include"
     "-I${MICROPY_DIR}"
     "-I${MICROPY_VARIANT_DIR}"
     "-I${MICROPY_PORT_DIR}"
