@@ -1,3 +1,8 @@
+# Copy-at-runtime system files
+root/secrets.py
+root/main.py
+root/state/*
+
 # Prerequisites
 *.d
 
