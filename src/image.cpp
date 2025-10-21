@@ -87,6 +87,12 @@ namespace picovector {
     return this->_has_palette;
   }
 
+  void image_t::delete_palette() {
+    if(this->has_palette()) {
+      this->_palette.clear();
+    }
+  }
+
   void image_t::palette(uint8_t i, uint32_t c) {
     this->_palette[i] = c;
   }

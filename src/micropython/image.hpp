@@ -34,6 +34,7 @@ extern "C" {
   mp_obj_t image__del__(mp_obj_t self_in) {
     self(self_in, image_obj_t);
     if(self->image) {
+      self->image->delete_palette();
       m_del_class(image_t, self->image);
     }
     return mp_const_none;
