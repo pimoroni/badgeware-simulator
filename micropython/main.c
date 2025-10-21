@@ -108,7 +108,8 @@ mp_obj_t pystack[1024];
 
 // Hot reloading
 volatile bool hot_reload = false;
-char hot_reload_code[PATH_MAX];
+//char hot_reload_code[PATH_MAX];
+char* path_root;
 
 static void stderr_print_strn(void *env, const char *str, size_t len) {
     (void)env;
@@ -267,7 +268,21 @@ void smemtrack_free(void* ptr, void* user_data) {
     free(ptr);
 }
 
+/*
+static const mp_rom_map_elem_t vfs_mount_readonly_table[] = {
+    { MP_ROM_QSTR(MP_QSTR_readonly), MP_ROM_TRUE },
+};
+static MP_DEFINE_CONST_MAP(vfs_mount_readonly_map, vfs_mount_readonly_table);
+*/
+
 static void micropython_init(void) {
+    /*char path[2048];
+    getcwd(path, sizeof(path));
+    printf("micropython_init: %s\n", path);*/
+
+    // vfs_posix calls chdir and messes things up
+    chdir(path_root);
+    printf("micropython_init: mp_deinit\n");
     mp_deinit();
 
     #if MICROPY_PY_THREAD
@@ -276,13 +291,16 @@ static void micropython_init(void) {
 
     #if MICROPY_ENABLE_GC
     memset(heap, 0, sizeof(heap));
+    printf("micropython_init: gc_init\n");
     gc_init(heap, heap + sizeof(heap));
     #endif
 
     #if MICROPY_ENABLE_PYSTACK
+    printf("micropython_init: mp_pystack_init\n");
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
     #endif
 
+    printf("micropython_init: mp_init\n");
     mp_init();
 
     #if MICROPY_EMIT_NATIVE
@@ -290,11 +308,19 @@ static void micropython_init(void) {
     MP_STATE_VM(default_emit_opt) = MP_EMIT_OPT_NONE;
     #endif
 
+    printf("micropython_init mp_vfs_mount(\"/\", vfs_posix(\"%s\"))\n", path_root);
+
+    printf("micropython_init MP_STATE_VM(vfs_cur) = %p\n", MP_STATE_VM(vfs_cur));
+
+    mp_obj_t vfs_posix_args[1] = {
+        MP_OBJ_NEW_QSTR(qstr_from_str(path_root))
+    };
+
     // Mount the host FS at the root of our internal VFS
     mp_obj_t args[2] = {
-        MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 0, 0, NULL),
+        MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 1, 0, vfs_posix_args),
         MP_OBJ_NEW_QSTR(MP_QSTR__slash_),
-    };
+    }; 
     mp_vfs_mount(2, args, (mp_map_t *)&mp_const_empty_map);
 
     // Make sure the root that was just mounted is the current VFS (it's always at
@@ -305,8 +331,17 @@ static void micropython_init(void) {
         MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_cur)->next;
     }
 
+    /*
+    vfs_posix_args[0] = MP_OBJ_NEW_QSTR(qstr_from_str(path_system));
+    args[0] = MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 1, 0, vfs_posix_args);
+    args[1] = MP_OBJ_NEW_QSTR(qstr_from_str("/system"));
+
+    mp_vfs_mount(2, args, (mp_map_t *)&vfs_mount_readonly_map);
+    */
     mp_sys_path = mp_obj_new_list(0, NULL);
-    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_));
+    //mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // breaks imports
+    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
+    mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(qstr_from_str(".frozen")));
 }
 
 static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, const char* rootdir,
@@ -324,21 +359,22 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
 
 static int badgeware_init(void) {
     debug_printf("badgeware_init: Hello BadgeWare!\n");
-    const char *path = sargs_value_def("code", "test/main.py");
-    char *rpath = realpath(path, NULL);
+    //const char *path = sargs_value_def("code", "root/");
+    //char *rpath = realpath(path, NULL);
+    char *rpath = "root/system";
 
     if(rpath && access(rpath, R_OK) == 0) {
-        memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
-        hot_reload_code[strlen(rpath)] = '\0';
+        //memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
+        //hot_reload_code[strlen(rpath)] = '\0';
 
-        char *dname = dirname(rpath);
+        //char *dname = dirname(rpath);
         //debug_printf("badgeware_init: Watching code: \"%s\"\n", hot_reload_code);
         //debug_printf("badgeware_init: Watching directory \"%s\"\n", dname);
-        dmon_watch(dname, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, (void*)hot_reload_code);
+        dmon_watch(rpath, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, NULL);
         hot_reload = true;
         return 0;
     } else {
-        debug_printf("badgeware_init: Could not open %s\n", path);
+        debug_printf("badgeware_init: Could not open %s\n", rpath);
         return -1;
     }
 }
@@ -358,12 +394,10 @@ static int run_file(const char* path) {
     memcpy(dpath, path, strlen(path));
 
     // Set base dir of the script as first entry in sys.path.
-    const char* dir = dirname(dpath);
-    mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
+    //const char* dir = dirname(dpath);
+    //mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
 
     int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-
-    fetch_badgeware_update_callback();
 
     return ret;
 }
@@ -436,15 +470,19 @@ static void sokol_frame(void) {
 
     if(hot_reload) {
         if(!first_run) {
+            printf("gc_sweep_all\n");
             gc_sweep_all();
         }
         first_run = false;
+        printf("micropython_init\n");
         micropython_init();
+        printf("stm_setup\n");
         stm_setup();
         picovector_last_ticks = 0;
         picovector_ticks = stm_ms(stm_now());
-
-        run_file(hot_reload_code);
+        run_file("boot.py");
+        run_file("main.py");
+        fetch_badgeware_update_callback();
         hot_reload = false;
     }
 
@@ -574,6 +612,7 @@ static void sokol_event(const sapp_event* ev) {
     simgui_handle_event(ev);
 }
 
+
 sapp_desc sokol_main(int argc, char* argv[]) {
     // Define a reasonable stack limit to detect stack overflow.
     mp_uint_t stack_size = 40000 * (sizeof(void *) / 4);
@@ -581,6 +620,8 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     // ARM (non-Thumb) architectures require more stack.
     stack_size *= 2;
     #endif
+
+    path_root = realpath("root", NULL);
 
     mp_cstack_init_with_sp_here(stack_size);
 

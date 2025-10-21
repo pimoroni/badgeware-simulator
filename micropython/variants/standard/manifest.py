@@ -5,3 +5,5 @@ include("$(MPY_DIR)/extmod/asyncio")
 require("bundle-networking")
 require("urllib.urequest")
 require("umqtt.simple")
+
+freeze("$(PORT_DIR)/../modules")

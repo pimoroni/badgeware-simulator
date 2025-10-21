@@ -158,7 +158,8 @@ typedef long mp_off_t;
 #define MICROPY_ALLOC_PATH_MAX      (PATH_MAX)
 
 // Ensure builtinimport.c works with -m.
-#define MICROPY_MODULE_OVERRIDE_MAIN_IMPORT (1)
+#define MICROPY_MODULE_OVERRIDE_MAIN_IMPORT (0)
+#define MICROPY_ENABLE_EXTERNAL_IMPORT      (1)
 
 // Don't default sys.argv and sys.path because we do that in main.
 #define MICROPY_PY_SYS_PATH_ARGV_DEFAULTS (0)
