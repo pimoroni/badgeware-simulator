@@ -7,6 +7,8 @@
 #define MPTALLOCATOR_H
 
 extern "C" {
+    extern uint64_t mp_allocator_allocs;
+    extern bool debug_show_individual_allocs;
 #include "py/runtime.h"
     extern void *m_tracked_calloc(size_t nmemb, size_t size);
     extern void m_tracked_free(void *ptr_in);
@@ -28,8 +30,10 @@ struct MPAllocator
         //    throw std::bad_array_new_length();
 
         //if (auto p = static_cast<T*>(std::malloc(n * sizeof(T))))
-        if (auto p = static_cast<T*>(m_tracked_calloc(n, sizeof(T))))
+        //if (auto p = static_cast<T*>(m_tracked_calloc(n, sizeof(T))))
+        if (auto p = static_cast<T*>(m_malloc(n * sizeof(T))))
         {
+            mp_allocator_allocs++;
             report(p, n);
             return p;
         }
@@ -47,15 +51,19 @@ struct MPAllocator
     {
         report(p, n, 0);
         //std::free(p);
-        m_tracked_free(p);
+        //m_tracked_free(p);
+        m_free(p, n);
     }
 
 private:
     void report(T* p, std::size_t n, bool alloc = true) const
     {
-        // std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
-        //           << " bytes at " << std::hex << std::showbase
-        //           << reinterpret_cast<void*>(p) << std::dec << std::endl;
+        if(!debug_show_individual_allocs) {
+            return;
+        }
+        std::cout << (alloc ? "Alloc: " : "Dealloc: ") << sizeof(T) * n
+                  << " bytes at " << std::hex << std::showbase
+                  << reinterpret_cast<void*>(p) << std::dec << std::endl;
     }
 };
 

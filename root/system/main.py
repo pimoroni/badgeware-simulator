@@ -3,11 +3,42 @@ import gc
 import sys
 import os
 import micropython
+import simulator
 
-SKIP_CINEMATIC = True
+SKIP_CINEMATIC = simulator.skip_cinematic  # Set to True on load, False on hot reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
 app = None
+
+
+simulator.show_alloc_count = False       # Show number of MPAllocator allocs per frame
+simulator.show_individual_allocs = True  # Show each alloc/dealloc, size and location
+
+"""
+# RAM & GC Testing
+
+gc.threshold(10_000)
+
+from badgeware import screen, brushes, shapes
+
+print("main_window...")
+main_window = screen.window(0, 0, 160, 120)
+
+print("main_window.brush...")
+main_window.brush = brushes.color(255, 0, 0)
+
+print("pentagon...")
+pentagon = shapes.regular_polygon(80, 60, 50, 5)
+
+def update():
+    print(gc.mem_free())
+    screen.window(0, 0, 1, 1)
+    main_window.brush = brushes.color(255, 0, 0)
+    main_window.clear()
+    main_window.brush = brushes.color(0, 255, 0)
+    main_window.draw(pentagon)
+"""
+
 
 def launch(file):
     global app
@@ -49,3 +80,5 @@ def update():
         elif app.__name__ == APP_STARTUP:
             launch(APP_MENU)
     return True
+
+# """
