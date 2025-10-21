@@ -108,7 +108,7 @@ mp_obj_t pystack[1024];
 
 // Hot reloading
 volatile bool hot_reload = false;
-//char hot_reload_code[PATH_MAX];
+volatile bool skip_intro = false;
 char* path_root;
 
 static void stderr_print_strn(void *env, const char *str, size_t len) {
@@ -598,6 +598,10 @@ static void sokol_event(const sapp_event* ev) {
                 break;
             case SAPP_KEYCODE_DOWN: // Down
                 mask = 0b000001;
+                break;
+            case SAPP_KEYCODE_ESCAPE: // Home
+                skip_intro = true;  // TODO: make this work
+                hot_reload = true;
                 break;
             default:
                 simgui_handle_event(ev);
