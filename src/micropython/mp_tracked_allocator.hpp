@@ -7,6 +7,7 @@
 #define MPTALLOCATOR_H
 
 extern "C" {
+#include "py/runtime.h"
     extern void *m_tracked_calloc(size_t nmemb, size_t size);
     extern void m_tracked_free(void *ptr_in);
 }
@@ -32,6 +33,11 @@ struct MPAllocator
             report(p, n);
             return p;
         }
+        // TODO: Handle failed allocations gracefully here, somehow.
+        // Right now we will just keep on rollin' causing further issues,
+        // but at least printing out the failure stops things from melting
+        //printf("MPAllocator: Failed to allocate %lu bytes!\n", n);
+        mp_raise_msg_varg(&mp_type_RuntimeError, MP_ERROR_TEXT("Failed to allocate %lu bytes!"), n);
         return NULL;
 
         //throw std::bad_alloc();
