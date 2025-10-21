@@ -102,7 +102,7 @@ double picovector_last_ticks;
 
 // MicroPython heap and stack
 // #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
-#define heap_size (270 * 1024)
+#define heap_size (246912) // (270 * 1024)  // 246912 = actual heap measured from device
 static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
 
@@ -110,6 +110,7 @@ mp_obj_t pystack[1024];
 volatile bool hot_reload = false;
 volatile bool skip_intro = false;
 char* path_root;
+char *dmon_watch_path = "root/system";
 
 static void stderr_print_strn(void *env, const char *str, size_t len) {
     (void)env;
@@ -157,6 +158,18 @@ static int handle_uncaught_exception(mp_obj_base_t *exc) {
     // Report all other exceptions
     mp_obj_print_exception(&mp_plat_print, MP_OBJ_FROM_PTR(exc));
     return 1;
+}
+
+static int handle_uncaught_exception_and_forced_exit(mp_obj_base_t *exc) {
+    int result = handle_uncaught_exception(exc);
+
+    if(result & FORCED_EXIT) {
+        int status_code = result & ~FORCED_EXIT;
+        printf("Forced exit: %d - triggering hot reload\n", status_code);
+        hot_reload = true;
+    }
+
+    return result;
 }
 
 #define LEX_SRC_STR (1)
@@ -223,12 +236,7 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
         // uncaught exception
         mp_hal_set_interrupt_char(-1);
         mp_handle_pending(false);
-        int result = handle_uncaught_exception(nlr.ret_val);
-        if(result & FORCED_EXIT) {
-            printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
-            hot_reload = true;
-        }
-        return result;
+        return handle_uncaught_exception_and_forced_exit(nlr.ret_val);
     }
 }
 
@@ -331,15 +339,9 @@ static void micropython_init(void) {
         MP_STATE_VM(vfs_cur) = MP_STATE_VM(vfs_cur)->next;
     }
 
-    /*
-    vfs_posix_args[0] = MP_OBJ_NEW_QSTR(qstr_from_str(path_system));
-    args[0] = MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 1, 0, vfs_posix_args);
-    args[1] = MP_OBJ_NEW_QSTR(qstr_from_str("/system"));
-
-    mp_vfs_mount(2, args, (mp_map_t *)&vfs_mount_readonly_map);
-    */
+    // It would be nice to mount system as readonly inside the writeable root filesystem
+    // but this confuses vfs_posix, leaving it unable to locate modules.
     mp_sys_path = mp_obj_new_list(0, NULL);
-    //mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR_)); // breaks imports
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(qstr_from_str(".frozen")));
 }
@@ -349,7 +351,7 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
 {
     switch(action) {
         case DMON_ACTION_MODIFY:
-            warning_printf("WARNING: Hot reload triggered by %s\n", filepath);
+            warning_printf("Hot reload: triggered by %s\n", filepath);
             hot_reload = true;
             break;
         default:
@@ -358,48 +360,28 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
 }
 
 static int badgeware_init(void) {
-    debug_printf("badgeware_init: Hello BadgeWare!\n");
-    //const char *path = sargs_value_def("code", "root/");
-    //char *rpath = realpath(path, NULL);
-    char *rpath = "root/system";
-
-    if(rpath && access(rpath, R_OK) == 0) {
-        //memcpy(hot_reload_code, rpath, strlen(rpath));// realpath(path, NULL);
-        //hot_reload_code[strlen(rpath)] = '\0';
-
-        //char *dname = dirname(rpath);
-        //debug_printf("badgeware_init: Watching code: \"%s\"\n", hot_reload_code);
-        //debug_printf("badgeware_init: Watching directory \"%s\"\n", dname);
-        dmon_watch(rpath, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, NULL);
+    debug_printf("badgeware_init: Hello BadgeWare!\n"); 
+    if(access(dmon_watch_path, R_OK) == 0) {
+        dmon_watch(dmon_watch_path, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, NULL);
         hot_reload = true;
         return 0;
     } else {
-        debug_printf("badgeware_init: Could not open %s\n", rpath);
+        debug_printf("badgeware_init: Could not open %s\n", dmon_watch_path);
         return -1;
     }
 }
 
 void fetch_badgeware_update_callback() {
-    debug_printf("Fetching update callback...\n");
+    debug_printf("Hot reload: Fetching update callback...\n");
     update_callback_obj = _mp_load_global(qstr_from_str("update"));
     if(update_callback_obj == mp_const_none) {
-        warning_printf("WARNING: a function named 'update()' is not defined\n");
+        warning_printf("WARNING: Hot reload: a function named 'update()' is not defined\n");
     }
 }
 
 static int run_file(const char* path) {
     debug_printf("Running \"%s\"\n\n", path);
-
-    char dpath[PATH_MAX];
-    memcpy(dpath, path, strlen(path));
-
-    // Set base dir of the script as first entry in sys.path.
-    //const char* dir = dirname(dpath);
-    //mp_obj_list_store(mp_sys_path, MP_OBJ_NEW_SMALL_INT(0), mp_obj_new_str_via_qstr(dir, strlen(dir)));
-
-    int ret = execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
-
-    return ret;
+    return execute_from_lexer(LEX_SRC_FILENAME, path, MP_PARSE_FILE_INPUT, true);
 }
 
 static void sokol_init(void) {
@@ -470,13 +452,10 @@ static void sokol_frame(void) {
 
     if(hot_reload) {
         if(!first_run) {
-            printf("gc_sweep_all\n");
             gc_sweep_all();
         }
         first_run = false;
-        printf("micropython_init\n");
         micropython_init();
-        printf("stm_setup\n");
         stm_setup();
         picovector_last_ticks = 0;
         picovector_ticks = stm_ms(stm_now());
@@ -556,11 +535,7 @@ static void sokol_frame(void) {
             nlr_pop();
         } else {
             update_callback_obj = mp_const_none;
-            int result = handle_uncaught_exception(nlr.ret_val);
-            if (result & FORCED_EXIT) {
-                printf("Forced exit: %d - triggering hot reload\n", result & ~FORCED_EXIT);
-                hot_reload = true;
-            }
+            (void)handle_uncaught_exception_and_forced_exit(nlr.ret_val);
         }
     }
 
@@ -631,7 +606,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 
     sargs_setup(&(sargs_desc){
         .argc = argc,
-        .argv = argv
+        .argv = argv 
     });
 
     return (sapp_desc){
