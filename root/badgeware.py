@@ -11,7 +11,7 @@ import machine
 import powman
 import st7789
 from picovector import brushes, shapes, screen, PixelFont, io, Image, Matrix  # noqa F401
-from math import floor
+from math import floor, sin
 
 
 ASSETS = "/system/assets"
@@ -99,6 +99,28 @@ VBUS_DETECT = machine.Pin.board.VBUS_DETECT
 CHARGE_STAT = machine.Pin.board.CHARGE_STAT
 SENSE_1V1 = machine.ADC(machine.Pin.board.SENSE_1V1)
 """
+
+class DummyPin:
+    def __init__(self, value):
+        self._value = value
+
+    def value(self):
+        return self._value
+
+class DummyADC:
+    def __init__(self, value):
+        self._value = value
+
+    def read_u16(self):
+        if callable(self._value):
+            return self._value()
+        return self._value
+
+
+VBUS_DETECT = DummyPin(0)
+CHARGE_STAT = DummyPin(1)
+VBAT_SENSE = DummyADC(lambda: (sin(io.ticks / 1000) + 1) * 32767)
+SENSE_1V1 = DummyADC(32767)
 
 SYSTEM_VERY_SLOW = 0
 SYSTEM_SLOW = 1
