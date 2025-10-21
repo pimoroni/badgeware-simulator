@@ -96,40 +96,36 @@ extern "C" {
       } break;
 
       case PNG_PIXEL_INDEXED: {
-        for(int i = 0; i < 256; i++) {
-          uint32_t c = _make_col(
-            pDraw->pPalette[i * 3 + 0],
-            pDraw->pPalette[i * 3 + 1],
-            pDraw->pPalette[i * 3 + 2],
-            pDraw->iHasAlpha ? pDraw->pPalette[768 + i] : 255
-          );
-          target->palette(i, c);
+        if(target->has_palette()) {
+          for(int i = 0; i < 256; i++) {
+            uint32_t c = _make_col(
+              pDraw->pPalette[i * 3 + 0],
+              pDraw->pPalette[i * 3 + 1],
+              pDraw->pPalette[i * 3 + 2],
+              pDraw->iHasAlpha ? pDraw->pPalette[768 + i] : 255
+            );
+            target->palette(i, c);
+          }
+
+          uint8_t *pdst = (uint8_t *)target->ptr(0, pDraw->y);
+          while(w--) {
+            *pdst = *psrc;
+            pdst++;
+            psrc++;
+          }
+        } else {
+          uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
+          while(w--) {
+            *pdst = _make_col(
+              pDraw->pPalette[*psrc * 3 + 0],
+              pDraw->pPalette[*psrc * 3 + 1],
+              pDraw->pPalette[*psrc * 3 + 2],
+              pDraw->iHasAlpha ? pDraw->pPalette[768 + *psrc] : 255
+            );
+            psrc++;
+            pdst++;
+          }
         }
-
-        uint8_t *pdst = (uint8_t *)target->ptr(0, pDraw->y);
-        while(w--) {
-          *pdst = *psrc;
-          pdst++;
-          psrc++;
-        }
-
-        // pDraw->pPalette
-        // uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
-        // while(c--) {
-        //   uint8_t pi = *psrc;
-        //   // do something with index here
-
-        //   *pdst = _make_col(
-        //     pDraw->pPalette[(pi * 3) + 0],
-        //     pDraw->pPalette[(pi * 3) + 1],
-        //     pDraw->pPalette[(pi * 3) + 2],
-        //     pDraw->iHasAlpha ? pDraw->pPalette[768 + pi] : 255
-        //   );
-
-        //   psrc++;
-        //   pdst++;
-        // }
-
       } break;
 
       case PNG_PIXEL_GRAYSCALE: {
