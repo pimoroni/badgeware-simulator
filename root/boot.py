@@ -7,18 +7,6 @@
 default_files = ["main.py", "secrets.py"]
 buf = bytearray(256)
 
-import sys
-print(sys.path)
-import os
-print("Listing .")
-print(os.listdir("."))
-
-print("Listing /")
-print(os.listdir("/"))
-
-print("Listing /system")
-print(os.listdir("/system"))
-
 for filename in default_files:
     print(f"Copying {filename}")
     try:

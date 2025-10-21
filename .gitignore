@@ -2,6 +2,7 @@
 root/secrets.py
 root/main.py
 root/state/*
+root/*.*
 
 # Prerequisites
 *.d
