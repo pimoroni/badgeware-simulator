@@ -18,6 +18,8 @@
 #include "input.h"
 #include "mpthreadport.h"
 
+#include <inttypes.h>
+
 #include "badgeware.h"
 #include "modsimulator.h"
 
@@ -270,7 +272,8 @@ static void micropython_reinit(void) {
     printf("micropython_init: %s\n", path);*/
 
     // vfs_posix calls chdir and messes things up
-    chdir(path_root);
+    int result = chdir(path_root);
+    (void)result;
     printf("micropython_init: mp_deinit\n");
     mp_deinit();
 
@@ -392,7 +395,7 @@ void badgeware_update(int ticks) {
             }
             nlr_pop();
             if(debug_show_alloc_count) {
-                debug_printf("main: %llu MPAllocator allocs this frame.\n", mp_allocator_allocs);
+                debug_printf("main: %" PRIu64 " MPAllocator allocs this frame.\n", mp_allocator_allocs);
             }
             mp_allocator_allocs = 0;
         } else {
