@@ -84,6 +84,8 @@ set(MICROPY_SOURCE_LIB
 
 set(MICROPY_SOURCE_PORT
     ${MICROPY_PORT_DIR}/main.c
+    ${MICROPY_PORT_DIR}/badgeware.c
+    ${MICROPY_PORT_DIR}/modsimulator.c
     ${MICROPY_PORT_DIR}/gccollect.c
 	${MICROPY_PORT_DIR}/unix_mphal.c
 	${MICROPY_PORT_DIR}/mpthreadport.c
