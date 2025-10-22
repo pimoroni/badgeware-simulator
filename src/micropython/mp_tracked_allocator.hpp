@@ -2,6 +2,7 @@
 #include <limits>
 #include <new>
 #include <iostream>
+#include <cstdint>
 
 #ifndef MPTALLOCATOR_H
 #define MPTALLOCATOR_H
