@@ -122,6 +122,11 @@ static void sokol_frame(void) {
         .dpi_scale = sapp_dpi_scale(),
     });
 
+    // Re-setup Sokol Time if Badgeware is going to hot-reload
+    // gives us a clean slate for ticks
+    if(badgeware_will_hot_reload()) {
+        stm_setup();
+    }
     badgeware_update(stm_ms(stm_now()));
 
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once);
@@ -205,7 +210,7 @@ static void sokol_event(const sapp_event* ev) {
                 break;
             case SAPP_KEYCODE_ESCAPE: // Home
                 modsim_skip_intro(true);
-                badgeware_hot_reload();
+                badgeware_trigger_hot_reload();
                 break;
             default:
                 simgui_handle_event(ev);

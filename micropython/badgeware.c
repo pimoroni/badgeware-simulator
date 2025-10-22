@@ -355,8 +355,12 @@ void badgeware_input(uint8_t mask, bool set) {
     }
 }
 
-void badgeware_hot_reload(void) {
+void badgeware_trigger_hot_reload(void) {
     hot_reload = true;
+}
+
+bool badgeware_will_hot_reload(void) {
+    return hot_reload;
 }
 
 void badgeware_update(int ticks) {
@@ -370,7 +374,6 @@ void badgeware_update(int ticks) {
         }
         first_run = false;
         micropython_reinit();
-        //stm_setup();
         picovector_last_ticks = 0;
         picovector_ticks = ticks;
         run_file("boot.py");

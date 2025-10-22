@@ -16,4 +16,5 @@ int badgeware_init(void);
 void badgeware_update(int ticks);
 void badgeware_deinit(void);
 void badgeware_input(uint8_t mask, bool set);
-void badgeware_hot_reload(void);
+void badgeware_trigger_hot_reload(void);
+bool badgeware_will_hot_reload(void);
