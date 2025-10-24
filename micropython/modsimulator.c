@@ -1,4 +1,5 @@
 #include "py/runtime.h"
+#include "badgeware.h"
 
 /* ModSimulator - Control over the simulator settings from Python code */
 typedef enum {GET, SET, DELETE} action_t;
@@ -8,12 +9,12 @@ action_t m_attr_action(mp_obj_t *dest) {
   return SET;
 }
 
-bool skip_intro = false;
+bool is_hot_reload = false;
 bool debug_show_alloc_count = false;
 bool debug_show_individual_allocs = false;
 
-void modsim_skip_intro(bool state) {
-    skip_intro = state;
+void modsim_set_hot_reload(void) {
+    is_hot_reload = true;
 }
 
 void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
@@ -35,9 +36,9 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
                 debug_show_alloc_count = mp_obj_is_true(dest[1]);
                 dest[0] = MP_OBJ_NULL;
             } break;
-        case MP_QSTR_skip_cinematic:
+        case MP_QSTR_hot_reload:
             if(action == GET) {
-                dest[0] = mp_obj_new_bool(skip_intro);
+                dest[0] = mp_obj_new_bool(is_hot_reload);
             } break;
     }
     dest[1] = MP_OBJ_SENTINEL;

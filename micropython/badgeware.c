@@ -35,11 +35,13 @@
 
 
 // Buttons for io.pressed / io.changed
+// These are included in src/micropython/input.hpp using extern
 uint8_t picovector_buttons;
 uint8_t picovector_last_buttons;
 uint8_t picovector_changed_buttons;
 
 // Value for io.ticks
+// These are included in src/micropython/input.hpp using extern
 double picovector_ticks;
 double picovector_last_ticks;
 
@@ -53,10 +55,10 @@ mp_obj_t pystack[1024];
 uint64_t mp_allocator_allocs = 0;
 
 // Hot reloading
-bool hot_reload = false;
-char* path_root;
-char *dmon_watch_path = "root/system";
-mp_obj_t update_callback_obj = mp_const_none;
+static bool hot_reload = false;
+static char* path_root;
+static char *dmon_watch_path = "root/system";
+static mp_obj_t update_callback_obj = mp_const_none;
 
 #define LEX_SRC_STR (1)
 #define LEX_SRC_VSTR (2)
@@ -193,7 +195,7 @@ static int execute_from_lexer(int source_kind, const void *source, mp_parse_inpu
 }
 
 
-mp_obj_t _mp_load_global(qstr qst) {
+static mp_obj_t _mp_load_global(qstr qst) {
     mp_map_t map = mp_globals_get()->map;
     mp_map_elem_t *elem = mp_map_lookup(&map, MP_OBJ_NEW_QSTR(qst), MP_MAP_LOOKUP);
     if (elem == NULL) {
@@ -364,11 +366,11 @@ bool badgeware_will_hot_reload(void) {
 }
 
 void badgeware_update(int ticks) {
-    static bool first_run = true;
-
     mp_handle_pending(true);
 
-    if(hot_reload) {
+    static bool first_run = true;
+
+    if(hot_reload || first_run) {
         if(!first_run) {
             gc_sweep_all();
         }

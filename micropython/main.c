@@ -68,6 +68,7 @@ void smemtrack_free(void* ptr, void* user_data) {
 
 static void sokol_init(void) {
     stm_setup(); // sokol_time.h
+
     sg_setup(&(sg_desc){
         .environment = sglue_environment(),
         .logger.func = slog_func,
@@ -76,6 +77,7 @@ static void sokol_init(void) {
             .free_fn = smemtrack_free
         }
     });
+
     simgui_setup(&(simgui_desc_t){ .allocator = (simgui_allocator_t) {
         .alloc_fn = smemtrack_alloc,
         .free_fn = smemtrack_free
@@ -209,7 +211,7 @@ static void sokol_event(const sapp_event* ev) {
                 mask = 0b000001;
                 break;
             case SAPP_KEYCODE_ESCAPE: // Home
-                modsim_skip_intro(true);
+                modsim_set_hot_reload();
                 badgeware_trigger_hot_reload();
                 break;
             default:

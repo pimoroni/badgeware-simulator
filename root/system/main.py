@@ -5,14 +5,14 @@ import os
 import micropython
 import simulator
 
-SKIP_CINEMATIC = simulator.skip_cinematic  # Set to True on load, False on hot reload
+SKIP_CINEMATIC = simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
 app = None
 
 
-simulator.show_alloc_count = False       # Show number of MPAllocator allocs per frame
-simulator.show_individual_allocs = True  # Show each alloc/dealloc, size and location
+simulator.show_alloc_count = False        # Show number of MPAllocator allocs per frame
+simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and location
 
 """
 # RAM & GC Testing
