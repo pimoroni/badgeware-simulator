@@ -187,7 +187,7 @@ static void sokol_cleanup(void) {
 
 static void sokol_event(const sapp_event* ev) {
     if(ev->type == SAPP_EVENTTYPE_KEY_DOWN || ev->type == SAPP_EVENTTYPE_KEY_UP) {
-        bool clear = ev->type == SAPP_EVENTTYPE_KEY_UP;
+        bool keydown = ev->type == SAPP_EVENTTYPE_KEY_DOWN;
         uint8_t mask = 0;
         switch (ev->key_code) {
             case SAPP_KEYCODE_H: // Home
@@ -216,7 +216,7 @@ static void sokol_event(const sapp_event* ev) {
                 simgui_handle_event(ev);
                 return;
         }
-        badgeware_input(mask, clear);
+        badgeware_input(mask, keydown);
     }
     simgui_handle_event(ev);
 }
