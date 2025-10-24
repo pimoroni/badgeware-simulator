@@ -4,6 +4,7 @@ import sys
 import os
 import micropython
 import simulator
+import debug
 
 SKIP_CINEMATIC = simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
@@ -72,8 +73,8 @@ if SKIP_CINEMATIC:
 else:
     launch(APP_STARTUP)
 
-
 def update():
+    debug.update()
     if (result := app.update()) is not None:
         if app.__name__ == APP_MENU:
             launch(result)

@@ -32,6 +32,10 @@ extern "C" {
   int screen_height = 120;
   uint32_t framebuffer[160 * 120];
 
+  int debug_width = 300;
+  int debug_height = 360;
+  extern uint32_t debug_buffer[300 * 360];
+
   mp_obj_t modpicovector___init__(void) {
   
   #ifdef PICO
@@ -57,6 +61,13 @@ extern "C" {
         image->image = new(m_malloc(sizeof(image_t))) image_t(framebuffer, screen_width, screen_height);
         dest[0] = MP_OBJ_FROM_PTR(image);
       }
+#ifndef PICO
+      if (attr == MP_QSTR_debug) {
+        image_obj_t *image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+        image->image = new(m_malloc(sizeof(image_t))) image_t(debug_buffer, debug_width, debug_height);
+        dest[0] = MP_OBJ_FROM_PTR(image);
+      }
+#endif
     }
   }
 

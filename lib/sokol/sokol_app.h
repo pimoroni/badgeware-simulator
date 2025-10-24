@@ -4730,6 +4730,10 @@ _SOKOL_PRIVATE void _sapp_macos_set_icon(const sapp_icon_desc* icon_desc, int nu
     _sapp.macos.window.title = [NSString stringWithUTF8String:_sapp.window_title];
     _sapp.macos.window.acceptsMouseMovedEvents = YES;
     _sapp.macos.window.restorable = YES;
+    //_sapp.macos.window.resizeIncrements = NSMakeSize(320, 240);
+    _sapp.macos.window.contentAspectRatio = NSMakeSize(260 * 2, 120 * 2);
+    _sapp.macos.window.minSize = NSMakeSize(260 * 2, 120 * 2);
+    _sapp.macos.window.maxSize = NSMakeSize(260 * 6, 120 * 6);
 
     _sapp.macos.win_dlg = [[_sapp_macos_window_delegate alloc] init];
     _sapp.macos.window.delegate = _sapp.macos.win_dlg;
