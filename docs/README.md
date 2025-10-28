@@ -12,7 +12,7 @@
   - [Editing code on the badge](#editing-code-on-the-badge)
   - [Writing to files from application code](#writing-to-files-from-application-code)
 - [Reading button state](#reading-button-state)
-- [The screen](#the-screen)
+- [Working with the screen](#working-with-the-screen)
 - [Images](#images)
   - [Clipping with image windows](#clipping-with-image-windows)
 - [Drawing shapes](#drawing-shapes)
@@ -27,7 +27,7 @@
     - [Regular polygon](#regular-polygon)
 - [Text](#text)
   - [Pixel fonts](#pixel-fonts)
-    - [Included fonts:](#included-fonts)
+    - [Included fonts](#included-fonts)
   - [Vector fonts](#vector-fonts)
 - [Wireless networking and Bluetooth](#wireless-networking-and-bluetooth)
 
@@ -175,7 +175,7 @@ def update():
 
 > `pressed` and `released` are handy as they are only set for the single frame after the event occurs making them ideal for menu navigation for example.
 
-## The screen
+## Working with the screen
 
 `screen` is an `Image` (`160` x `120`) and pixel doubled onto the display after the call to `update()` has finished.
 
@@ -299,8 +299,6 @@ Define a regular polygon of radius `r` centred at `x`, `y` with `s` sides.
 
 ### Pixel fonts
 
-PicoGraphics includes thirty great licensed pixel fonts created by [somepx](https://somepx.itch.io). You can use these in your applications to add some variety and character!
-
 ```python
 screen.font = PixelFont.load("nope.ppf")
 screen.brush = brushes.color(0, 255, 0)
@@ -309,7 +307,9 @@ def update():
   screen.text("hello badgeware!", 10, 10)
 ```
 
-#### Included fonts:
+#### Included fonts
+
+PicoGraphics includes thirty great licensed pixel fonts created by [somepx](https://somepx.itch.io). You can use these in your applications to add some variety and character!
 
 - `absolute`: bold, boxy, 10px tall
 - `ark`: tiny, smallcaps, 6px tall

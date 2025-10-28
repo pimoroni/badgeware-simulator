@@ -14,7 +14,6 @@ import gc
 import sys
 import json
 
-
 phosphor = brushes.color(211, 250, 55, 150)
 white = brushes.color(235, 245, 255)
 faded = brushes.color(235, 245, 255, 100)
