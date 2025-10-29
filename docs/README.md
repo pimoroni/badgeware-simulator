@@ -5,30 +5,14 @@
 
 - [Introduction](#introduction)
 - [Getting started](#getting-started)
-- [The basics](#the-basics)
-  - [Debugging](#debugging)
-  - [Timing](#timing)
-- [The filesystem](#the-filesystem)
+  - [Creating your own apps](#creating-your-own-apps)
   - [Editing code on the badge](#editing-code-on-the-badge)
   - [Writing to files from application code](#writing-to-files-from-application-code)
 - [Reading button state](#reading-button-state)
 - [Working with the screen](#working-with-the-screen)
-- [Images](#images)
-  - [Clipping with image windows](#clipping-with-image-windows)
-- [Drawing shapes](#drawing-shapes)
-  - [Transforming shapes](#transforming-shapes)
-  - [Primitives](#primitives)
-    - [Rectangle](#rectangle)
-    - [Rounded rectangle](#rounded-rectangle)
-    - [Circle](#circle)
-    - [Squircle](#squircle)
-    - [Arc](#arc)
-    - [Pie](#pie)
-    - [Regular polygon](#regular-polygon)
-- [Text](#text)
-  - [Pixel fonts](#pixel-fonts)
-    - [Included fonts](#included-fonts)
-  - [Vector fonts](#vector-fonts)
+  - [Drawing shapes](#drawing-shapes)
+  - [Blitting images and sprites](#blitting-images-and-sprites)
+  - [Drawing text](#drawing-text)
 - [Wireless networking and Bluetooth](#wireless-networking-and-bluetooth)
 
 ## Introduction
@@ -51,7 +35,7 @@ On the board we've packed in a bunch of great features:
 - 4-zone LED backlight
 - Durable polycarbonate case with lanyard fixings
 
-We hope you really love tinkering with it during, and after, the event. Ping us on socials and show us what you're up to!
+We hope you really love tinkering with it during, and after, the event. Ping us on [BlueSky](https://bsky.app/profile/pimoroni.com) and show us what you're up to!
 
 \- your friends at Pimoroni ❤️
 
@@ -61,70 +45,65 @@ We hope you really love tinkering with it during, and after, the event. Ping us 
 
 The board is pre-loaded with a special build of MicroPython that includes drivers for all of the built-in hardware.
 
-We've also included a small suite of example applications to demonstrate how different features of the badge work. Feel free to poke around in the code and experiment.
+We've also included a small suite of example applications to demonstrate how different features of the badge work. Feel free to poke around in the code and experiment!
 
-## The basics
+For an overview of how to put the badge into different modes checkout https://badger.github.io/get-started/.
 
-Your application should implement an `update()` function which will automatically be called every frame to give it a chance to update state and render new output.
+### Creating your own apps
+The structure for apps is simple. They live in the `/system/apps` directory.
+
+```
+/system
+  /apps
+    /my_application
+      icon.png
+      __init__.py
+      /assets
+        ...
+```
+
+Each application has a minimal structure:
+
+- `icon.png` contains the icon for your app, it should be a 24x24 PNG image.
+- `__init__.py` the entry point for your application, this is where `update()` will be implemented.
+- `assets/` a directory to contain any assets your app uses, this is automatically added to the system path when your app launches.
+
+Your app should implement an `update()` function within `__init__.py` which will automatically be called every frame to give it a chance to update its state and render new output to the screen.
+
+You'll have to edit `/system/apps/menu/__init__.py` on your device to add your app, right now it only supports six icons - have fun expanding it!
+
+An app is launched by `main.py`, which handles the intro cinematic, menu and launching your app. It'll call your `init()` and `update()` methods, and call `on_exit()` when you press the `HOME` button to leave your app.
 
 ```python
+# example __init__.py for an application
+
 # select a font to use
 screen.font = PixelFont.load("nope.ppf")
 
+# called once when your app launches
+def init():
+  pass
+
 # called every frame, do all your stuff here!
 def update():
+  # clear the framebuffer
+  screen.brush = brushes.color(20, 40, 60)
+  screen.clear()
+
   # calculate and draw an animated sine wave
   y = (math.sin(io.ticks / 100) * 20) + 80
   screen.brush = brushes.color(0, 255, 0)
   for x in range(160):
     screen.draw(shapes.rectangle(x, y, 1, 1))
 
-  # draw a message to the user
+  # write a message
   screen.brush = brushes.color(255, 255, 255)
-  screen.text("badge says hi :-)", 10, 10)
+  screen.text("hello badge!", 10, 10)
+
+# called before returning to the menu to allow you to save state
+def on_exit():
+  pass
 ```
-
-### Debugging
-
-You can use the built in python `print()` function to write to `stdout` this can be accessed by connecting a serial monitor to the badge from your computer and is very handy for debugging and extra information!
-
-> We are working on more comprehensive debugging tools including a desktop/web based badge simulator and the ability to draw to a separate debugging screen when running on the badge.
-
-### Timing
-
-Often what you do inside `update()` depends on the current time or how much time has passed since the last call to `update()`.
-
-Our `io` module provides two values:
-
-- `ticks`: The number of milliseconds since the badge started up.
-- `ticks_delta`: The number of milliseconds since the last `update()`.
-
-> These values are from the moment your `update()` function was called. They will not change for the duration of the `update()` call.
-
-`ticks_delta` is very useful to help you pace animations when the framerate may vary depending on the amount of work being done during `update()`.
-
-```python
-import io
-
-screen.font = PixelFont.load("ark.ppf")
-screen.brush = brushes.color(255, 255, 255)
-
-def update():
-  screen.text(f"{io.ticks}ms since boot", 10, 10)
-
-  # calculate the current framerate
-  fps = round(1000 / io.ticks_delta)
-  screen.text(f"FPS: {fps}", 10, 40)
-```
-
-> you can still use the `time` module to get the current timestamp instead of the value frozen prior to `update()` if needed. For example `time.ticks_ms()`.
->
-## The filesystem
-
-The badge includes a filesystem with a number of mounted volumes:
-
-- `/system` (8MB) - this is where application code should live, it is mounted read only when the badge is running so you cannot store data here.
-- `/storage` (8MB) - this is an area for applications to store data
 
 ### Editing code on the badge
 
@@ -135,13 +114,11 @@ The easiest way to edit the code on the device is to put it into mass storage mo
 - The USB Disk Mode screen will appear
 - The badge should appear as a disk named "BADGER" on your computer
 
-In this mode you can see the contents of the `/system/` mount. This is where all application code should live, it is writeable *only* via USB Disk Mode.
+In this mode you can see the contents of the FAT32 `/system/` mount. This is where all application code should live.
 
 ### Writing to files from application code
 
-The badge has a writeable partition located at `/storage` which is intended for applications to store state information and cache any data they may need to hold on to across resets.
-
-The `/storage` partition is 4MB.
+The badge has a writeable LittleFS partition located at `/` which is intended for applications to store state information and cache any data they may need to hold on to across resets.
 
 You can use normal Python style file access from your code:
 
@@ -152,206 +129,148 @@ with open("/storage/myfile.txt", "w") as out:
 
 ## Reading button state
 
-The `io` module also exposes helpful information about the state of the buttons on your badge. Each button is represented by a constant value: `io.BUTTON_A`, `io.BUTTON_B`, `io.BUTTON_C`, `io.BUTTON_D`, `io.BUTTON_E`.
+The `io` module also exposes helpful information about the state of the buttons on your badge. [Click here for full documentation of the `io` module](io.md).
 
-Each of the following lists contains the buttons that are relevant to the current `update()`:
+Each button is represented by a constant (for example, `io.BUTTON_A`). The API lets you check whether a button has been pressed, released, held, or if its state has changed during the current frame.
 
-- `io.held` buttons that are currently held down
-- `io.pressed` buttons that were pressed this frame
-- `io.released` buttons that were released this frame
-- `io.change` buttons that changed state this frame
+The following example draws a small white circle in the centre of the screen and allows the user to move it using the buttons:
 
 ```python
-import io
+import math
+from badgeware import screen, shapes, brushes, io
 
-screen.font = PixelFont.load("ark.ppf")
-screen.brush = brushes.color(255, 255, 255)
+# start the cursor in the middle of the screen
+x, y = 80, 60
+
+# clamp a value to within an upper and lower bound
+def clamp(value, lower, upper):
+  return math.max(lower, math.min(upper, value))
+
+# called automatically every frame
 def update():
-  if io.button_A in io.held:
-    screen.text("button A is held", 10, 10)
-  else:
-    screen.text("button A is not held", 10, 10)
-```
+  global x, y
 
-> `pressed` and `released` are handy as they are only set for the single frame after the event occurs making them ideal for menu navigation for example.
+  # clear the screen
+  screen.brush = brushes.color(20, 40, 60)
+  screen.draw(shapes.rectangle(0, 0, 160, 120))
+
+  # move cursor based on button states
+  if io.BUTTON_A    in io.held: x -= 1  # left
+  if io.BUTTON_C    in io.held: x += 1  # right
+  if io.BUTTON_UP   in io.held: y -= 1  # up
+  if io.BUTTON_DOWN in io.held: y += 1  # down
+
+  # clamp position to screen bounds
+  x = clamp(x, 0, 160)
+  y = clamp(y, 0, 120)
+
+  # draw the cursor
+  screen.brush = brushes.color(255, 255, 255)
+  screen.draw(shapes.circle(x, y, 5))
+```
 
 ## Working with the screen
 
-`screen` is an `Image` (`160` x `120`) and pixel doubled onto the display after the call to `update()` has finished.
+The framebuffer is a 160 × 120 true colour `Image` named `screen`. [Click here for full documentation of the `Image` class](Image.md).
+
+Your application can draw to the screen during the update() function.
+After your code finishes executing, the badge automatically pixel-doubles the framebuffer to fit the display.
+
+The screen supports drawing vector shapes, blitting other images, and rendering text using pixel fonts.
+
+### Drawing shapes
+
+The `shapes` module provides ways to create primitive shapes which can then be drawn onto images. [Click here for full documentation of the `shapes` module](shapes.md).
+
+Currently supported shapes are rectangles, circles, arcs, pies, lines, rounded rectangles, regular polygons, and squircles.
+
+Shapes are drawn using the currently assigned brush. [Click here for full documentation of the `brushes` module](brushes.md).
 
 ```python
-from lib import screen
+# example of drawing a circle in the center of the screen
+
+from badgeware import screen, brushes, shapes
+
+# enable antialiasing for lush smooth edges
+screen.antialias = Image.X4
 
 def update():
-  screen.draw(shapes.rectangle(10, 10, 20, 20))
+  # clear the background
+  screen.brush = brushes.color(20, 40, 60)
+  screen.clear()
+
+  # draw the circle
+  screen.brush = brushes.color(0, 255, 0)
+  screen.draw(shapes.circle(80, 60, 20))
 ```
 
-> in the future there will be a high res mode allowing access to the full 320x240 resolution of the display
-
-## Images
-
-Images can be used to load graphics from stored files or to create graphics using drawing methods (or both!).
+Shapes can also be given a transformation matrix to adjust their scale, rotation, and skew - this is very useful for creating smooth animations. [Click here for full documentation of the `Matrix` class](Matrix.md).
 
 ```python
-sprites = Image.load("sprites.png")
+# example of animating a rotating rectangle
+
+from badgeware import screen, brushes, shapes
+
+# enable antialiasing for lush smooth edges
+screen.antialias = Image.X4
 
 def update():
-  screen.blit(sprites, 10, 10)
+  # clear the background
+  screen.brush = brushes.color(20, 40, 60)
+  screen.clear()
+
+  # transform and draw the rectangle
+  screen.brush = brushes.color(0, 255, 0)
+  rectangle = shapes.rectangle(-1, -1, 2, 2)
+  rectangle.transform = Matrix().translate(80, 60).scale(20, 20).rotate(io.ticks / 100)
+  screen.draw(rectangle)
 ```
 
-### Clipping with image windows
+### Blitting images and sprites
 
-You can take a reference to a portion of an `Image` which can then be drawn into, automatically clipping to the window bounds.
-
-```python
-def update():
-  window = screen.window(20, 20, 100, 50)
-  window.brush = brushes.color(0, 255, 0)
-
-  # draw a circle clipped to the window bounds
-  window.draw(shapes.circle(40, 40, 50))
-```
-
-## Drawing shapes
-
-Unlike many microcontroller graphics libraries our PicoGraphics library supports drawing vector shapes (including with antialiasing!) which allows for all sorts of fun graphics to be created in realtime.
-
-> All vector coordinates are floating point.
-
-You can create a shape and then hold a reference to it for use later, or create them in realtime.
+The `Image` class can load images from files on the filesystem which can then be blitted onto the screen. [Click here for full documentation of the `Image` class](Image.md).
 
 ```python
-screen.brush = brushes.color(0, 255, 0, 150)
-squircle = shapes.squircle(80, 60, 20) # define a shape and hold onto it
+# example of loading a sprite and blitting it to the screen
+from badgeware import screen, brushes, Image
+from lib import SpriteSheet
+
+# load an image as a sprite sheet specifying the number of rows and columns
+mona = SpriteSheet(f"assets/mona-sprites/mona-default.png", 7, 1)
 
 def update():
-  # draw our previously defined squircle
-  screen.draw(squircle)
+  # clear the background
+  screen.brush = brushes.color(20, 40, 60)
+  screen.clear()
 
-  # creates a new rectangle shape every frame
-  screen.draw(shapes.rectangle(10, 10, 50, 50))
+  # blit the sprite at 0, 0 in the spritesheet to the screen
+  screen.blit(mona.sprite(0, 0), 10, 10)
+
+  # scale blit the sprite at 3, 0 in the spritesheet to the screen
+  screen.scale_blit(mona.sprite(0, 0), 50, 50, 30, 30)
 ```
 
-### Transforming shapes
+### Drawing text
 
-Shapes can also be given a transformation matrix to adjust their scale, rotation, and skew - this is very useful for creating smooth animations.
+The `PixelFont` class provides functions for loading pixel fonts, which can then be used to render text onto images. [Click here for full documentation of the `PixelFont` class](PixelFont.md).
 
-```python
-screen.brush = brushes.color(0, 255, 0, 150)
-rectangle = shapes.rectangle(-20, -20, 40, 40) # note origin of rectangle is 0, 0
-
-def update():
-  # create a transform that slowly rotates the rectangle
-  angle += io.ticks_delta / 100
-  rectangle.transform = Matrix().rotate(angle)
-  screen.draw(rectangle) # automatically applies the transform
-```
-
-Matrices support `rotate(angle)`, `rotate_radians(angle)`, `scale(x, y)`, `translate(x, y)`, and `multiple(matrix)` operations. You can chain operations to perform multiple transformations at once:
-
-`shape.transform = Matrix().rotate(20).translate(20, 40).scale(0.5, 0.5)`
-
-### Primitives
-The currently supported primitives are:
-
-#### Rectangle
-- `shapes.rectangle(x, y, w, h)`
-
-Define a rectangle starting at `x`, `y` with width of `w` and height of `h`.
-
-#### Rounded rectangle
-- `shapes.rounded_rectangle(x, y, w, h, r)`
-- `shapes.rounded_rectangle(x, y, w, h, r1, r2, r3, r4)`
-
-Works identically to `rectangle` but you can also specify either a single value for the corner radius `r` or four different corner radii `r1` through `r4` (starting at the top left corner and going clockwise).
-
-> If the corner radius is greater than the width or height of the rectangle then the resulting shape can be malformed.
-
-#### Circle
-- `shapes.circle(x, y, r)`
-
-Define a circle of radius `r` centred at `x`, `y`.
-
-#### Squircle
-- `shapes.squircle(x, y, r)`
-- `shapes.squircle(x, y, r, n)`
-
-Define a squircle (square-circle) of radius `r` centred at `x`, `y`.
-
-Optionally you can supply the `n` parameter which defines how rounded the resulting shape is, `4` is the default.
-
-#### Arc
-- `shapes.arc(x, y, r, f, t)`
-
-Define an arc of radius `r` centred at `x`, `y`. `f` and `t` are the "from" and "to" angles that the arc will occupy. They are specified in degrees, `0` straight down and increasing clockwise.
-
-#### Pie
-- `shapes.arc(x, y, r, f, t)`
-
-Works identically to `arc` but creates a pie (pacman) shape instead.
-
-#### Regular polygon
-- `shapes.regular_polygon(x, y, r, s)`
-
-Define a regular polygon of radius `r` centred at `x`, `y` with `s` sides.
-
-## Text
-
-### Pixel fonts
+There are thirty licensed pixel fonts included.
 
 ```python
+# example of drawing text to the screen
+
+from badgeware import screen, PixelFont
+
 screen.font = PixelFont.load("nope.ppf")
-screen.brush = brushes.color(0, 255, 0)
 
 def update():
-  screen.text("hello badgeware!", 10, 10)
+  screen.brush = brushes.color(20, 40, 60)
+  screen.clear()
+
+  message = "this font rocks"
+  screen.brush(255, 255, 255)
+  screen.text(message, 10, 10)
 ```
-
-#### Included fonts
-
-PicoGraphics includes thirty great licensed pixel fonts created by [somepx](https://somepx.itch.io). You can use these in your applications to add some variety and character!
-
-- `absolute`: bold, boxy, 10px tall
-- `ark`: tiny, smallcaps, 6px tall
-- `awesome`: cheerful, wholesome, monospace, 9px tall
-- `bacteria`: rational, wide, monospace, 12px tall
-- `compass`: classic, fantasy, 9px tall
-- `corset`: elegant, cozy, 8px tall
-- `curse`: comic, horror, smallcaps, 12px tall
-- `desert`: tiny, drowsy, sunny, 6px tall
-- `fear`: smallcaps, horror, 11px tall
-- `futile`: big, bold, unique, 14px tall
-- `holotype`: distinctive, premium, 9px tall
-- `hungry`: playful, unique, monospace, 7px tall
-- `ignore`: colossal, super-readable, intrepid, 17px tall
-- `kobold`: classic, tiny, fantasy, 7px tall
-- `lookout`: adventurous, piratesque, fantasy, 7px tall
-- `loser`: slanted, smallcaps, monospace, 7px tall
-- `manticore`: strong, metal, horror, 14px tall
-- `match`: classic, joyful, 7px tall
-- `memo`: wacky, distinctive, 9px tall
-- `more`: chunky, huge, comic, 15px tall
-- `nope`: clear, readable, 8px tall
-- `outflank`: fantasy, arcane, 9px tall
-- `saga`: medieval, fantasy, legendary, 8px tall
-- `salty`: thick, all-purpose, 9px tall
-- `sins`: tiny, classic, stylish, 7px tall
-- `smart`: classic, chunky, smallcaps, 9px tall
-- `teatime`: classic, readable, monospace, 7px tall
-- `torch`: fiery, pocket-sized, fantasy, 6px tall
-- `troll`: fantasy, ornate, 12px tall
-- `unfair`: wide, retro, eccentric, 8px tall
-- `vest`: elegant, classic, serif, 9px tall
-- `winds`: tiny, extra-spaced, easy to read, 7px tall
-- `yesterday`: bold, readable, distinctive, 10px tall
-- `yolk`: classic, fantasy, 9px tall
-- `ziplock`: round, cheerful, comic, 13px tall
-
-> todo: include font sampler image
-
-### Vector fonts
-
-> this feature is experimental and does not perform well enough for most usecases at the moment. It will come in a later build.
 
 ## Wireless networking and Bluetooth
 
