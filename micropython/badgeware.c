@@ -376,14 +376,15 @@ void badgeware_input(uint8_t mask, bool set) {
 }
 
 int badgeware_screenshot(void *buffer, const char *fn) {
-    time_t time_seconds = time(NULL);
-    uint64_t total_time = (time_seconds * 1000) + picovector_ticks;
     char filename[PATH_MAX];
     memcpy(filename, path_screenshots, strlen(path_screenshots));
     if(fn && strlen(fn)) {
         snprintf(filename + strlen(path_screenshots), PATH_MAX, "/%s.png", fn);
     } else {
-        snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%llu.png", total_time);
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        unsigned long long time_ms = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
+        snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%llu.png", time_ms);
     }
     if(access(filename, R_OK) == 0) {
         debug_printf("badgeware_screenshot: Refusing to overwrite %s\n", filename);

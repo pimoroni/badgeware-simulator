@@ -18,12 +18,17 @@ void modsim_set_hot_reload(void) {
     is_hot_reload = true;
 }
 
-mp_obj_t modsimulator_screenshot(mp_obj_t filename_in) {
-    GET_STR_DATA_LEN(filename_in, str, str_len);
+mp_obj_t modsimulator_screenshot(size_t n_args, const mp_obj_t *args) {
+    // If we're taking a screenshot with `None`
+    if(n_args == 0) {
+        return mp_obj_new_int(badgeware_screenshot(framebuffer, NULL));
+    }
+    // Else we've provided a filename
+    GET_STR_DATA_LEN(args[1], str, str_len);
     int result = badgeware_screenshot(framebuffer, (const char *)str);
     return mp_obj_new_int(result);
 }
-MP_DEFINE_CONST_FUN_OBJ_1(modsimulator_screenshot_obj, modsimulator_screenshot);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(modsimulator_screenshot_obj, 0, 1, modsimulator_screenshot);
 
 void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 
