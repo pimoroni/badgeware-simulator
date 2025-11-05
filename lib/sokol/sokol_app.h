@@ -11190,10 +11190,6 @@ _SOKOL_PRIVATE void _sapp_x11_app_event(sapp_event_type type) {
 _SOKOL_PRIVATE void _sapp_x11_update_dimensions(int x11_window_width, int x11_window_height) {
     // NOTE: do *NOT* use _sapp.dpi_scale for the window scale
     const float window_scale = _sapp.x11.dpi / 96.0f;
-    //x11_window_width = min(260 * 6, max(260, x11_window_width));
-    //x11_window_height = fmin(120 * 6, fmax(120, x11_window_height));
-    x11_window_width = (x11_window_height * _sapp.window_aspect_x) / _sapp.window_aspect_y;
-    XResizeWindow(_sapp.x11.display, _sapp.x11.window, x11_window_width, x11_window_height);
     _sapp.window_width = _sapp_roundf_gzero(x11_window_width / window_scale);
     _sapp.window_height = _sapp_roundf_gzero(x11_window_height / window_scale);
     int cur_fb_width = _sapp.framebuffer_width;
