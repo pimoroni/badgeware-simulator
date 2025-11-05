@@ -8,12 +8,6 @@
 
 using std::sort;
 
-#ifdef __APPLE__
-extern int PicoVector_working_buffer[48240 / 4]; // macOS (emulator)
-#else
-extern int PicoVector_working_buffer[48156 / 4]; // On device
-#endif
-
 namespace picovector {
   struct _edgeinterp {
     point_t s;

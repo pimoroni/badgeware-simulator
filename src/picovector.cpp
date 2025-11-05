@@ -10,12 +10,13 @@
 using std::sort;
 
 // Common memory pool for font/span rendering buffers and PNGDEC
-// This is sized to *just* fit the PNGDEC state which is 48156k
-// It *must* be 32bit aligned (I found out the hard way.)
-#ifdef __APPLE__
-int PicoVector_working_buffer[48240 / 4]; // macOS (emulator)
+// This is sized to *just* fit the PNGDEC state which is 48156 bytes on
+// Pico and 48156 on macOS. 
+// On Pico it *must* be 32bit aligned (I found out the hard way.)
+#ifdef PICO
+char __attribute__((aligned(4))) PicoVector_working_buffer[48156]; // On device
 #else
-int PicoVector_working_buffer[48156 / 4]; // On device
+char PicoVector_working_buffer[48240]; // macOS (emulator)
 #endif
 
 // This will completely break imgui or sokol or something
