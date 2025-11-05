@@ -3,6 +3,7 @@ root/secrets.py
 root/main.py
 root/state/*
 root/*.*
+screenshots/*.png
 
 # Prerequisites
 *.d

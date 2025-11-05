@@ -18,20 +18,23 @@
 #include "input.h"
 #include "mpthreadport.h"
 
-#include <inttypes.h>
-
 #include "badgeware.h"
 #include "modsimulator.h"
 
-// posix dirname/basename?
-#include <libgen.h>
 
 #ifndef NO_QSTR
 #define DMON_IMPL
 #include "dmon/dmon.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
+// posix dirname/basename?
+#include <libgen.h>
+
+#include <inttypes.h>
+#include <time.h>
 #endif
-
-
 
 
 // Buttons for io.pressed / io.changed
@@ -56,6 +59,7 @@ uint64_t mp_allocator_allocs = 0;
 
 // Hot reloading
 static bool hot_reload = false;
+static char* path_screenshots;
 static char* path_root;
 static char* dmon_watch_path;
 static mp_obj_t update_callback_obj = mp_const_none;
@@ -93,8 +97,6 @@ void mp_hal_stdout_tx_str(const char *str) {
 }
 
 const mp_print_t mp_stderr_print = {NULL, stderr_print_strn};
-
-
 
 
 
@@ -235,7 +237,7 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
     }
 }
 
-int badgeware_init(const char *root_path, const char *watch_path) {
+int badgeware_init(const char *root_path, const char *watch_path, const char *screenshot_path) {
     // MICROPYTHON INIT
     #ifdef SIGPIPE
     // Do not raise SIGPIPE, instead return EPIPE. Otherwise, e.g. writing
@@ -251,8 +253,23 @@ int badgeware_init(const char *root_path, const char *watch_path) {
     signal(SIGPIPE, SIG_IGN);
     #endif
 
+    path_screenshots = realpath(screenshot_path, NULL);
     path_root = realpath(root_path, NULL);
     dmon_watch_path = realpath(watch_path, NULL);
+
+
+    if(access(path_screenshots, R_OK) != 0) {
+        printf("badgeware_init: Could not open screenshot dir: %s\n", screenshot_path);
+        return 1;
+    }
+    if(access(path_root, R_OK) != 0) {
+        printf("badgeware_init: Could not open root dir: %s\n", root_path);
+        return 1;
+    }
+    if(access(dmon_watch_path, R_OK) != 0) {
+        printf("badgeware_init: Could not open watch dir: %s\n", watch_path);
+        return 1;
+    }
 
     dmon_init();
 
@@ -356,6 +373,15 @@ void badgeware_input(uint8_t mask, bool set) {
     } else {
         picovector_buttons &= ~mask;
     }
+}
+
+int badgeware_screenshot(void *buffer) {
+    time_t time_seconds = time(NULL);
+    char filename[PATH_MAX];
+    memcpy(filename, path_screenshots, strlen(path_screenshots));
+    snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%lu.png", time_seconds);
+    debug_printf("badgeware_screenshot: Saving to %s\n", filename);
+    return stbi_write_png((const char*)filename, 160, 120, 4, buffer, 0);
 }
 
 void badgeware_trigger_hot_reload(void) {

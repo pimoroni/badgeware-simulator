@@ -153,7 +153,7 @@ static void sokol_init(void) {
     });
     state.debug.view = sg_make_view(&(sg_view_desc){ .texture.image = state.debug.screen });
 
-    if(badgeware_init(sargs_value_def("root", "root"), sargs_value_def("watch", "root/system")) != 0) {
+    if(badgeware_init(sargs_value_def("root", "root"), sargs_value_def("watch", "root/system"), sargs_value_def("screenshots", "screenshots")) != 0) {
         exit(EXIT_FAILURE);
     }
 }
@@ -272,8 +272,15 @@ static void sokol_event(const sapp_event* ev) {
                 mask = 0b000001;
                 break;
             case SAPP_KEYCODE_ESCAPE: // Home
-                modsim_set_hot_reload();
-                badgeware_trigger_hot_reload();
+                if(keydown) {
+                    modsim_set_hot_reload();
+                    badgeware_trigger_hot_reload();
+                }
+                break;
+            case SAPP_KEYCODE_P: // Screenshot
+                if(keydown) {
+                    badgeware_screenshot(framebuffer);
+                }
                 break;
             default:
                 simgui_handle_event(ev);
