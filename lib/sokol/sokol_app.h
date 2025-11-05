@@ -11565,10 +11565,10 @@ _SOKOL_PRIVATE void _sapp_x11_create_window(Visual* visual_or_null, int depth) {
     //hints->min_height = 120;
     //hints->max_width = 260 * 6;
     //hints->max_height = 120 * 6;
-    hints->min_aspect.x = _sapp.window_aspect.x;
-    hints->max_aspect.x = _sapp.window_aspect.y;
-    hints->min_aspect.y = _sapp.window_aspect.x;
-    hints->max_aspect.y = _sapp.window_aspect.y;
+    hints->min_aspect.x = _sapp.window_aspect_x;
+    hints->max_aspect.x = _sapp.window_aspect_y;
+    hints->min_aspect.y = _sapp.window_aspect_x;
+    hints->max_aspect.y = _sapp.window_aspect_y;
     XSetWMNormalHints(_sapp.x11.display, _sapp.x11.window, hints);
     XFree(hints);
 
