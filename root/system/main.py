@@ -74,12 +74,12 @@ else:
     launch(APP_STARTUP)
 
 def update():
-    debug.update()
-    if (result := app.update()) is not None:
-        if app.__name__ == APP_MENU:
-            launch(result)
-        elif app.__name__ == APP_STARTUP:
-            launch(APP_MENU)
+    with debug:
+        if (result := app.update()) is not None:
+            if app.__name__ == APP_MENU:
+                launch(result)
+            elif app.__name__ == APP_STARTUP:
+                launch(APP_MENU)
     return True
 
 # """
