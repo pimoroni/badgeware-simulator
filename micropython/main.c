@@ -48,6 +48,9 @@
 #include "sokol_imgui.h"
 #endif
 
+bool continuous_screenshots = false;
+int continuous_screenshot_frame = 0;
+int continuous_screenshot_session = 0;
 bool debug_view = false;
 ImVec2 window_size;
 ImVec2 window_aspect;
@@ -189,6 +192,13 @@ static void sokol_frame(void) {
     }
     badgeware_update(stm_ms(stm_now()));
 
+    if(continuous_screenshots) {
+        char filename[1024];
+        snprintf(filename, 1024, "cont-%02d-%06d", continuous_screenshot_session, continuous_screenshot_frame);
+        badgeware_screenshot(framebuffer, filename);
+        continuous_screenshot_frame++;
+    }
+
     const ImVec2 uv0 = { 0, 0 };
     const ImVec2 uv1 = { 1, 1 };
 
@@ -280,6 +290,13 @@ static void sokol_event(const sapp_event* ev) {
             case SAPP_KEYCODE_P: // Screenshot
                 if(keydown) {
                     badgeware_screenshot(framebuffer, NULL);
+                }
+                break;
+            case SAPP_KEYCODE_R: // Record (screenshot every frame)
+                if(keydown) {
+                    continuous_screenshots = !continuous_screenshots;
+                    continuous_screenshot_frame = 0;
+                    continuous_screenshot_session++;
                 }
                 break;
             default:
