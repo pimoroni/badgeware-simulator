@@ -1,5 +1,19 @@
-# picovector
-PicoVector embedded vector graphics rendering library.
+# Badgeware Simulator
+
+Simulator for the development of the Picovector graphics API and accompanying badgeware apps.
+
+## Controls
+
+| Key    | Action |
+|--------|--------|
+| H      | Home   |
+| Left   | A      |
+| Space  | B      |
+| Right  | C      |
+| Up     | Up     |
+| Down   | Down   |
+| H      | Screenshot |
+| Escape | Hot Reload |
 
 ## Building
 
