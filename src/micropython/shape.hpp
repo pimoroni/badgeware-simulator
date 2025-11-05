@@ -215,7 +215,7 @@ extern "C" {
     { MP_ROM_QSTR(MP_QSTR_rounded_rectangle), MP_ROM_PTR(&shapes_rounded_rectangle_static_obj) },
     { MP_ROM_QSTR(MP_QSTR_arc), MP_ROM_PTR(&shapes_arc_static_obj) },
     { MP_ROM_QSTR(MP_QSTR_pie), MP_ROM_PTR(&shapes_pie_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_pie), MP_ROM_PTR(&shapes_star_static_obj) },
+    { MP_ROM_QSTR(MP_QSTR_star), MP_ROM_PTR(&shapes_star_static_obj) },
     { MP_ROM_QSTR(MP_QSTR_line), MP_ROM_PTR(&shapes_line_static_obj) },
 
   };
