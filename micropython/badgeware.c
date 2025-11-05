@@ -57,7 +57,7 @@ uint64_t mp_allocator_allocs = 0;
 // Hot reloading
 static bool hot_reload = false;
 static char* path_root;
-static char *dmon_watch_path = "root/system";
+static char* dmon_watch_path;
 static mp_obj_t update_callback_obj = mp_const_none;
 
 #define LEX_SRC_STR (1)
@@ -235,7 +235,7 @@ static void dmon_watch_callback(dmon_watch_id watch_id, dmon_action action, cons
     }
 }
 
-int badgeware_init(void) {
+int badgeware_init(const char *root_path, const char *watch_path) {
     // MICROPYTHON INIT
     #ifdef SIGPIPE
     // Do not raise SIGPIPE, instead return EPIPE. Otherwise, e.g. writing
@@ -251,7 +251,8 @@ int badgeware_init(void) {
     signal(SIGPIPE, SIG_IGN);
     #endif
 
-    path_root = realpath("root", NULL);
+    path_root = realpath(root_path, NULL);
+    dmon_watch_path = realpath(watch_path, NULL);
 
     dmon_init();
 
@@ -285,16 +286,16 @@ static void micropython_reinit(void) {
 
     #if MICROPY_ENABLE_GC
     memset(heap, 0, sizeof(heap));
-    printf("micropython_init: gc_init\n");
+    debug_printf("micropython_init: gc_init\n");
     gc_init(heap, heap + sizeof(heap));
     #endif
 
     #if MICROPY_ENABLE_PYSTACK
-    printf("micropython_init: mp_pystack_init\n");
+    debug_printf("micropython_init: mp_pystack_init\n");
     mp_pystack_init(pystack, &pystack[MP_ARRAY_SIZE(pystack)]);
     #endif
 
-    printf("micropython_init: mp_init\n");
+    debug_printf("micropython_init: mp_init\n");
     mp_init();
 
     #if MICROPY_EMIT_NATIVE
@@ -302,9 +303,9 @@ static void micropython_reinit(void) {
     MP_STATE_VM(default_emit_opt) = MP_EMIT_OPT_NONE;
     #endif
 
-    printf("micropython_init mp_vfs_mount(\"/\", vfs_posix(\"%s\"))\n", path_root);
+    debug_printf("micropython_init: mp_vfs_mount(\"/\", vfs_posix(\"%s\"))\n", path_root);
 
-    printf("micropython_init MP_STATE_VM(vfs_cur) = %p\n", MP_STATE_VM(vfs_cur));
+    debug_printf("micropython_init: MP_STATE_VM(vfs_cur) = %p\n", MP_STATE_VM(vfs_cur));
 
     mp_obj_t vfs_posix_args[1] = {
         MP_OBJ_NEW_QSTR(qstr_from_str(path_root))

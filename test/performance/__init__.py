@@ -2,11 +2,11 @@ import json
 import math
 from lib import *
 
-font = PixelFont.load("../assets/fonts/sins.ppf")
+font = PixelFont.load("/assets/fonts/sins.ppf")
 
 test = "sprites"
 
-test_module = __import__(f"tests/{test}")
+test_module = __import__(f"/performance/tests/{test}")
 
 _samples = []
 _sample_count = 50

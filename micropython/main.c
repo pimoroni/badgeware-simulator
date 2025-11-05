@@ -153,7 +153,7 @@ static void sokol_init(void) {
     });
     state.debug.view = sg_make_view(&(sg_view_desc){ .texture.image = state.debug.screen });
 
-    if(badgeware_init() != 0) {
+    if(badgeware_init(sargs_value_def("root", "root"), sargs_value_def("watch", "root/system")) != 0) {
         exit(EXIT_FAILURE);
     }
 }

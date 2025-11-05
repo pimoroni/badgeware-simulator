@@ -32,11 +32,11 @@ from lib import *
 #     y += test_phrase_size
 
 pixel_fonts = {
-  "bacteria": PixelFont.load("assets/bacteria.ppf"),
-  "nope": PixelFont.load("assets/nope.ppf"),
-  "vest": PixelFont.load("assets/vest.ppf"),
-  "sins": PixelFont.load("assets/sins.ppf"),
-  "ignore": PixelFont.load("assets/ignore.ppf"),
+  "bacteria": PixelFont.load("/assets/fonts/bacteria.ppf"),
+  "nope": PixelFont.load("/assets/fonts/nope.ppf"),
+  "vest": PixelFont.load("/assets/fonts/vest.ppf"),
+  "sins": PixelFont.load("/assets/fonts/sins.ppf"),
+  "ignore": PixelFont.load("/assets/fonts/ignore.ppf"),
 }
 
 phrase = "Prow scuttle parrel provost Sail ho shrouds spirits boom mizzenmast yardarm. Pinnace holystone mizzenmast quarter crow's nest nipperkin grog yardarm hempen halter furl. Swab barque interloper chantey doubloon starboard grog black jack gangway rutters."

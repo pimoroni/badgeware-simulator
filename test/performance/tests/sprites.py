@@ -1,7 +1,7 @@
 import math
 from lib import *
 
-sprites = SpriteSheet(f"../assets/mona-sprites/mona-dance.png", 6, 1)
+sprites = SpriteSheet(f"/assets/mona-sprites/mona-dance.png", 6, 1)
 
 
 def run_test():

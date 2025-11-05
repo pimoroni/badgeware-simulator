@@ -17,7 +17,7 @@ extern int screen_height;
 extern uint32_t debug_buffer[DEBUG_BUFFER_WIDTH * DEBUG_BUFFER_HEIGHT];
 
 void badgeware_preinit(void);
-int badgeware_init(void);
+int badgeware_init(const char *root_path, const char *watch_path);
 void badgeware_update(int ticks);
 void badgeware_deinit(void);
 void badgeware_input(uint8_t mask, bool set);
