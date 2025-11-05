@@ -48,12 +48,9 @@
 #include "sokol_imgui.h"
 #endif
 
-#define DISPLAY_WIDTH 260
-#define DISPLAY_HEIGHT 120
-
-uint32_t debug_buffer[300 * 360];
-
-ImVec2 window_size = {DISPLAY_WIDTH * 6,  DISPLAY_HEIGHT * 6};
+bool debug_view = false;
+ImVec2 window_size;
+ImVec2 window_aspect;
 
 static struct {
     sg_pass_action pass_action;
@@ -89,6 +86,7 @@ static void recalculate_render_sizes(void) {
 
     state.debug.render_size.y = window_size.y;
     state.debug.render_size.x = (state.debug.render_size.y / state.debug.buffer_size.y) * state.debug.buffer_size.x;
+    state.debug.render_size.x += 1;
 }
 
 static void sokol_init(void) {
@@ -129,13 +127,9 @@ static void sokol_init(void) {
 
     state.badgeware.buffer_size.x = 160;
     state.badgeware.buffer_size.y = 120;
-    state.badgeware.render_size.x = 160 * 6;
-    state.badgeware.render_size.y = 120 * 6;
 
-    state.debug.buffer_size.x = 300;
-    state.debug.buffer_size.y = 360;
-    state.debug.render_size.x = 100 * 6;
-    state.debug.render_size.y = 120 * 6;
+    state.debug.buffer_size.x = DEBUG_BUFFER_WIDTH;
+    state.debug.buffer_size.y = DEBUG_BUFFER_HEIGHT;
 
     recalculate_render_sizes();
 
@@ -195,29 +189,21 @@ static void sokol_frame(void) {
     }
     badgeware_update(stm_ms(stm_now()));
 
+    const ImVec2 uv0 = { 0, 0 };
+    const ImVec2 uv1 = { 1, 1 };
+
+    // Update and display the main Badgeware view
     sg_update_image(state.badgeware.screen, &(sg_image_data){
         .mip_levels[0] = {
             .ptr = framebuffer,
             .size = state.badgeware.buffer_size.x * state.badgeware.buffer_size.y * sizeof(uint32_t),
         }
     });
-
-    const ImVec2 uv0 = { 0, 0 };
-    const ImVec2 uv1 = { 1, 1 };
-
-    // Update and display the main Badgeware view
-    sg_update_image(state.debug.screen, &(sg_image_data){
-        .mip_levels[0] = {
-            .ptr = debug_buffer,
-            .size = state.debug.buffer_size.x * state.debug.buffer_size.y * sizeof(uint32_t),
-        }
-    });
-
     igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Always);
     igSetNextWindowSize(state.badgeware.render_size, ImGuiCond_Always);
     igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
     igPushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    if (igBegin("Badgeware Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
+    if (igBegin("Badgeware Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize)) {
         ImTextureID texid0 = simgui_imtextureid_with_sampler(state.badgeware.view, state.smp.nearest_clamp);
         igImageEx(imtexref(texid0), state.badgeware.render_size, uv0, uv1);
     }
@@ -225,18 +211,26 @@ static void sokol_frame(void) {
     igPopStyleVar(); // ImGuiStyleVar_WindowPadding
     igPopStyleVar(); // ImGuiStyleVar_WindowBorderSize
 
-    // Update and display the dedicated debug pane
-    igSetNextWindowPos((ImVec2){state.badgeware.render_size.x, 0}, ImGuiCond_Always);
-    igSetNextWindowSize(state.debug.render_size, ImGuiCond_Always);
-    igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
-    igPushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    if (igBegin("Debug Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings)) {
-        ImTextureID texid0 = simgui_imtextureid_with_sampler(state.debug.view, state.smp.nearest_clamp);
-        igImageEx(imtexref(texid0), state.debug.render_size, uv0, uv1);
+    if(debug_view) {
+        // Update and display the dedicated debug pane
+        sg_update_image(state.debug.screen, &(sg_image_data){
+            .mip_levels[0] = {
+                .ptr = debug_buffer,
+                .size = state.debug.buffer_size.x * state.debug.buffer_size.y * sizeof(uint32_t),
+            }
+        });
+        igSetNextWindowPos((ImVec2){state.badgeware.render_size.x, 0}, ImGuiCond_Always);
+        igSetNextWindowSize(state.debug.render_size, ImGuiCond_Always);
+        igPushStyleVarImVec2(ImGuiStyleVar_WindowPadding, (ImVec2){0.0f, 0.0f});
+        igPushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        if (igBegin("Debug Output", 0, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize)) {
+            ImTextureID texid0 = simgui_imtextureid_with_sampler(state.debug.view, state.smp.nearest_clamp);
+            igImageEx(imtexref(texid0), state.debug.render_size, uv0, uv1);
+        }
+        igEnd();
+        igPopStyleVar(); // ImGuiStyleVar_WindowPadding
+        igPopStyleVar(); // ImGuiStyleVar_WindowBorderSize
     }
-    igEnd();
-    igPopStyleVar(); // ImGuiStyleVar_WindowPadding
-    igPopStyleVar(); // ImGuiStyleVar_WindowBorderSize
 
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();
@@ -299,6 +293,19 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .argv = argv
     });
 
+    window_size.x = 160 * 6;
+    window_size.y = 120 * 6;
+    window_aspect.x = 4;
+    window_aspect.y = 3;
+
+    if (sargs_boolean("debug")) {
+        debug_view = true;
+
+        window_size.x = (160 + 100) * 6;
+        window_aspect.x = 13;
+        window_aspect.y = 6;
+    }
+
     return (sapp_desc){
         .init_cb = sokol_init,
         .frame_cb = sokol_frame,
@@ -307,6 +314,8 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .window_title = "Badgeware Desktop",
         .width = window_size.x,
         .height = window_size.y,
+        .aspect_x = window_aspect.x,
+        .aspect_y = window_aspect.y,
         .icon.sokol_default = true,
         .logger.func = slog_func,
     };

@@ -11,6 +11,11 @@ extern uint32_t framebuffer[];
 extern int screen_width;
 extern int screen_height;
 
+#define DEBUG_BUFFER_WIDTH 300
+#define DEBUG_BUFFER_HEIGHT 360
+
+extern uint32_t debug_buffer[DEBUG_BUFFER_WIDTH * DEBUG_BUFFER_HEIGHT];
+
 void badgeware_preinit(void);
 int badgeware_init(void);
 void badgeware_update(int ticks);

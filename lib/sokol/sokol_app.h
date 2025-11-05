@@ -1841,6 +1841,8 @@ typedef struct sapp_desc {
 
     int width;                          // the preferred width of the window / canvas
     int height;                         // the preferred height of the window / canvas
+    int aspect_x;
+    int aspect_y;
     int sample_count;                   // MSAA sample count
     int swap_interval;                  // the preferred swap interval (ignored on some platforms)
     bool high_dpi;                      // whether the rendering canvas is full-resolution on HighDPI displays
@@ -3083,6 +3085,8 @@ typedef struct {
     bool onscreen_keyboard_shown;
     int window_width;
     int window_height;
+    int window_aspect_x;
+    int window_aspect_y;
     int framebuffer_width;
     int framebuffer_height;
     int sample_count;
@@ -3370,6 +3374,8 @@ _SOKOL_PRIVATE void _sapp_init_state(const sapp_desc* desc) {
     // NOTE: _sapp.desc.width/height may be 0! Platform backends need to deal with this
     _sapp.window_width = _sapp.desc.width;
     _sapp.window_height = _sapp.desc.height;
+    _sapp.window_aspect_x = _sapp.desc.aspect_x;
+    _sapp.window_aspect_y = _sapp.desc.aspect_y;
     _sapp.framebuffer_width = _sapp.window_width;
     _sapp.framebuffer_height = _sapp.window_height;
     _sapp.sample_count = _sapp.desc.sample_count;
@@ -4731,9 +4737,9 @@ _SOKOL_PRIVATE void _sapp_macos_set_icon(const sapp_icon_desc* icon_desc, int nu
     _sapp.macos.window.acceptsMouseMovedEvents = YES;
     _sapp.macos.window.restorable = YES;
     //_sapp.macos.window.resizeIncrements = NSMakeSize(320, 240);
-    _sapp.macos.window.contentAspectRatio = NSMakeSize(260 * 2, 120 * 2);
-    _sapp.macos.window.minSize = NSMakeSize(260 * 2, 120 * 2);
-    _sapp.macos.window.maxSize = NSMakeSize(260 * 6, 120 * 6);
+    _sapp.macos.window.contentAspectRatio = NSMakeSize(_sapp.window_aspect_x, _sapp.window_aspect_y);
+    //_sapp.macos.window.minSize = NSMakeSize(260 * 2, 120 * 2);
+    //_sapp.macos.window.maxSize = NSMakeSize(260 * 6, 120 * 6);
 
     _sapp.macos.win_dlg = [[_sapp_macos_window_delegate alloc] init];
     _sapp.macos.window.delegate = _sapp.macos.win_dlg;
@@ -11553,16 +11559,16 @@ _SOKOL_PRIVATE void _sapp_x11_create_window(Visual* visual_or_null, int depth) {
 
     // NOTE: PPosition and PSize are obsolete and ignored
     XSizeHints* hints = XAllocSizeHints();
-    hints->flags = USPosition | PWinGravity | PAspect | PMinSize | PMaxSize;
+    hints->flags = USPosition | PWinGravity | PAspect; // | PMinSize | PMaxSize;
     hints->win_gravity = CenterGravity;
-    hints->min_width = 260;
-    hints->min_height = 120;
-    hints->max_width = 260 * 6;
-    hints->max_height = 120 * 6;
-    hints->min_aspect.x = 13;
-    hints->max_aspect.x = 13;
-    hints->min_aspect.y = 6;
-    hints->max_aspect.y = 6;
+    //hints->min_width = 260;
+    //hints->min_height = 120;
+    //hints->max_width = 260 * 6;
+    //hints->max_height = 120 * 6;
+    hints->min_aspect.x = _sapp.window_aspect.x;
+    hints->max_aspect.x = _sapp.window_aspect.y;
+    hints->min_aspect.y = _sapp.window_aspect.x;
+    hints->max_aspect.y = _sapp.window_aspect.y;
     XSetWMNormalHints(_sapp.x11.display, _sapp.x11.window, hints);
     XFree(hints);
 

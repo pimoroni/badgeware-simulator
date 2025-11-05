@@ -22,19 +22,15 @@ extern "C" {
 
   #include "py/runtime.h"
 
-  typedef struct _modpicovector_obj_t {
-    bool initialised;
-    image_obj_t *image;
-  } modpicovector_obj_t;
-  
-
   int screen_width = 160;
   int screen_height = 120;
   uint32_t framebuffer[160 * 120];
 
+#ifndef PICO
   int debug_width = 300;
   int debug_height = 360;
-  extern uint32_t debug_buffer[300 * 360];
+  uint32_t debug_buffer[300 * 360];
+#endif
 
   mp_obj_t modpicovector___init__(void) {
   
