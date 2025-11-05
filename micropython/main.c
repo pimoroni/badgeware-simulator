@@ -279,7 +279,7 @@ static void sokol_event(const sapp_event* ev) {
                 break;
             case SAPP_KEYCODE_P: // Screenshot
                 if(keydown) {
-                    badgeware_screenshot(framebuffer);
+                    badgeware_screenshot(framebuffer, NULL);
                 }
                 break;
             default:

@@ -1,4 +1,5 @@
 #include "py/runtime.h"
+#include "py/objstr.h"
 #include "badgeware.h"
 
 /* ModSimulator - Control over the simulator settings from Python code */
@@ -16,6 +17,13 @@ bool debug_show_individual_allocs = false;
 void modsim_set_hot_reload(void) {
     is_hot_reload = true;
 }
+
+mp_obj_t modsimulator_screenshot(mp_obj_t filename_in) {
+    GET_STR_DATA_LEN(filename_in, str, str_len);
+    int result = badgeware_screenshot(framebuffer, (const char *)str);
+    return mp_obj_new_int(result);
+}
+MP_DEFINE_CONST_FUN_OBJ_1(modsimulator_screenshot_obj, modsimulator_screenshot);
 
 void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 
@@ -47,6 +55,7 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 
 static const mp_rom_map_elem_t modsimulator_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_modsimulator) },
+    { MP_ROM_QSTR(MP_QSTR_screenshot), MP_ROM_PTR(&modsimulator_screenshot_obj) },
 };
 static MP_DEFINE_CONST_DICT(modsimulator_globals, modsimulator_globals_table);
 

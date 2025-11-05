@@ -375,11 +375,20 @@ void badgeware_input(uint8_t mask, bool set) {
     }
 }
 
-int badgeware_screenshot(void *buffer) {
+int badgeware_screenshot(void *buffer, const char *fn) {
     time_t time_seconds = time(NULL);
+    uint64_t total_time = (time_seconds * 1000) + picovector_ticks;
     char filename[PATH_MAX];
     memcpy(filename, path_screenshots, strlen(path_screenshots));
-    snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%lu.png", time_seconds);
+    if(fn && strlen(fn)) {
+        snprintf(filename + strlen(path_screenshots), PATH_MAX, "/%s.png", fn);
+    } else {
+        snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%llu.png", total_time);
+    }
+    if(access(filename, R_OK) == 0) {
+        debug_printf("badgeware_screenshot: Refusing to overwrite %s\n", filename);
+        return -1;
+    }
     debug_printf("badgeware_screenshot: Saving to %s\n", filename);
     return stbi_write_png((const char*)filename, 160, 120, 4, buffer, 0);
 }
