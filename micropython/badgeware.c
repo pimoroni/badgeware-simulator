@@ -50,7 +50,8 @@ double picovector_last_ticks;
 
 // MicroPython heap and stack
 // #define heap_size (1024 * 1024 * (sizeof(mp_uint_t) / 4))
-#define heap_size (246912) // (270 * 1024)  // 246912 = actual heap measured from device
+#define heap_size (2469120) // (270 * 1024)  // 246912 = actual heap measured from device
+
 static char heap[heap_size] = {0};
 mp_obj_t pystack[1024];
 
@@ -273,7 +274,7 @@ int badgeware_init(const char *root_path, const char *watch_path, const char *sc
 
     dmon_init();
 
-    debug_printf("badgeware_init: Hello BadgeWare!\n"); 
+    debug_printf("badgeware_init: Hello BadgeWare!\n");
     if(access(dmon_watch_path, R_OK) == 0) {
         dmon_watch(dmon_watch_path, dmon_watch_callback, DMON_WATCHFLAGS_RECURSIVE, NULL);
         hot_reload = true;
@@ -332,7 +333,7 @@ static void micropython_reinit(void) {
     mp_obj_t args[2] = {
         MP_OBJ_TYPE_GET_SLOT(&mp_type_vfs_posix, make_new)(&mp_type_vfs_posix, 1, 0, vfs_posix_args),
         MP_OBJ_NEW_QSTR(MP_QSTR__slash_),
-    }; 
+    };
     mp_vfs_mount(2, args, (mp_map_t *)&mp_const_empty_map);
 
     // Make sure the root that was just mounted is the current VFS (it's always at

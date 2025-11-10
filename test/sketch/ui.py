@@ -79,3 +79,15 @@ def draw_cursor(cursor):
   screen.draw(shapes.rectangle(cx - 3, cy, 2, 1))
   screen.draw(shapes.rectangle(cx, cy + 2, 1, 2))
   screen.draw(shapes.rectangle(cx, cy - 3, 1, 2))
+
+
+    # int x = mp_obj_get_float(pos_args[2]);
+    # int y = mp_obj_get_float(pos_args[3]);
+    # int c = mp_obj_get_float(pos_args[4]);
+    # int us = mp_obj_get_float(pos_args[5]);
+    # int vs = mp_obj_get_float(pos_args[6]);
+    # int ue = mp_obj_get_float(pos_args[7]);
+    # int ve = mp_obj_get_float(pos_args[8]);
+
+  for x in range(0, 30):
+    screen.vspan_tex(mona.frame(1), x, 10, 30, x, 5, 20, 15)

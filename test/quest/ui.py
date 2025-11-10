@@ -32,7 +32,6 @@ def draw_status(complete):
   screen.brush = brushes.color(140, 160, 180)
   screen.text("found", 7, 30)
 
-
 def draw_tiles(complete):
   # define tile shape and set position of tile grid
   tile = shapes.squircle(0, 0, 1, 6)

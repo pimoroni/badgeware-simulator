@@ -201,24 +201,24 @@ namespace picovector {
 
     float ustep = (uve.x - uvs.x) / float(c);
     float vstep = (uve.y - uvs.y) / float(c);
-    point_t uv = uvs;
+    float u = uvs.x;
+    float v = uvs.y;
 
     for(int y = p.y; y < p.y + c; y++) {
-      uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
-
       if(y >= b.y && y < b.y + b.h) {
-        uv.x += ustep;
-        uv.y += vstep;
+        uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
+        u += ustep;
+        v += vstep;
 
-        int tx = round(uv.x);
-        int ty = round(uv.y);
+        int tx = round(u);
+        int ty = round(v);
 
         uint32_t col;
         if(this->_has_palette) {
-          uint8_t *src = (uint8_t *)target->ptr(tx, ty);
+          uint8_t *src = (uint8_t *)this->ptr(tx, ty);
           col = this->_palette[*src];
         } else {
-          uint32_t *src = (uint32_t *)target->ptr(tx, ty);
+          uint32_t *src = (uint32_t *)this->ptr(tx, ty);
           col = *src;
         }
         *dst = col;
