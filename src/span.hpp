@@ -281,3 +281,7 @@ inline void __not_in_flash_func(span_blit_scale_palette)(void *vsrc, void *vdst,
     dst++;
   }
 }
+
+
+
+

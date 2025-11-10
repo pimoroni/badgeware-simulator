@@ -2,8 +2,6 @@
 
 This module provides ways to create primitive shapes and manipulate them.
 
-> note: in future there will be a way to define custom shapes
-
 ## Properties
 
 `transform`\

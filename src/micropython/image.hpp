@@ -145,6 +145,21 @@ extern "C" {
     return mp_obj_new_tuple(2, result);
   }
 
+  mp_obj_t image_vspan_tex(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+    int x = mp_obj_get_float(pos_args[2]);
+    int y = mp_obj_get_float(pos_args[3]);
+    int c = mp_obj_get_float(pos_args[4]);
+    int us = mp_obj_get_float(pos_args[5]);
+    int vs = mp_obj_get_float(pos_args[6]);
+    int ue = mp_obj_get_float(pos_args[7]);
+    int ve = mp_obj_get_float(pos_args[8]);
+    src->image->vspan_tex(self->image, point_t(x, y), c, point_t(us, vs), point_t(ue, ve));
+    return mp_const_none;
+  }
+
+
   mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
@@ -296,6 +311,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_draw_obj, 2, image_draw);
 
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
 
@@ -309,6 +325,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
       { MP_ROM_QSTR(MP_QSTR_text), MP_ROM_PTR(&image_text_obj) },
       { MP_ROM_QSTR(MP_QSTR_measure_text), MP_ROM_PTR(&image_measure_text_obj) },
+      { MP_ROM_QSTR(MP_QSTR_vspan_tex), MP_ROM_PTR(&image_vspan_tex_obj) },
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&image_load_static_obj) },

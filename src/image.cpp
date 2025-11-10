@@ -184,6 +184,48 @@ namespace picovector {
     }
   }
 
+  /*
+    renders a vertical span onto the target image using this image as a
+    texture.
+
+    - p: the starting point of the span on the target
+    - c: the count of pixels to render
+    - uvs: the start coordinate of the texture
+    - uve: the end coordinate of the texture
+  */
+  void image_t::vspan_tex(image_t *target, point_t p, uint c, point_t uvs, point_t uve) {
+    rect_t b = target->bounds();
+    if(p.x < b.x || p.x > b.x + b.w) {
+      return;
+    }
+
+    float ustep = (uve.x - uvs.x) / float(c);
+    float vstep = (uve.y - uvs.y) / float(c);
+    point_t uv = uvs;
+
+    for(int y = p.y; y < p.y + c; y++) {
+      uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
+
+      if(y >= b.y && y < b.y + b.h) {
+        uv.x += ustep;
+        uv.y += vstep;
+
+        int tx = round(uv.x);
+        int ty = round(uv.y);
+
+        uint32_t col;
+        if(this->_has_palette) {
+          uint8_t *src = (uint8_t *)target->ptr(tx, ty);
+          col = this->_palette[*src];
+        } else {
+          uint32_t *src = (uint32_t *)target->ptr(tx, ty);
+          col = *src;
+        }
+        *dst = col;
+      }
+    }
+  }
+
   void image_t::blit(image_t *target, rect_t tr) {
     bool invert_x = tr.w < 0.0f;
     bool invert_y = tr.h < 0.0f;

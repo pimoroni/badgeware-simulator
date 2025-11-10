@@ -1,11 +1,11 @@
-# `Image` - drawing surface and framebuffer
+# `Image` - canvas and image assets
 
 This class provides functions for loading images, drawing shapes and text, and blitting sprites.
 
 Images can be either true colour (RGBA) or paletted (up to 256 colours).
 Because available RAM is limited, it’s recommended to use paletted images whenever possible — they use roughly one quarter of the memory compared to true colour images.
 
-> Note: Drawing operations cannot currently be performed on paletted images, though this limitation may be removed in a future update.
+> Note: Drawing operations cannot currently be performed on paletted images, though this limitation will be removed in a future update.
 
 ## Properties
 

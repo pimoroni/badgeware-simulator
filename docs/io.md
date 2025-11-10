@@ -5,10 +5,10 @@ This module exposes helpful information about the state of the badge hardware in
 ## Timing
 
 `io.ticks`\
-The number of ticks (milliseconds) since the badge was powered on when `update()` was called.
+The number of ticks (milliseconds) since the badge was powered on when this frame started.
 
 `io.ticks_delta`\
-The number of ticks (milliseconds) since the previous time `update()` was called. Useful for timing animations where the framerate isn't completely stable.
+The number of ticks (milliseconds) since the previous frame started. Useful for timing animations where the framerate isn't completely stable.
 
 ## Reading button state
 
