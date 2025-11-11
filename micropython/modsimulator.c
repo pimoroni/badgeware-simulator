@@ -14,6 +14,12 @@ bool is_hot_reload = false;
 bool debug_show_alloc_count = false;
 bool debug_show_individual_allocs = false;
 
+#ifdef HEADLESS
+const bool is_headless = true;
+#else
+const bool is_headless = false;
+#endif
+
 void modsim_set_hot_reload(void) {
     is_hot_reload = true;
 }
@@ -52,6 +58,10 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
         case MP_QSTR_hot_reload:
             if(action == GET) {
                 dest[0] = mp_obj_new_bool(is_hot_reload);
+            } break;
+        case MP_QSTR_headless:
+            if(action == GET) {
+                dest[0] = mp_obj_new_bool(is_headless);
             } break;
     }
     dest[1] = MP_OBJ_SENTINEL;

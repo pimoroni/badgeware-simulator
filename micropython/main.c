@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -33,19 +34,7 @@
 #include "modsimulator.h"
 
 #ifndef NO_QSTR
-#define SOKOL_ARGS_IMPL
-#define SOKOL_TIME_IMPL
-#define SOKOL_GL_IMPL
-
-#include "sokol_app.h"
-#include "sokol_args.h"
-#include "sokol_gfx.h"
-//#include "sokol_gl.h"
-#include "sokol_log.h"
-#include "sokol_glue.h"
-#include "sokol_time.h"
-#include "cimgui.h"
-#include "sokol_imgui.h"
+#include "sokol.h"
 #endif
 
 bool continuous_screenshots = false;

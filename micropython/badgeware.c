@@ -60,6 +60,7 @@ uint64_t mp_allocator_allocs = 0;
 
 // Hot reloading
 static bool hot_reload = false;
+static bool should_exit = false;
 static char* path_screenshots;
 static char* path_root;
 static char* dmon_watch_path;
@@ -127,8 +128,13 @@ static int handle_uncaught_exception_and_forced_exit(mp_obj_base_t *exc) {
 
     if(result & FORCED_EXIT) {
         int status_code = result & ~FORCED_EXIT;
-        printf("Forced exit: %d - triggering hot reload\n", status_code);
-        hot_reload = true;
+        if(status_code == 255) {
+            printf("Forced exit: %d - triggering exit\n", status_code);
+            should_exit = true;
+        } else {
+            printf("Forced exit: %d - triggering hot reload\n", status_code);
+            hot_reload = true;
+        }
     }
 
     return result;
@@ -401,6 +407,10 @@ void badgeware_trigger_hot_reload(void) {
 
 bool badgeware_will_hot_reload(void) {
     return hot_reload;
+}
+
+bool badgeware_should_exit(void) {
+    return should_exit;
 }
 
 void badgeware_update(int ticks) {

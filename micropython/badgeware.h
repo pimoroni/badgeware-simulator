@@ -24,3 +24,4 @@ void badgeware_input(uint8_t mask, bool set);
 void badgeware_trigger_hot_reload(void);
 bool badgeware_will_hot_reload(void);
 int badgeware_screenshot(void *buffer, const char *fn);
+bool badgeware_should_exit(void);

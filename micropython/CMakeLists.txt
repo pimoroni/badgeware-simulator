@@ -29,6 +29,10 @@ if(NOT VARIANT)
     set(VARIANT standard)
 endif()
 
+if(NOT DEFINED HEADLESS)
+    set(HEADLESS FALSE)
+endif()
+
 # Set the location of this port's directory.
 set(MICROPY_VARIANT_DIR "${CMAKE_CURRENT_LIST_DIR}/variants/${VARIANT}")
 
@@ -70,7 +74,23 @@ find_package(CIMGUI CONFIG REQUIRED PATHS ${LIB_DIR})
 
 add_executable(${MICROPY_TARGET})
 
-target_link_libraries(${MICROPY_TARGET} sokol cimgui micropy_lib_mbedtls)
+target_link_libraries(${MICROPY_TARGET} micropy_lib_mbedtls)
+
+if(HEADLESS)
+    target_compile_definitions(${MICROPY_TARGET} PRIVATE HEADLESS)
+    set(MICROPY_SOURCE_PORT ${MICROPY_PORT_DIR}/headless.c)
+
+    # The Cocoa framework normally hangs off the sokol lib
+    # but is required for dmon in headless mode, so link it here
+    if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+        target_link_libraries(${MICROPY_TARGET}
+            "-framework Cocoa"
+        )
+    endif()
+else()
+    target_link_libraries(${MICROPY_TARGET} sokol cimgui)
+    set(MICROPY_SOURCE_PORT ${MICROPY_PORT_DIR}/main.c)
+endif()
 
 set(MICROPY_QSTRDEFS_PORT
     ${MICROPY_PORT_DIR}/qstrdefsport.h
@@ -82,8 +102,7 @@ set(MICROPY_SOURCE_LIB
     ${MICROPY_DIR}/shared/readline/readline.c
 )
 
-set(MICROPY_SOURCE_PORT
-    ${MICROPY_PORT_DIR}/main.c
+list(APPEND MICROPY_SOURCE_PORT
     ${MICROPY_PORT_DIR}/badgeware.c
     ${MICROPY_PORT_DIR}/modsimulator.c
     ${MICROPY_PORT_DIR}/gccollect.c
@@ -102,6 +121,7 @@ set(MICROPY_SOURCE_PORT
 	${MICROPY_PORT_DIR}/modffi.c
 	${MICROPY_PORT_DIR}/modjni.c
 )
+message(WARNING ${MICROPY_SOURCE_PORT})
 
 # HACK: Fixup for missing nlraarch64.c
 list(APPEND MICROPY_SOURCE_PORT
@@ -195,7 +215,6 @@ target_compile_options(${MICROPY_TARGET} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 >)
 
 target_compile_definitions(${MICROPY_TARGET} PRIVATE
-    SOKOL_METAL
     UNIX
     MICROPY_PORT_DIR=${MICROPY_PORT_DIR}
     MICROPY_PY_TERMIOS=1

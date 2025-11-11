@@ -6,6 +6,7 @@ import micropython
 import simulator
 import debug
 
+HEADLESS = simulator.headless
 SKIP_CINEMATIC = simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
@@ -14,6 +15,9 @@ app = None
 
 simulator.show_alloc_count = False        # Show number of MPAllocator allocs per frame
 simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and location
+
+if HEADLESS:
+    print("main.py: Headless mode detected!")
 
 """
 # RAM & GC Testing
