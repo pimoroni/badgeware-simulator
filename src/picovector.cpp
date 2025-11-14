@@ -109,7 +109,7 @@ namespace picovector {
     // for each scanline we step the interpolators and build the list of
     // intersecting nodes for that scaline
     static float nodes[128]; // up to 128 nodes (64 spans) per scanline
-    const size_t SPAN_BUFFER_SIZE = 256;
+    const size_t SPAN_BUFFER_SIZE = 512;
     //static _rspan spans[SPAN_BUFFER_SIZE];
     static auto spans = new((uint8_t *)PicoVector_working_buffer + (sizeof(_edgeinterp) * 256)) _rspan[SPAN_BUFFER_SIZE];
 
