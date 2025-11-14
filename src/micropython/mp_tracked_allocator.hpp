@@ -53,7 +53,11 @@ struct MPAllocator
         report(p, n, 0);
         //std::free(p);
         //m_tracked_free(p);
+#if MICROPY_MALLOC_USES_ALLOCATED_SIZE
         m_free(p, n);
+#else
+        m_free(p);
+#endif
     }
 
 private:
