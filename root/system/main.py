@@ -7,7 +7,7 @@ import simulator
 import debug
 
 HEADLESS = simulator.headless
-SKIP_CINEMATIC = simulator.hot_reload
+SKIP_CINEMATIC = True # simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
 app = None

@@ -1,287 +1,123 @@
 #pragma once
 
 #include <stdint.h>
-#ifdef PICO
-#include "hardware/interp.h"
-#else
+#ifndef PICO
 #define __not_in_flash_func(v) v
 #endif
-#include <cstring>
 
-#define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
-
+// TODO: this function probably doesn't belong here...?
 inline uint32_t __not_in_flash_func(_make_col)(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
   return __builtin_bswap32((r << 24) | (g << 16) | (b << 8) | a);
 }
 
-inline uint8_t __not_in_flash_func(_r)(uint32_t c) { return ((uint8_t*)&c)[0]; }
-inline uint8_t __not_in_flash_func(_g)(uint32_t c) { return ((uint8_t*)&c)[1]; }
-inline uint8_t __not_in_flash_func(_b)(uint32_t c) { return ((uint8_t*)&c)[2]; }
-inline uint8_t __not_in_flash_func(_a)(uint32_t c) { return ((uint8_t*)&c)[3]; }
+// TODO: consider making all images pre-multiplied alpha
 
+// note: previously we had blend paths using the rp2 interpolators but these
+// turn out to be slower due to mmio access times, often taking around 40%
+// longer to do the same work
 
-inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src) {
-  uint8_t *pd = (uint8_t *)dst;
-  uint8_t *ps = (uint8_t *)src;
-  uint8_t a = ps[3];
-  if(a == 255) {
-    *dst = *src;
+/*
+
+  blending functions
+
+*/
+
+// blends a source rgba pixel over a destination rgba pixel
+// (~30 cycles per pixel)
+static inline __attribute__((always_inline))
+void _blend_rgba_rgba(uint8_t *dst, uint8_t *src) {
+  uint8_t sa = src[3]; // source alpha
+
+  if(sa == 255) { // source fully opaque
+    *(uint32_t *)dst = *(const uint32_t *)src;
     return;
   }
-  if(a == 0) {
+  if(sa == 0) { // source fully transparent
     return;
   }
-  #ifdef PICO
-    interp0->accum[1] = a; // alpha
 
-    interp0->base[0] = pd[0];
-    interp0->base[1] = ps[0]; // red
-    pd[0] = (uint8_t)interp0->peek[1];
-
-    interp0->base[0] = pd[1];
-    interp0->base[1] = ps[1]; // green
-    pd[1] = (uint8_t)interp0->peek[1];
-
-    interp0->base[0] = pd[2];
-    interp0->base[1] = ps[2]; // blue
-    pd[2] = (uint8_t)interp0->peek[1];
-
-    pd[3] = 255; // TODO: this is wrong
-  #else
-    pd[0] = (uint8_t)((ps[0] * a + pd[0] * (255 - a)) >> 8);
-    pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
-    pd[2] = (uint8_t)((ps[2] * a + pd[2] * (255 - a)) >> 8);
-    pd[3] = 255;
-  #endif
+  // blend r, g, b, and a channels
+  dst[0] += (sa * (src[0] - dst[0])) >> 8;
+  dst[1] += (sa * (src[1] - dst[1])) >> 8;
+  dst[2] += (sa * (src[2] - dst[2])) >> 8;
+  dst[3] = sa + ((dst[3] * (255 - sa)) >> 8);
 }
 
-inline void __not_in_flash_func(_rgba_blend_to)(uint32_t *dst, uint32_t *src, uint8_t a) {
-  uint8_t *pd = (uint8_t *)dst;
-  uint8_t *ps = (uint8_t *)src;
-
-  uint16_t t = a * ps[3] + 128;       // add 128 for rounding
-  a = (t + (t >> 8)) >> 8;
-
-  //a = (a * ps[3]) / 255;
-  if(a == 255) {
-    *dst = *src;
-    return;
-  }
-  if(a == 0) {
-    return;
-  }
-
-  #ifdef PICO
-    interp0->accum[1] = a; // alpha
-
-    interp0->base[0] = pd[0];
-    interp0->base[1] = ps[0]; // red
-    pd[0] = (uint8_t)interp0->peek[1];
-
-    interp0->base[0] = pd[1];
-    interp0->base[1] = ps[1]; // green
-    pd[1] = (uint8_t)interp0->peek[1];
-
-    interp0->base[0] = pd[2];
-    interp0->base[1] = ps[2]; // blue
-    pd[2] = (uint8_t)interp0->peek[1];
-
-    pd[3] = 255; // TODO: this is wrong
-  #else
-    pd[0] = (uint8_t)((ps[0] * a + pd[0] * (255 - a)) >> 8);
-    pd[1] = (uint8_t)((ps[1] * a + pd[1] * (255 - a)) >> 8);
-    pd[2] = (uint8_t)((ps[2] * a + pd[2] * (255 - a)) >> 8);
-    pd[3] = 255;
-  #endif
+// blends a source rgba pixel over a destination rgba pixel with alpha
+// (~35 cycles per pixel)
+static inline __attribute__((always_inline))
+void _blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t a) {
+  uint8_t sa = src[3]; // take copy of original source alpha
+  uint16_t t = a * sa + 128; // combine source alpha with alpha
+  src[3] = (t + (t >> 8)) >> 8;
+  _blend_rgba_rgba(dst, src);
+  src[3] = sa; // restore source alpha
 }
 
-inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c) {
+// blends one rgba source pixel over a horizontal span of destination pixels
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_blend_rgba_rgba)(uint8_t *dst, uint8_t *src, uint32_t w) {
   while(w--) {
-    _rgba_blend_to(dst++, &c);
+    _blend_rgba_rgba(dst, src);
+    dst += 4;
   }
 }
 
-
-inline void __not_in_flash_func(span_argb8)(uint32_t *dst, int32_t w, uint32_t c, uint8_t *m) {
+// blends one rgba source pixel over a horizontal span of destination pixels with alpha mask
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_blend_rgba_rgba_masked)(uint8_t *dst, uint8_t *src, uint8_t *m, uint32_t w) {
+  uint8_t sa = src[3]; // take copy of original source alpha
   while(w--) {
-    _rgba_blend_to(dst++, &c, *m++);
+    uint16_t t = *m * sa + 128; // combine source alpha with mask alpha
+    src[3] = (t + (t >> 8)) >> 8;
+    _blend_rgba_rgba(dst, src);
+    dst += 4;
+    m++;
+  }
+  src[3] = sa; // revert the supplied value back
+}
+
+/*
+
+  blitting functions
+
+*/
+
+// blends a horizontal run of rgba source pixels onto the corresponding destination pixels
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint w, uint8_t a) {
+  while(w--) {
+    _blend_rgba_rgba(dst, src, a);
+    dst += 4;
+    src += 4;
   }
 }
 
-inline void __not_in_flash_func(span_blit_argb8)(uint32_t *src, uint32_t *dst, int w, int a = 255) {
+// blends a horizontal run of rgba source pixels from a palette onto the corresponding destination pixels
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint8_t *pal, uint w, uint8_t a) {
   while(w--) {
-    uint8_t *ps = (uint8_t *)src;
-    uint8_t *pd = (uint8_t *)dst;
-
-    int ca = (ps[3] * (a)) / 255; // apply global alpha
-
-    if(ca == 0) {
-      // zero alpha, skip pixel
-    } else if (ca == 255) {
-      // full alpha copy pixel
-      *dst = *src;
-    } else {
-#ifdef PICO
-      // alpha requires blending pixel
-      interp0->accum[1] = ca;
-
-      interp0->base[0] = pd[0];
-      interp0->base[1] = ps[0]; // red
-      pd[1] = (uint8_t)interp0->peek[0];
-
-      interp0->base[0] = pd[1];
-      interp0->base[1] = ps[1]; // green
-      pd[1] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[2];
-      interp0->base[1] = ps[2]; // blue
-      pd[2] = (uint8_t)interp0->peek[1];
-#else
-      pd[0] = (uint8_t)((ps[0] * ca + pd[0] * (255 - ca)) >> 8);
-      pd[1] = (uint8_t)((ps[1] * ca + pd[1] * (255 - ca)) >> 8);
-      pd[2] = (uint8_t)((ps[2] * ca + pd[2] * (255 - ca)) >> 8);
-      pd[3] = 255;
-#endif
-    }
-
+    _blend_rgba_rgba(dst, &pal[*src << 2], a);
+    dst += 4;
     src++;
-    dst++;
   }
 }
 
-inline void __not_in_flash_func(span_blit_argb8_palette)(void *vsrc, void *vdst, uint32_t *palette, int w, int a = 255) {
-  uint8_t *src = (uint8_t*)vsrc;
-  uint32_t *dst = (uint32_t*)vdst;
-
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_scale_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint x, int step, uint w, uint8_t a) {
   while(w--) {
-    uint32_t sc = palette[*src];
-    uint8_t *ps = (uint8_t *)&sc;
-    uint8_t *pd = (uint8_t *)dst;
-
-    int ca = (ps[3] * (a)) / 255; // apply global alpha
-
-    if(ca == 0) {
-    } else if (ca == 255) {
-      // full alpha copy pixel
-      *dst = sc;
-      //pd[3] = 255;
-    } else {
-#ifdef PICO
-      // alpha requires blending pixel
-      interp0->accum[1] = ca;
-
-      interp0->base[0] = pd[0];
-      interp0->base[1] = ps[0]; // red
-      pd[1] = (uint8_t)interp0->peek[0];
-
-      interp0->base[0] = pd[1];
-      interp0->base[1] = ps[1]; // green
-      pd[1] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[2];
-      interp0->base[1] = ps[2]; // blue
-      pd[2] = (uint8_t)interp0->peek[1];
-#else
-      pd[0] = ((pd[0] * (255 - ca)) + (ps[0] * ca)) / 255;
-      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
-      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
-   //   pd[3] = 255;
-#endif
-    }
-    src++;
-    dst++;
+    _blend_rgba_rgba(dst, src + ((x >> 16) << 2), a);
+    dst += 4;
+    x += step;
   }
-
 }
 
-
-inline void __not_in_flash_func(span_blit_scale)(uint32_t *src, uint32_t *dst, int srcx, int srcstepx, int w, int a) {
+static inline __attribute__((always_inline))
+void __not_in_flash_func(_span_scale_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint8_t *pal, uint x, int step, uint w, uint8_t a) {
   while(w--) {
-    uint8_t *pd = (uint8_t *)dst;
-    uint8_t *ps = (uint8_t *)(src + (srcx >> 16));
-
-    int ca = (ps[3] * (a + 1)) / 256; // apply global alpha
-
-    if(ca == 0) {
-      // zero alpha, skip pixel
-    } else if (ca == 255) {
-      // full alpha copy pixel
-      *dst = src[srcx >> 16];
-    } else {
-#ifdef PICO
-      // alpha requires blending pixel
-      interp0->accum[1] = ca;
-
-      interp0->base[0] = pd[1];
-      interp0->base[1] = ps[1]; // red
-      pd[1] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[2];
-      interp0->base[1] = ps[2]; // green
-      pd[2] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[3];
-      interp0->base[1] = ps[3]; // blue
-      pd[3] = (uint8_t)interp0->peek[1];
-#else
-      pd[0] = ((pd[0] * (255 - ca)) + (ps[0] * ca)) / 255;
-      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
-      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
-#endif
-    }
-
-    srcx += srcstepx;
-    dst++;
+    uint8_t i = *(src + (x >> 16));
+    _blend_rgba_rgba(dst, &pal[i << 2], a);
+    dst += 4;
+    x += step;
   }
 }
-
-
-inline void __not_in_flash_func(span_blit_scale_palette)(void *vsrc, void *vdst, uint32_t *palette, int srcx, int srcstepx, int w, int a) {
-  uint8_t *src = (uint8_t*)vsrc;
-  uint32_t *dst = (uint32_t*)vdst;
-
-  while(w--) {
-    uint8_t *pd = (uint8_t *)dst;
-    uint8_t *pps = (uint8_t *)(src + (srcx >> 16));
-
-    uint32_t sc = palette[*pps];
-    uint8_t *ps = (uint8_t *)&sc;
-
-    int ca = (ps[3] * (a + 1)) / 256; // apply global alpha
-
-    if(ca == 0) {
-      // zero alpha, skip pixel
-    } else if (ca == 255) {
-      // full alpha copy pixel
-      *dst = sc;
-    } else {
-#ifdef PICO
-      // alpha requires blending pixel
-      interp0->accum[1] = ca;
-
-      interp0->base[0] = pd[1];
-      interp0->base[1] = ps[1]; // red
-      pd[1] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[2];
-      interp0->base[1] = ps[2]; // green
-      pd[2] = (uint8_t)interp0->peek[1];
-
-      interp0->base[0] = pd[3];
-      interp0->base[1] = ps[3]; // blue
-      pd[3] = (uint8_t)interp0->peek[1];
-#else
-      pd[0] = ((pd[0] * (255 - ca)) + (ps[0] * ca)) / 255;
-      pd[1] = ((pd[1] * (255 - ca)) + (ps[1] * ca)) / 255;
-      pd[2] = ((pd[2] * (255 - ca)) + (ps[2] * ca)) / 255;
-#endif
-    }
-
-    srcx += srcstepx;
-    dst++;
-  }
-}
-
-
-
-

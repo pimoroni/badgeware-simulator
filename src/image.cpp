@@ -171,15 +171,12 @@ namespace picovector {
     int syo = p.y < 0 ? -p.y : 0;
 
     for(int i = 0; i < tr.h; i++) {
-
-      uint32_t *dst = (uint32_t *)t->ptr(tr.x, tr.y + i);
-
+      uint8_t *dst = (uint8_t *)t->ptr(tr.x, tr.y + i);
+      uint8_t *src = (uint8_t *)this->ptr(sxo, syo + i);
       if(this->_has_palette) {
-        uint8_t *src = (uint8_t *)this->ptr(sxo, syo + i);
-        span_blit_argb8_palette(src, dst, &this->_palette[0], tr.w, this->alpha());
+        _span_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], tr.w, this->_alpha);
       }else{
-        uint32_t *src = (uint32_t *)this->ptr(sxo, syo + i);
-        span_blit_argb8(src, dst, tr.w, this->alpha());
+        _span_blit_rgba_rgba(dst, src, tr.w, this->_alpha);
       }
     }
   }
@@ -252,12 +249,18 @@ namespace picovector {
     int ey = ctr.y + ctr.h;//max(ctr.y, ctr.y + ctr.h);
 
     for(int y = sy; y < ey; y++) {
-      void *dst = target->ptr(ctr.x, y);
+      uint8_t *dst = (uint8_t*)target->ptr(ctr.x, y);
+      uint8_t *src = (uint8_t*)this->ptr(0, int(srcy));
+      int32_t x = int(srcx * 65536.0f);
+      int32_t step = int(srcstepx * 65536.0f);
 
       if(this->_has_palette) {
-        span_blit_scale_palette((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, &this->_palette[0], int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+        //span_blit_scale_palette((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, &this->_palette[0], int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+        _span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
       }else{
-        span_blit_scale((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
+        _span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
+
+        //span_blit_scale((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
       }
 
       srcy += srcstepy;
