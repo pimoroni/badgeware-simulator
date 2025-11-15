@@ -206,20 +206,17 @@ namespace picovector {
       v += vstep;
 
       if(y >= b.y && y < b.y + b.h) {
-        uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
+        uint8_t *dst = (uint8_t *)target->ptr(p.x, y);
 
         int tx = round(u);
         int ty = round(v);
 
         uint32_t col;
         if(this->_has_palette) {
-          uint8_t *src = (uint8_t *)this->ptr(tx, ty);
-          col = this->_palette[*src];
+          _blend_rgba_rgba(dst, (uint8_t*)&this->_palette[*(uint8_t *)this->ptr(tx, ty)]);
         } else {
-          uint32_t *src = (uint32_t *)this->ptr(tx, ty);
-          col = *src;
+          _blend_rgba_rgba(dst, (uint8_t *)this->ptr(tx, ty));
         }
-        *dst = col;
       }
     }
   }
@@ -255,12 +252,9 @@ namespace picovector {
       int32_t step = int(srcstepx * 65536.0f);
 
       if(this->_has_palette) {
-        //span_blit_scale_palette((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, &this->_palette[0], int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
         _span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
       }else{
         _span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
-
-        //span_blit_scale((uint32_t *)this->ptr(0, int(srcy)), (uint32_t *)dst, int(srcx * 65536.0f), int(srcstepx * 65536.0f), abs(ctr.w), this->alpha());
       }
 
       srcy += srcstepy;

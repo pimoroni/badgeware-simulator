@@ -28,11 +28,11 @@ static inline __attribute__((always_inline))
 void _blend_rgba_rgba(uint8_t *dst, uint8_t *src) {
   uint8_t sa = src[3]; // source alpha
 
-  if(sa == 255) { // source fully opaque
+  if(sa == 255) { // source fully opaque: overwrite
     *(uint32_t *)dst = *(const uint32_t *)src;
     return;
   }
-  if(sa == 0) { // source fully transparent
+  if(sa == 0) { // source fully transparent: skip
     return;
   }
 
@@ -44,7 +44,7 @@ void _blend_rgba_rgba(uint8_t *dst, uint8_t *src) {
 }
 
 // blends a source rgba pixel over a destination rgba pixel with alpha
-// (~35 cycles per pixel)
+// (~40 cycles per pixel)
 static inline __attribute__((always_inline))
 void _blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t a) {
   uint8_t sa = src[3]; // take copy of original source alpha
