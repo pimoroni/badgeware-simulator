@@ -31,23 +31,85 @@ extern "C" {
 #endif
 
   mp_obj_t modpicovector___init__(void) {
-  
-  #ifdef PICO
-    // we need a way to set this up, but if the user wants to use the
-    // interpolators in their own code they might modify the configuration..
-    // do we have to do this everytime we're about to render something to be
-    // sure or do we just say that this interpolator is out of bounds if you're
-    // using pico graphics 2?
-    interp_config cfg = interp_default_config();
-    interp_config_set_blend(&cfg, true);
-    interp_set_config(interp0, 0, &cfg);
-    cfg = interp_default_config();
-    interp_set_config(interp0, 1, &cfg);
-  #endif
-
-    return mp_const_none;
+      return mp_const_none;
   }
-  
+
+
+  mp_obj_t modpicovector_dda(size_t n_args, const mp_obj_t *pos_args) {
+    float x = mp_obj_get_float(pos_args[0]);
+    float y = mp_obj_get_float(pos_args[1]);
+    float dx = mp_obj_get_float(pos_args[2]);
+    float dy = mp_obj_get_float(pos_args[3]);
+    float max = mp_obj_get_float(pos_args[4]);
+
+    int ix = floor(x);
+    int iy = floor(y);
+
+    const float eps = 1e-30f;
+    float inv_dx = fabs(dx) > eps ? 1.0f / dx : 1e30f;
+    float inv_dy = fabs(dy) > eps ? 1.0f / dy : 1e30f;
+
+    int step_x = (dx > 0.0f) ? 1 : (dx < 0.0f ? -1 : 0);
+    int step_y = (dy > 0.0f) ? 1 : (dy < 0.0f ? -1 : 0);
+
+    float t_delta_x = fabs(inv_dx);
+    float t_delta_y = fabs(inv_dy);
+
+    float t_max_x = 1e30f;
+    float t_max_y = 1e30f;
+
+    if(step_x > 0) {
+      t_max_x = ((float(ix) + 1.0f) - x) * inv_dx;
+    } else if(step_x < 0) {
+      t_max_x = ((float(ix) - x)) * inv_dx;
+    }
+
+    if(step_y > 0) {
+      t_max_y = ((float(iy) + 1.0f) - y) * inv_dy;
+    } else if(step_y < 0) {
+      t_max_y = ((float(iy) - y)) * inv_dy;
+    }
+
+    float t_enter = 0.0f;
+
+    mp_obj_t result = mp_obj_new_list(0, NULL);
+
+    while (t_enter <= max) {
+      float t_exit = std::min(t_max_x, t_max_y);
+      if (t_exit > max) t_exit = max;
+
+      // if (!visit(ix, iy, t_enter, t_exit)) {
+      //   break; // caller says "stop" (e.g. hit something)
+      // }
+      // add position to tuple
+      mp_obj_t items[2];
+      float hit_x = x + dx * t_exit;
+      float hit_y = y + dy * t_exit;
+      items[0] = mp_obj_new_float(hit_x);
+      items[1] = mp_obj_new_float(hit_y);
+      mp_obj_t tuple = mp_obj_new_tuple(2, items);
+      mp_obj_list_append(result, tuple);
+
+      if (t_exit >= max) {
+        break;
+      }
+
+      // Step to the next cell: whichever boundary we hit first
+      if (t_max_x < t_max_y) {
+        ix += step_x;
+        t_enter = t_max_x;
+        t_max_x += t_delta_x; // next vertical boundary
+      } else {
+        iy += step_y;
+        t_enter = t_max_y;
+        t_max_y += t_delta_y; // next horizontal boundary
+      }
+    }
+
+    return result;
+  }
+
+
   void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     if (dest[0] == MP_OBJ_NULL) {
       if (attr == MP_QSTR_screen) {
