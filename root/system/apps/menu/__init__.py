@@ -9,6 +9,8 @@ from badgeware import screen, PixelFont, Image, SpriteSheet, is_dir, file_exists
 from icon import Icon
 import ui
 
+# screen.antialias = Image.X4
+
 # define the list of installed apps
 #
 # - hack them!
@@ -84,6 +86,7 @@ def update():
         screen.brush = brushes.color(0, 0, 0, 255 - alpha)
         screen.clear()
         alpha += 30
+
 
     return None
 

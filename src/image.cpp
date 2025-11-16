@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "image.hpp"
-#include "span.hpp"
+#include "blend.hpp"
 #include "brush.hpp"
 #include "shape.hpp"
 
@@ -220,6 +220,70 @@ namespace picovector {
       }
     }
   }
+
+  // blit from source rectangle into target rectangle
+  void image_t::blit(image_t *t, rect_t sr, rect_t tr) {
+    if(sr.empty()) return; // source rect empty, nothing to blit
+
+    float scx = tr.w / sr.w; // scale x
+    float scy = tr.h / sr.h; // scale y
+
+    rect_t csr = sr;
+
+    // clip the source rect if needed
+    // rect_t csr = sr;
+    // if(!_bounds.contains(sr)) { // source rect not entirely contained, need to clip
+    //   csr = sr.intersection(_bounds);
+    //   if(csr.empty()) return; // clipped source rect empty, nothing to blit
+
+    //   // clip target rect to new clipped source rect
+    //   tr = {
+    //     tr.x + ((csr.x - sr.x) * scx),
+    //     tr.y + ((csr.y - sr.y) * scy),
+    //     csr.w * scx,
+    //     csr.h * scy
+    //   };
+    // }
+
+    // clip the target rect if needed
+    rect_t ctr = tr;
+    if(!t->_bounds.contains(tr)) { // target rect not entirely contained, need to clip
+      ctr = tr.intersection(t->_bounds);
+      if(ctr.empty()) return; // clipped source rect empty, nothing to blit
+
+      // clip source rect to new clipped target rect
+      csr = {
+        csr.x + ((ctr.x - tr.x) / scx),
+        csr.y + ((ctr.y - tr.y) / scy),
+        ctr.w / scx,
+        ctr.h / scy
+      };
+    }
+
+    // render the scaled spans
+    float srcstepx = csr.w / ctr.w;
+    float srcstepy = csr.h / ctr.h;
+
+    float srcx = csr.x;
+    float srcy = csr.y;
+
+
+    for(int y = 0; y < ctr.h; y++) {
+      uint8_t *dst = (uint8_t*)t->ptr(ctr.x, ctr.y + y);
+      uint8_t *src = (uint8_t*)this->ptr(0, int(srcy));
+      int32_t x = int(srcx * 65536.0f);
+      int32_t step = int(srcstepx * 65536.0f);
+
+      if(this->_has_palette) {
+        _span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
+      }else{
+        _span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
+      }
+
+      srcy += srcstepy;
+    }
+  }
+
 
   void image_t::blit(image_t *target, rect_t tr) {
     bool invert_x = tr.w < 0.0f;

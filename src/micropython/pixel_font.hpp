@@ -1,6 +1,6 @@
 #include "mp_tracked_allocator.hpp"
 #include "../pixel_font.hpp"
-#include "../span.hpp"
+#include "../blend.hpp"
 
 #include "mp_helpers.hpp"
 

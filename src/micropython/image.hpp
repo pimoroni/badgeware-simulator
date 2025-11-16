@@ -4,7 +4,7 @@
 #include "mp_tracked_allocator.hpp"
 #include "../picovector.hpp"
 #include "../image.hpp"
-#include "../span.hpp"
+#include "../blend.hpp"
 #include "../font.hpp"
 #include "../pixel_font.hpp"
 #include "../brush.hpp"
@@ -172,12 +172,26 @@ extern "C" {
   mp_obj_t image_scale_blit(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    int x = mp_obj_get_float(pos_args[2]);
-    int y = mp_obj_get_float(pos_args[3]);
-    int w = mp_obj_get_float(pos_args[4]);
-    int h = mp_obj_get_float(pos_args[5]);
 
-    src->image->blit(self->image, rect_t(x, y, w, h));
+    if(n_args == 6) {
+      int x = mp_obj_get_float(pos_args[2]);
+      int y = mp_obj_get_float(pos_args[3]);
+      int w = mp_obj_get_float(pos_args[4]);
+      int h = mp_obj_get_float(pos_args[5]);
+
+      src->image->blit(self->image, rect_t(x, y, w, h));
+    }else{
+      int sx = mp_obj_get_float(pos_args[2]);
+      int sy = mp_obj_get_float(pos_args[3]);
+      int sw = mp_obj_get_float(pos_args[4]);
+      int sh = mp_obj_get_float(pos_args[5]);
+      int dx = mp_obj_get_float(pos_args[6]);
+      int dy = mp_obj_get_float(pos_args[7]);
+      int dw = mp_obj_get_float(pos_args[8]);
+      int dh = mp_obj_get_float(pos_args[9]);
+
+      src->image->blit(self->image, rect_t(sx, sy, sw, sh), rect_t(dx, dy, dw, dh));
+    }
     return mp_const_none;
   }
 

@@ -56,7 +56,7 @@ void _blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t a) {
 
 // blends one rgba source pixel over a horizontal span of destination pixels
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_blend_rgba_rgba)(uint8_t *dst, uint8_t *src, uint32_t w) {
+void _span_blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint32_t w) {
   while(w--) {
     _blend_rgba_rgba(dst, src);
     dst += 4;
@@ -65,7 +65,7 @@ void __not_in_flash_func(_span_blend_rgba_rgba)(uint8_t *dst, uint8_t *src, uint
 
 // blends one rgba source pixel over a horizontal span of destination pixels with alpha mask
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_blend_rgba_rgba_masked)(uint8_t *dst, uint8_t *src, uint8_t *m, uint32_t w) {
+void _span_blend_rgba_rgba_masked(uint8_t *dst, uint8_t *src, uint8_t *m, uint32_t w) {
   uint8_t sa = src[3]; // take copy of original source alpha
   while(w--) {
     uint16_t t = *m * sa + 128; // combine source alpha with mask alpha
@@ -85,7 +85,7 @@ void __not_in_flash_func(_span_blend_rgba_rgba_masked)(uint8_t *dst, uint8_t *sr
 
 // blends a horizontal run of rgba source pixels onto the corresponding destination pixels
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint w, uint8_t a) {
+void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint w, uint8_t a) {
   while(w--) {
     _blend_rgba_rgba(dst, src, a);
     dst += 4;
@@ -95,7 +95,7 @@ void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint 
 
 // blends a horizontal run of rgba source pixels from a palette onto the corresponding destination pixels
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint8_t *pal, uint w, uint8_t a) {
+void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, uint w, uint8_t a) {
   while(w--) {
     _blend_rgba_rgba(dst, &pal[*src << 2], a);
     dst += 4;
@@ -104,7 +104,7 @@ void __not_in_flash_func(_span_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint8
 }
 
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_scale_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint x, int step, uint w, uint8_t a) {
+void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint x, int step, uint w, uint8_t a) {
   while(w--) {
     _blend_rgba_rgba(dst, src + ((x >> 16) << 2), a);
     dst += 4;
@@ -113,7 +113,7 @@ void __not_in_flash_func(_span_scale_blit_rgba_rgba)(uint8_t *dst, uint8_t *src,
 }
 
 static inline __attribute__((always_inline))
-void __not_in_flash_func(_span_scale_blit_rgba_rgba)(uint8_t *dst, uint8_t *src, uint8_t *pal, uint x, int step, uint w, uint8_t a) {
+void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, uint x, int step, uint w, uint8_t a) {
   while(w--) {
     uint8_t i = *(src + (x >> 16));
     _blend_rgba_rgba(dst, &pal[i << 2], a);

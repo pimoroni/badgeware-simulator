@@ -1,6 +1,6 @@
 #include "brush.hpp"
 #include "image.hpp"
-#include "span.hpp"
+#include "blend.hpp"
 
 //using namespace std;
 
