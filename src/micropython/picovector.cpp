@@ -40,7 +40,7 @@ extern "C" {
     float y = mp_obj_get_float(pos_args[1]);
     float dx = mp_obj_get_float(pos_args[2]);
     float dy = mp_obj_get_float(pos_args[3]);
-    float max = mp_obj_get_float(pos_args[4]);
+    int max = mp_obj_get_int(pos_args[4]);
 
     int ix = floor(x);
     int iy = floor(y);
@@ -72,8 +72,11 @@ extern "C" {
 
     float t_enter = 0.0f;
 
-    mp_obj_t result = mp_obj_new_list(0, NULL);
+    mp_obj_list_t *result = (mp_obj_list_t*)MP_OBJ_TO_PTR(mp_obj_new_list(max, NULL));
 
+    //mp_obj_t result = mp_obj_new_list(0, NULL);
+
+    int i = 0;
     while (t_enter <= max) {
       float t_exit = std::min(t_max_x, t_max_y);
       if (t_exit > max) t_exit = max;
@@ -82,17 +85,26 @@ extern "C" {
       //   break; // caller says "stop" (e.g. hit something)
       // }
       // add position to tuple
-      mp_obj_t items[2];
+
       float hit_x = x + dx * t_exit;
       float hit_y = y + dy * t_exit;
-      items[0] = mp_obj_new_float(hit_x);
-      items[1] = mp_obj_new_float(hit_y);
-      mp_obj_t tuple = mp_obj_new_tuple(2, items);
-      mp_obj_list_append(result, tuple);
+      mp_obj_tuple_t *t = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
+      t->items[0] = mp_obj_new_float(hit_x);
+      t->items[1] = mp_obj_new_float(hit_y);
 
-      if (t_exit >= max) {
+      // mp_obj_t items[2];
+      // items[0] = mp_obj_new_float(hit_x);
+      // items[1] = mp_obj_new_float(hit_y);
+      // mp_obj_t tuple = mp_obj_new_tuple(2, items);
+      result->items[i] = MP_OBJ_FROM_PTR(t);
+      ///mp_obj_list_append(result, MP_OBJ_FROM_PTR(t));
+      i++;
+      if(i >= max) {
         break;
       }
+      // if (t_exit >= max) {
+      //   break;
+      // }
 
       // Step to the next cell: whichever boundary we hit first
       if (t_max_x < t_max_y) {
@@ -106,7 +118,7 @@ extern "C" {
       }
     }
 
-    return result;
+    return MP_OBJ_FROM_PTR(result);
   }
 
 
