@@ -35,7 +35,7 @@ if HEADLESS:
         fn = f"{app_name}-{ss_frame:06d}"
         simulator.screenshot(fn)
         if io.ticks - t_start > video_length_ticks:
-            print("main.py: Reached runtime limit, exiting {video_length_ticks}.")
+            print(f"main.py: Reached runtime limit, exiting ({video_length_ticks} ticks).")
             sys.exit(255)
         ss_frame += 1
 
