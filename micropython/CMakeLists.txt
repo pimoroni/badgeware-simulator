@@ -203,6 +203,7 @@ target_compile_options(${MICROPY_TARGET} PRIVATE
     -Wall
     -Werror
     -Wno-missing-braces
+    -U _FORTIFY_SOURCE
     -g  # always include debug information in the ELF
 )
 
