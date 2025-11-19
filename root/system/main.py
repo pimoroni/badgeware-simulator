@@ -18,6 +18,28 @@ simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and lo
 
 if HEADLESS:
     print("main.py: Headless mode detected!")
+    app_name = sys.argv[1]
+    app = __import__(app_name)
+    video_length_ticks = 0
+    if len(sys.argv) > 2:
+        video_length_ticks = float(sys.argv[2]) * 1000
+
+    from badgeware import io
+    io.poll()
+    t_start = io.ticks
+    ss_frame = 0
+    def update():
+        global ss_frame
+        io.poll()
+        app.update()
+        fn = f"{app_name}-{ss_frame:06d}"
+        simulator.screenshot(fn)
+        if io.ticks - t_start > video_length_ticks:
+            print("main.py: Reached runtime limit, exiting {video_length_ticks}.")
+            sys.exit(255)
+        ss_frame += 1
+
+    sys.exit(0)
 
 """
 # RAM & GC Testing

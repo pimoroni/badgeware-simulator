@@ -77,7 +77,7 @@ add_executable(${MICROPY_TARGET})
 target_link_libraries(${MICROPY_TARGET} micropy_lib_mbedtls)
 
 if(HEADLESS)
-    target_compile_definitions(${MICROPY_TARGET} PRIVATE HEADLESS)
+    target_compile_definitions(${MICROPY_TARGET} PRIVATE "HEADLESS=1")
     set(MICROPY_SOURCE_PORT ${MICROPY_PORT_DIR}/headless.c)
 
     # The Cocoa framework normally hangs off the sokol lib
