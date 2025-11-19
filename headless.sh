@@ -18,7 +18,8 @@ if [[ "$TIME_SECONDS" -eq "0" ]]; then
     cp "$BADGEWARE_SIMULATOR/screenshots/record_app-000001.png" "$OUTPUT_FILE"
 else
     printf "Generating video from $BADGEWARE_SIMULATOR/screenshots/record_app-*.png and saving to $OUTPUT_FILE\n"
-    ffmpeg -y -pattern_type glob -r 60 -i 'screenshots/record_app-*.png' -c:v libx264 -preset ultrafast -crf 18 -vf scale=640:480:flags=neighbor -fps_mode passthrough "$OUTPUT_FILE"
+    #ffmpeg -y -pattern_type glob -r 60 -i 'screenshots/record_app-*.png' -c:v libx264 -preset ultrafast -crf 18 -vf format=yuv420p,scale=640:480:flags=neighbor -movflags +faststart -an -fps_mode passthrough "$OUTPUT_FILE"
+    ffmpeg -y -pattern_type glob -r 60 -i 'screenshots/record_app-*.png' -c:v libvpx -vf scale=640:480:flags=neighbor -movflags +faststart -an -fps_mode passthrough -auto-alt-ref 0 "$OUTPUT_FILE"
 fi
 
 rm -r $BADGEWARE_SIMULATOR/screenshots/record_app-*.png
