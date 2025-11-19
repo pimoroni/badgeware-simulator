@@ -31,7 +31,11 @@ if HEADLESS:
     def update():
         global ss_frame
         io.poll()
-        app.update()
+        try:
+            app.update()
+        except Exception as e:
+            print(e)
+            sys.exit(255)
         fn = f"{app_name}-{ss_frame:06d}"
         simulator.screenshot(fn)
         if io.ticks - t_start > video_length_ticks:
