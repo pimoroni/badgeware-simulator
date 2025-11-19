@@ -66,9 +66,6 @@ project(${MICROPY_TARGET})
 
 include(${MICROPY_DIR}/py/usermod.cmake)
 
-find_package(SOKOL CONFIG REQUIRED PATHS ${LIB_DIR})
-find_package(CIMGUI CONFIG REQUIRED PATHS ${LIB_DIR})
-
 #include(${LIB_DIR}/sokol/sokol-config.cmake)
 #include(${LIB_DIR}/cimgui/cimgui-config.cmake)
 
@@ -88,6 +85,14 @@ if(HEADLESS)
         )
     endif()
 else()
+    find_package(SOKOL CONFIG REQUIRED PATHS ${LIB_DIR})
+    find_package(CIMGUI CONFIG REQUIRED PATHS ${LIB_DIR})
+
+    
+    list(APPEND MICROPY_CPP_FLAGS
+        "-I${CIMGUI_INCLUDE_DIR}"
+    )
+
     target_link_libraries(${MICROPY_TARGET} sokol cimgui)
     set(MICROPY_SOURCE_PORT ${MICROPY_PORT_DIR}/main.c)
 endif()
@@ -191,7 +196,6 @@ list(APPEND MICROPY_CPP_FLAGS
     "-I${MICROPY_VARIANT_DIR}"
     "-I${MICROPY_PORT_DIR}"
     "-I${CMAKE_BINARY_DIR}"
-    "-I${CIMGUI_INCLUDE_DIR}"
     "-DFFCONF_H=\"${MICROPY_DIR}/lib/oofatfs/ffconf.h\""
 )
 
