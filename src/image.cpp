@@ -335,7 +335,7 @@ namespace picovector {
   }
 
   void image_t::rectangle(const rect_t &r) {
-    for(int y = 0; y < r.h; y++) {
+    for(int y = r.y; y < r.y + r.h; y++) {
       this->_brush->render_span(this, r.x, y, r.w);
     }
   }

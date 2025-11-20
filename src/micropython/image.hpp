@@ -95,6 +95,17 @@ extern "C" {
     return mp_const_none;
   }
 
+  mp_obj_t image_rectangle(size_t n_args, const mp_obj_t *pos_args) {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    int x = mp_obj_get_int(pos_args[1]);
+    int y = mp_obj_get_int(pos_args[2]);
+    int w = mp_obj_get_int(pos_args[3]);
+    int h = mp_obj_get_int(pos_args[4]);
+    self->image->rectangle(rect_t(x, y, w, h));
+    return mp_const_none;
+  }
+
+
   mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);
@@ -323,6 +334,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
 
   static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_rectangle_obj, 5, image_rectangle);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_draw_obj, 2, image_draw);
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
@@ -337,6 +349,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_draw), MP_ROM_PTR(&image_draw_obj) },
       { MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&image_window_obj) },
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
+      { MP_ROM_QSTR(MP_QSTR_rectangle), MP_ROM_PTR(&image_rectangle_obj) },
       { MP_ROM_QSTR(MP_QSTR_text), MP_ROM_PTR(&image_text_obj) },
       { MP_ROM_QSTR(MP_QSTR_measure_text), MP_ROM_PTR(&image_measure_text_obj) },
       { MP_ROM_QSTR(MP_QSTR_vspan_tex), MP_ROM_PTR(&image_vspan_tex_obj) },
