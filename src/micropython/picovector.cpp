@@ -40,7 +40,13 @@ extern "C" {
     float y = mp_obj_get_float(pos_args[1]);
     float dx = mp_obj_get_float(pos_args[2]);
     float dy = mp_obj_get_float(pos_args[3]);
-    int max = mp_obj_get_int(pos_args[4]);
+
+    size_t map_height;
+    mp_obj_t *map_rows;
+    mp_obj_get_array(pos_args[4], &map_height, &map_rows);
+    size_t map_width = mp_obj_get_int(mp_obj_len(map_rows[0]));
+
+    int max = mp_obj_get_int(pos_args[5]);
 
     int ix = floor(x);
     int iy = floor(y);
@@ -72,7 +78,7 @@ extern "C" {
 
     float t_enter = 0.0f;
 
-    mp_obj_list_t *result = (mp_obj_list_t*)MP_OBJ_TO_PTR(mp_obj_new_list(max, NULL));
+    mp_obj_t result = mp_obj_new_list(0, NULL);
 
     //mp_obj_t result = mp_obj_new_list(0, NULL);
 
@@ -103,20 +109,38 @@ extern "C" {
         gy = int(hit_y + (edge == 0 ? -0.5f : 0.5f));
       }
 
-      mp_obj_tuple_t *t = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(mp_obj_new_tuple(7, NULL));
-      t->items[0] = mp_obj_new_int(hit_x);
-      t->items[1] = mp_obj_new_int(hit_y);
-      t->items[2] = mp_obj_new_int(gx);
-      t->items[3] = mp_obj_new_int(gy);
-      t->items[4] = mp_obj_new_int(edge);
-      t->items[5] = mp_obj_new_float(offset);
-      t->items[6] = mp_obj_new_float(distance);
-
-      result->items[i] = MP_OBJ_FROM_PTR(t);
-
-      i++;
-      if(i >= max) {
+      if(gy < 0 || gy >= map_height) {
         break;
+      }
+
+      size_t row_width;
+      mp_obj_t *map_row;
+      mp_obj_get_array(map_rows[gy], &row_width, &map_row);
+
+      if(gx < 0 || gx >= row_width) {
+        break;
+      }
+
+      int tile_id = mp_obj_get_int(map_row[gx]);
+
+      if(tile_id > 0) {
+        // if solid then create intersection entry
+        mp_obj_tuple_t *t = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(mp_obj_new_tuple(8, NULL));
+        t->items[0] = mp_obj_new_float(hit_x);
+        t->items[1] = mp_obj_new_float(hit_y);
+        t->items[2] = mp_obj_new_int(gx);
+        t->items[3] = mp_obj_new_int(gy);
+        t->items[4] = mp_obj_new_int(edge);
+        t->items[5] = mp_obj_new_float(offset);
+        t->items[6] = mp_obj_new_float(distance);
+        t->items[7] = mp_obj_new_int(tile_id);
+
+        mp_obj_list_append(result, MP_OBJ_FROM_PTR(t));
+
+        i++;
+        if(i >= max) {
+          break;
+        }
       }
 
       // Step to the next cell: whichever boundary we hit first
