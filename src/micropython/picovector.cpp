@@ -109,7 +109,7 @@ extern "C" {
         gy = int(hit_y + (edge == 0 ? -0.5f : 0.5f));
       }
 
-      if(gy < 0 || gy >= map_height) {
+      if(gy < 0 || gy >= int(map_height)) {
         break;
       }
 
@@ -117,7 +117,7 @@ extern "C" {
       mp_obj_t *map_row;
       mp_obj_get_array(map_rows[gy], &row_width, &map_row);
 
-      if(gx < 0 || gx >= row_width) {
+      if(gx < 0 || gx >= int(row_width)) {
         break;
       }
 
