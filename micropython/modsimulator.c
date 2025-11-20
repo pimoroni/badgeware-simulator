@@ -13,6 +13,7 @@ action_t m_attr_action(mp_obj_t *dest) {
 bool is_hot_reload = false;
 bool debug_show_alloc_count = false;
 bool debug_show_individual_allocs = false;
+int simulator_realtime = true;
 
 #ifdef HEADLESS
 const bool is_headless = true;
@@ -24,6 +25,12 @@ void modsim_set_hot_reload(void) {
     is_hot_reload = true;
 }
 
+mp_obj_t modsimulator_realtime(mp_obj_t realtime_in) {
+    simulator_realtime = realtime_in == mp_const_true;
+    return mp_const_none;
+}
+static MP_DEFINE_CONST_FUN_OBJ_1(modsimulator_realtime_obj, modsimulator_realtime);
+
 mp_obj_t modsimulator_screenshot(size_t n_args, const mp_obj_t *args) {
     // If we're taking a screenshot with `None`
     if(n_args == 0) {
@@ -34,7 +41,7 @@ mp_obj_t modsimulator_screenshot(size_t n_args, const mp_obj_t *args) {
     int result = badgeware_screenshot(framebuffer, (const char *)str);
     return mp_obj_new_int(result);
 }
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(modsimulator_screenshot_obj, 0, 1, modsimulator_screenshot);
+static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(modsimulator_screenshot_obj, 0, 1, modsimulator_screenshot);
 
 void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 
@@ -71,6 +78,7 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 static const mp_rom_map_elem_t modsimulator_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_modsimulator) },
     { MP_ROM_QSTR(MP_QSTR_screenshot), MP_ROM_PTR(&modsimulator_screenshot_obj) },
+    { MP_ROM_QSTR(MP_QSTR_realtime), MP_ROM_PTR(&modsimulator_realtime_obj) },
 };
 static MP_DEFINE_CONST_DICT(modsimulator_globals, modsimulator_globals_table);
 
