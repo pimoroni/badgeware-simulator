@@ -28,3 +28,16 @@ for filename in default_files:
                     if not length:
                         break
                     main.write(buf[:length])
+
+
+import picovector
+import builtins
+
+# Import PicoSystem module constants to builtins,
+# so they are available globally.
+for k, v in picovector.__dict__.items():
+    if not k.startswith("__"):
+        setattr(builtins, k, v)
+
+for k in ("screen", ):
+    setattr(builtins, k, getattr(picovector, k))

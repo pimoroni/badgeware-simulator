@@ -37,6 +37,9 @@
 #endif
 
 
+int mp_argc;
+char **mp_argv;
+
 // Buttons for io.pressed / io.changed
 // These are included in src/micropython/input.hpp using extern
 uint8_t picovector_buttons;
@@ -355,6 +358,12 @@ static void micropython_reinit(void) {
     mp_sys_path = mp_obj_new_list(0, NULL);
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(MP_QSTR__slash_));
     mp_obj_list_append(mp_sys_path, MP_OBJ_NEW_QSTR(qstr_from_str(".frozen")));
+
+    mp_obj_list_init(MP_OBJ_TO_PTR(mp_sys_argv), 0);
+
+    for (int i = 0; i < mp_argc; i++) {
+        mp_obj_list_append(mp_sys_argv, MP_OBJ_NEW_QSTR(qstr_from_str(mp_argv[i])));
+    }
 }
 
 void fetch_badgeware_update_callback() {
@@ -411,6 +420,11 @@ bool badgeware_will_hot_reload(void) {
 
 bool badgeware_should_exit(void) {
     return should_exit;
+}
+
+void badgeware_init_args(int argc, char **argv) {
+    mp_argc = argc;
+    mp_argv = argv;
 }
 
 void badgeware_update(int ticks) {

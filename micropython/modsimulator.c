@@ -30,7 +30,7 @@ mp_obj_t modsimulator_screenshot(size_t n_args, const mp_obj_t *args) {
         return mp_obj_new_int(badgeware_screenshot(framebuffer, NULL));
     }
     // Else we've provided a filename
-    GET_STR_DATA_LEN(args[1], str, str_len);
+    GET_STR_DATA_LEN(args[0], str, str_len);
     int result = badgeware_screenshot(framebuffer, (const char *)str);
     return mp_obj_new_int(result);
 }
