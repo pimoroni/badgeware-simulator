@@ -157,15 +157,22 @@ def castRay(rayNo, sliceWidth, rayAngle):
     draw_start = False
 
     for rayHit in reversed(rayHits):
-        ix, iy, gx, gy, edge, offset, distance = rayHit
+        # extract the intersection x and y coordinates
+        ix, iy = rayHit[0], rayHit[1]
+
+        vertical = abs(ix - round(ix)) > abs(iy - round(iy))
+
+        # determine which cell the intersection is with
+        if vertical:
+          gy = round(iy) - (1 if rayDirY < 0 else 0)
+          gx = int(ix)
+        else:
+          gx = round(ix) - (1 if rayDirX < 0 else 0)
+          gy = int(iy)
 
         # check within map bounds
         if gx < 0 or gx > 14 or gy < 0 or gy > 19:
             continue
-
-        if distance <= 0:
-          continue
-
 
         mapDefIndex = gamemap[gx][gy]
         # check if grid square has nothing renderable, if so skip
@@ -174,6 +181,10 @@ def castRay(rayNo, sliceWidth, rayAngle):
 
         mapDef = mapDefs[mapDefIndex]
 
+        distance = math.sqrt((ix - player.x) ** 2 + (iy - player.y) ** 2)
+
+        if distance <= 0:
+            continue
 
         # wall height is inversely proportional to distance, simples
         wallHeight = 200 / distance
@@ -183,7 +194,10 @@ def castRay(rayNo, sliceWidth, rayAngle):
 
         # determine the u coordinate of the texture by looking at the part of the hit location after the decimal
         # the orientation of the wall determines whether it's the x or y part of the hit location
-        u = offset
+        if vertical:
+            u = ix - math.floor(ix)
+        else:
+            u = iy - math.floor(iy)
 
         # convert the 0-1 value of that u coordinate to
         u = math.floor(u * TEXTURE_SIZE)
@@ -194,8 +208,8 @@ def castRay(rayNo, sliceWidth, rayAngle):
 
         v = mapDef.texture - 1
 
-        if edge == 0 or edge == 2:
-          v += 5
+        if not vertical: #orientation == "n" or orientation == "s":
+            v += 5
 
         xPos = rayNo * sliceWidth
 
@@ -205,69 +219,6 @@ def castRay(rayNo, sliceWidth, rayAngle):
             screen.vspan_tex(texture, xPos + i, topend, wallHeight, u, 0, u, TEXTURE_SIZE - 1)
             if mapDef.doubleHeight:
                 screen.vspan_tex(texture, xPos + i, topend - wallHeight + 1, wallHeight, u, 0, u, TEXTURE_SIZE - 1)
-
-        # # extract the intersection x and y coordinates
-        # ix, iy = rayHit[0], rayHit[1]
-
-        # vertical = abs(ix - round(ix)) > abs(iy - round(iy))
-
-        # # determine which cell the intersection is with
-        # if vertical:
-        #   gy = round(iy) - (1 if rayDirY < 0 else 0)
-        #   gx = int(ix)
-        # else:
-        #   gx = round(ix) - (1 if rayDirX < 0 else 0)
-        #   gy = int(iy)
-
-        # # check within map bounds
-        # if gx < 0 or gx > 14 or gy < 0 or gy > 19:
-        #     continue
-
-        # mapDefIndex = gamemap[gx][gy]
-        # # check if grid square has nothing renderable, if so skip
-        # if mapDefIndex <= 0:
-        #     continue
-
-        # mapDef = mapDefs[mapDefIndex]
-
-        # distance = math.sqrt((ix - player.x) ** 2 + (iy - player.y) ** 2)
-
-        # if distance <= 0:
-        #     continue
-
-        # # wall height is inversely proportional to distance, simples
-        # wallHeight = 200 / distance
-        # topend = 60 - int(wallHeight / 2)
-
-        # u = 0
-
-        # # determine the u coordinate of the texture by looking at the part of the hit location after the decimal
-        # # the orientation of the wall determines whether it's the x or y part of the hit location
-        # if vertical:
-        #     u = ix - math.floor(ix)
-        # else:
-        #     u = iy - math.floor(iy)
-
-        # # convert the 0-1 value of that u coordinate to
-        # u = math.floor(u * TEXTURE_SIZE)
-
-        # # if rayDirX > 0 or rayDirY < 0:#orientation == "w" or orientation == "s":
-        # #     u = TEXTURE_SIZE - u - 1
-
-
-        # v = mapDef.texture - 1
-
-        # if not vertical: #orientation == "n" or orientation == "s":
-        #     v += 5
-
-        # xPos = rayNo * sliceWidth
-
-        # texture = tilemap.sprite(0, v)
-
-        # for i in range(sliceWidth):
-        #     screen.vspan_tex(texture, xPos + i, topend, wallHeight, u, 0, u, TEXTURE_SIZE - 1)
-        #     if mapDef.doubleHeight:
-        #         screen.vspan_tex(texture, xPos + i, topend - wallHeight + 1, wallHeight, u, 0, u, TEXTURE_SIZE - 1)
 
 
 
@@ -315,7 +266,6 @@ def player_move():
         player.y -= math.sin(player.angle) / player.speed
 
 def update():
-
     global total_ray_casting_us
     global player
     global gamemap

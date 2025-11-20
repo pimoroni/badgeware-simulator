@@ -79,32 +79,45 @@ extern "C" {
     int i = 0;
     while (t_enter <= max) {
       float t_exit = std::min(t_max_x, t_max_y);
-      if (t_exit > max) t_exit = max;
 
-      // if (!visit(ix, iy, t_enter, t_exit)) {
-      //   break; // caller says "stop" (e.g. hit something)
-      // }
-      // add position to tuple
-
+      // calculate the intersection position
       float hit_x = x + dx * t_exit;
       float hit_y = y + dy * t_exit;
-      mp_obj_tuple_t *t = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(mp_obj_new_tuple(2, NULL));
-      t->items[0] = mp_obj_new_float(hit_x);
-      t->items[1] = mp_obj_new_float(hit_y);
 
-      // mp_obj_t items[2];
-      // items[0] = mp_obj_new_float(hit_x);
-      // items[1] = mp_obj_new_float(hit_y);
-      // mp_obj_t tuple = mp_obj_new_tuple(2, items);
+      // calculate the edge which the intersection occured on (0=top, 1=right, 2=bottom, 3=left)
+      bool vertical = abs(hit_y - round(hit_y)) > abs(hit_x - round(hit_x));
+      int edge = vertical ? (dx < 0 ? 3 : 1) : (dy < 0 ? 0 : 2);
+
+      // calculate the intersection offset
+      float offset = vertical ? (hit_y - floor(hit_y)) : (hit_x - floor(hit_x));
+
+      float distance = sqrt(pow(hit_x - x, 2) + pow(hit_y - y, 2));
+
+      // calculate grid square of intersection
+      int gx, gy;
+      if(vertical) {
+        gx = int(hit_x + (edge == 3 ? -0.5f : 0.5f));
+        gy = int(hit_y);
+      } else {
+        gx = int(hit_x);
+        gy = int(hit_y + (edge == 0 ? -0.5f : 0.5f));
+      }
+
+      mp_obj_tuple_t *t = (mp_obj_tuple_t*)MP_OBJ_TO_PTR(mp_obj_new_tuple(7, NULL));
+      t->items[0] = mp_obj_new_int(hit_x);
+      t->items[1] = mp_obj_new_int(hit_y);
+      t->items[2] = mp_obj_new_int(gx);
+      t->items[3] = mp_obj_new_int(gy);
+      t->items[4] = mp_obj_new_int(edge);
+      t->items[5] = mp_obj_new_float(offset);
+      t->items[6] = mp_obj_new_float(distance);
+
       result->items[i] = MP_OBJ_FROM_PTR(t);
-      ///mp_obj_list_append(result, MP_OBJ_FROM_PTR(t));
+
       i++;
       if(i >= max) {
         break;
       }
-      // if (t_exit >= max) {
-      //   break;
-      // }
 
       // Step to the next cell: whichever boundary we hit first
       if (t_max_x < t_max_y) {
