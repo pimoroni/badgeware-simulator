@@ -12,6 +12,10 @@
 #include <unistd.h>
 #endif
 
+#define MS_PER_FRAME 16.66f
+
+extern bool simulator_realtime;
+
 unsigned long long now_ms() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -34,17 +38,22 @@ int main(int argc, char* argv[]) {
     badgeware_init_args(argc, argv);
 
     unsigned long long time_start = now_ms();
+    unsigned long frame = 0;
     while(true) {
-	unsigned long long time_ms = now_ms();
-	//unsigned long long time_start_us = now_us();
-        badgeware_update(time_ms - time_start);
-	//unsigned long long time_end_us = now_us();
-	//long long time_taken = time_end_us - time_start_us;
-	//printf("Time taken: %llu\n", time_taken);
-        usleep(16 * 1000);
+	    unsigned long long time_ms = now_ms();
+        uint32_t ticks = simulator_realtime ? time_ms - time_start : frame * MS_PER_FRAME;
+	    //unsigned long long time_start_us = now_us();
+        badgeware_update(ticks);
+	    //unsigned long long time_end_us = now_us();
+	    //long long time_taken = time_end_us - time_start_us;
+	    //printf("Time taken: %llu\n", time_taken);
+        if(simulator_realtime) {
+            usleep(MS_PER_FRAME * 1000);
+        }
         if(badgeware_should_exit()) {
             break;
         }
+        frame++;
     }
     badgeware_deinit();
 }

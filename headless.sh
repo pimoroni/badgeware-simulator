@@ -11,7 +11,7 @@ printf "Running in $BADGEWARE_SIMULATOR, output $OUTPUT_FILE\n"
 cp "$PYTHON_SCRIPT" "$BADGEWARE_SIMULATOR/root/record_app.py"
 cd "$BADGEWARE_SIMULATOR"
 
-./build/micropython record_app $TIME_SECONDS
+./build/micropython record_app $TIME_SECONDS false
 
 if [[ "$TIME_SECONDS" -eq "0" ]]; then
     printf "Copying $BADGEWARE_SIMULATOR/screenshots/record_app-000001.png to $OUTPUT_FILE\n"
