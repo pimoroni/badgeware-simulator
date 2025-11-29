@@ -24,13 +24,18 @@ if HEADLESS:
     if len(sys.argv) > 2:
         video_length_ticks = float(sys.argv[2]) * 1000
 
-    from badgeware import io
+    BG = brushes.color(20, 30, 40)
+    FG = brushes.color(255, 255, 255)
+    screen.antialias = Image.X2
     io.poll()
     t_start = io.ticks
     ss_frame = 0
     def update():
         global ss_frame
         io.poll()
+        screen.brush = BG
+        screen.clear()
+        screen.brush = FG
         try:
             app.update()
         except Exception as e:
