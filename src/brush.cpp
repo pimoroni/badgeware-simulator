@@ -116,7 +116,7 @@ namespace picovector {
     uint8_t *src2 = (uint8_t*)&c2;
 
     while(w--) {
-      uint8_t u = x & 0b111;
+      uint8_t u = 7 - (x & 0b111);
       uint8_t v = y & 0b111;
       uint8_t b = p[v];
       uint8_t *src = b & (1 << u) ? src1 : src2;
