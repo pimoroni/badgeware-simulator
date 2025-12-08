@@ -4,6 +4,7 @@ import os
 import io as stream
 import sys
 import time
+from math import sin
 import pcf85063a
 
 import machine
@@ -476,6 +477,7 @@ def update_display_mode():
     screen.font = font if font is not None else DEFAULT_FONT
     screen.brush = brush if brush is not None else BG
     simulator.hires = _last_mode & HIRES
+    picovector.default_target = screen
 
     return True
 
@@ -590,6 +592,7 @@ for k, v in picovector.__dict__.items():
         setattr(builtins, k, v)
 
 setattr(builtins, "screen", Image(160, 120, framebuffer))
+picovector.default_target = screen
 
 
 ASSETS = "/system/assets"

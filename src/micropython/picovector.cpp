@@ -161,7 +161,10 @@ extern "C" {
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Image"));
           }
           default_target = (image_obj_t *)dest[1];
+          dest[0] = MP_OBJ_NULL;
           return;
+        } else {
+          dest[0] = MP_OBJ_FROM_PTR(default_target);
         }
       };
     }
