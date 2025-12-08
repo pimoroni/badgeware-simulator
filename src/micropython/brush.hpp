@@ -131,6 +131,7 @@ extern "C" {
       { MP_ROM_QSTR(MP_QSTR_color), MP_ROM_PTR(&brush_color_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_xor), MP_ROM_PTR(&brush_xor_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_brighten), MP_ROM_PTR(&brush_brighten_static_obj) },
+      { MP_ROM_QSTR(MP_QSTR_pattern), MP_ROM_PTR(&brush_pattern_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_image), MP_ROM_PTR(&brush_image_static_obj) },
   };
   static MP_DEFINE_CONST_DICT(brush_locals_dict, brush_locals_dict_table);
