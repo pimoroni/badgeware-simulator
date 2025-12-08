@@ -78,7 +78,8 @@ def update():
     label = f"{Icon.active_icon.name}"
     w, _ = screen.measure_text(label)
     screen.brush = ui.phosphor
-    screen.draw(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
+    shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4).draw()
+
     screen.brush = brushes.color(20, 40, 60)
     screen.text(label, 80 - (w / 2), 101)
 
@@ -93,7 +94,7 @@ def update():
     [(10, 10), (22, 12), (20, 20), (5, 18)],
     [(30, 10), (42, 12), (40, 20), (15, 18)]
   )
-  screen.draw(poly)
+  poly.draw()
 
   return None
 

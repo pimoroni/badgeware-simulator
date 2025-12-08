@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mp_tracked_allocator.hpp"
 #include "../font.hpp"
 #include "../blend.hpp"

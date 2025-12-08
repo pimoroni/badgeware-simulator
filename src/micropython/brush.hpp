@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mp_tracked_allocator.hpp"
 #include "../picovector.hpp"
 #include "../primitive.hpp"

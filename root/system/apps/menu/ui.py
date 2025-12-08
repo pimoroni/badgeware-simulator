@@ -12,14 +12,14 @@ def draw_background():
     # draw over the corners in black ready for the rounded rectangle that makes
     # up most of the background
     screen.brush = black
-    screen.draw(shapes.rectangle(0, 0, 10, 10))
-    screen.draw(shapes.rectangle(150, 0, 10, 10))
-    screen.draw(shapes.rectangle(0, 110, 10, 10))
-    screen.draw(shapes.rectangle(150, 110, 10, 10))
+    shapes.rectangle(0, 0, 10, 10).draw()
+    shapes.rectangle(150, 0, 10, 10).draw()
+    shapes.rectangle(0, 110, 10, 10).draw()
+    shapes.rectangle(150, 110, 10, 10).draw()
 
     # draw the faux crt shape background area
     screen.brush = background
-    screen.draw(shapes.rounded_rectangle(0, 0, 160, 120, 8))
+    shapes.rounded_rectangle(0, 0, 160, 120, 8).draw()
 
     # draw the scrolling terminal effects
     draw_terminal()
@@ -102,12 +102,17 @@ def draw_header():
     pos = (137, 4)
     size = (16, 8)
     screen.brush = phosphor
-    screen.draw(shapes.rectangle(*pos, *size))
-    screen.draw(shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4))
+    shapes.rectangle(*pos, *size).draw()
+    shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4).draw()
     screen.brush = background
-    screen.draw(shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2))
+
+    shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2).draw()
 
     # draw the battery fill level
     width = ((size[0] - 4) / 100) * battery_level
     screen.brush = phosphor
-    screen.draw(shapes.rectangle(pos[0] + 2, pos[1] + 2, width, size[1] - 4))
+    shapes.rectangle(pos[0] + 2, pos[1] + 2, width, size[1] - 4).draw()
+
+
+
+

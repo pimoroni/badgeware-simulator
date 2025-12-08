@@ -47,4 +47,19 @@ namespace picovector {
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
   };
 
+
+  // class pattern_brush : public brush_t {
+  // public:
+  //   uint8_t pattern[8];
+  //   uint32_t color1;
+  //   uint32_t color2;
+
+  //   pattern_brush(uint32_t color1, uint32_t color2, uint8_t[8] pattern);
+
+  //   void render_span(image_t *target, int x, int y, int w);
+  //   void pixel(uint32_t *dst);
+  //   void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
+  // };
+
+
 }

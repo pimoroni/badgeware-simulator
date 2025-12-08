@@ -27,12 +27,8 @@
 #endif
 
 // TODO: bring back AA support
+extern char __attribute__((aligned(4))) PicoVector_working_buffer[131072];
 
-#ifdef PICO
-extern char PicoVector_working_buffer[48156]; // On device
-#else
-extern char PicoVector_working_buffer[48240]; // macOS (emulator)
-#endif
 
 namespace picovector {
 

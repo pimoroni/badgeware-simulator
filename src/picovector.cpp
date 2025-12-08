@@ -9,15 +9,10 @@
 
 using std::sort;
 
-// Common memory pool for font/span rendering buffers and PNGDEC
-// This is sized to *just* fit the PNGDEC state which is 48156 bytes on
-// Pico and 48156 on macOS.
-// On Pico it *must* be 32bit aligned (I found out the hard way.)
-#ifdef PICO
-char __attribute__((aligned(4))) PicoVector_working_buffer[48156]; // On device
-#else
-char PicoVector_working_buffer[48240]; // macOS (emulator)
-#endif
+// memory pool for rasterisation, png decoding, and other memory intensive
+// tasks (sized to fit PNGDEC state) - on pico it *must* be 32bit aligned (i
+// found out the hard way.)
+char __attribute__((aligned(4))) PicoVector_working_buffer[131072];
 
 // This will completely break imgui or sokol or something
 //because these will be called before the MicroPython heap is initialised.

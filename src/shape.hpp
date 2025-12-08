@@ -25,6 +25,7 @@ namespace picovector {
   public:
     std::vector<path_t, PV_STD_ALLOCATOR<path_t>> paths;
     mat3_t transform;
+    brush_t *_brush = nullptr;
 
     shape_t(int path_count = 0);
     ~shape_t() {
@@ -34,6 +35,7 @@ namespace picovector {
     rect_t bounds();
     /*void draw(image &img); // methods should be on image perhaps? with style/brush and transform passed in?*/
     void stroke(float thickness);
+    void brush(brush_t *brush);
   };
 
 }

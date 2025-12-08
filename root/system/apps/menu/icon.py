@@ -8,7 +8,6 @@ green = brushes.color(9, 183, 117)
 yellow = brushes.color(246, 167, 4)
 purple = brushes.color(188, 96, 208)
 
-print(purple)
 # bright icon colours
 bold = [orange, blue, red, green, yellow, purple]
 #
@@ -109,7 +108,7 @@ class Icon:
         # draw the icon shading
         screen.brush = shade_brush
         squircle.transform = squircle.transform.scale(1, 1)
-        screen.draw(squircle)
+        squircle.draw()
 
         # draw the icon body
         squircle.transform = squircle.transform.scale(1, 1)
@@ -118,10 +117,10 @@ class Icon:
         else:
             screen.brush = faded[self.index]
         squircle.transform = squircle.transform.translate(-1, -1)
-        screen.draw(squircle)
+        squircle.draw()
         squircle.transform = squircle.transform.translate(2, 2)
         screen.brush = shade_brush
-        screen.draw(squircle)
+        squircle.draw()
 
         # draw the icon sprite
         if sprite_width > 0:

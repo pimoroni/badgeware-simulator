@@ -4,6 +4,9 @@
 #include "../primitive.hpp"
 #include "../shape.hpp"
 #include "../image.hpp"
+
+#include "brush.hpp"
+#include "image.hpp"
 #include "matrix.hpp"
 
 #include "mp_helpers.hpp"
@@ -16,10 +19,12 @@ extern "C" {
 
   extern const mp_obj_type_t type_Shape;
   extern const mp_obj_type_t type_Shapes;
+  extern image_obj_t *default_target;
 
   typedef struct _shape_obj_t {
     mp_obj_base_t base;
     shape_t *shape;
+    brush_obj_t *brush;
   } shape_obj_t;
 
   mp_obj_t shape__del__(mp_obj_t self_in) {
@@ -27,7 +32,6 @@ extern "C" {
     m_del_class(shape_t, self->shape);
     return mp_const_none;
   }
-
 
   mp_obj_t shapes_custom(size_t n_args, const mp_obj_t *args) {
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
@@ -183,26 +187,106 @@ extern "C" {
   static void shape_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, shape_obj_t);
 
-    if(attr == MP_QSTR_transform) { // get
-      if(dest[0] == MP_OBJ_NULL) {
-        matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
-        out->m = self->shape->transform;
-        dest[0] = MP_OBJ_FROM_PTR(out);
-        return;
-      }
+    action_t action = m_attr_action(dest);
 
-      if(dest[1] != MP_OBJ_NULL && dest[0] != MP_OBJ_NULL) { // set
-        if(!mp_obj_is_type(dest[1], &type_Matrix)) {
-          mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
+    switch(attr) {
+      case MP_QSTR_transform: {
+        if(action == GET) {
+          matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_Matrix);
+          out->m = self->shape->transform;
+          dest[0] = MP_OBJ_FROM_PTR(out);
+          return;
         }
-        matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
-        self->shape->transform = in->m;
-        dest[0] = MP_OBJ_NULL;
-        return;
-      }
+
+        if(action == SET) {
+          if(!mp_obj_is_type(dest[1], &type_Matrix)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("expected Matrix"));
+          }
+          matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
+          self->shape->transform = in->m;
+          dest[0] = MP_OBJ_NULL;
+          return;
+        }
+      };
+
+      // case MP_QSTR_antialias: {
+      //   if(action == GET) {
+      //     dest[0] = mp_obj_new_int(self->image->antialias());
+      //     return;
+      //   }
+
+      //   if(action == SET) {
+      //     self->image->antialias((antialias_t)mp_obj_get_int(dest[1]));
+      //     dest[0] = MP_OBJ_NULL;
+      //     return;
+      //   }
+      // };
+
+      case MP_QSTR_brush: {
+        if(action == GET) {
+          if(self->brush) {
+            dest[0] = MP_OBJ_FROM_PTR(self->brush);
+          }else{
+            dest[0] = mp_const_none;
+          }
+          return;
+        }
+
+        if(action == SET) {
+          if(!mp_obj_is_type(dest[1], &type_Brush)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Brush"));
+          }
+          brush_obj_t *brush = (brush_obj_t *)dest[1];
+          self->shape->brush(brush->brush);
+          dest[0] = MP_OBJ_NULL;
+          return;
+        }
+      };
     }
 
     dest[1] = MP_OBJ_SENTINEL;
+  }
+
+  mp_obj_t shape_draw(size_t n_args, const mp_obj_t *pos_args) {
+    const shape_obj_t *self = (shape_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+
+    if(n_args == 2) {
+      const image_obj_t *image = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+      image->image->draw(self->shape);
+    }else{
+      default_target->image->draw(self->shape);
+    }
+
+
+
+    // brush = red
+
+
+    // frectangle(10, 10, 20, 20)
+    // frectanglefill(10, 10, 20, 20)
+    // fcircle(20, 20, 30)
+    // fcirclefill(20, 20, 30)
+    // fset(10, 10, (40, 50, 60))
+    // fline(10, 10, 20, 20)
+
+
+
+    // rect = vector.rectangle(10, 10, 20, 20) // save for later
+    // rect.brush = green
+    // vector.rectangle(10, 10, 20, 20).draw() // draw now
+
+
+    // rect.draw()
+
+
+
+
+    // rect = shapes.rectangle(10, 10, 20, 20, brush=None, antialias=X4)
+    // rect.brush = red
+    // rect.draw()
+
+
+    return mp_const_none;
   }
 
   /*
@@ -210,10 +294,12 @@ extern "C" {
   */
   static MP_DEFINE_CONST_FUN_OBJ_1(shape__del___obj, shape__del__);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_stroke_obj, 1, shapes_stroke);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(shape_draw_obj, 1, shape_draw);
 
   static const mp_rom_map_elem_t shape_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&shape__del___obj) },
       { MP_ROM_QSTR(MP_QSTR_stroke), MP_ROM_PTR(&shapes_stroke_obj) },
+      { MP_ROM_QSTR(MP_QSTR_draw), MP_ROM_PTR(&shape_draw_obj) },
   };
   static MP_DEFINE_CONST_DICT(shape_locals_dict, shape_locals_dict_table);
 
@@ -254,7 +340,6 @@ extern "C" {
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_line_obj, 5, shapes_line);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_line_static_obj, MP_ROM_PTR(&shapes_line_obj));
-
 
   static const mp_rom_map_elem_t shapes_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_custom), MP_ROM_PTR(&shapes_custom_static_obj) },

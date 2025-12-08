@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "rasteriser.hpp"
 #include "image.hpp"
 #include "blend.hpp"
 #include "brush.hpp"
@@ -331,6 +332,12 @@ namespace picovector {
   }
 
   void image_t::draw(shape_t *shape) {
+    // pvr_reset();
+    // for(auto &path : shape->paths) {
+    //   pvr_add_path(path.points.data(), path.points.size(), &shape->transform);
+    // }
+    // pvr_render(this, _bounds, _brush);
+
     render(shape, this, &shape->transform, _brush);
   }
 

@@ -10,6 +10,8 @@
 #include "../brush.hpp"
 
 #include "image_png.hpp"
+#include "font.hpp"
+#include "pixel_font.hpp"
 
 #include "mp_helpers.hpp"
 
@@ -88,12 +90,6 @@ extern "C" {
     return MP_OBJ_FROM_PTR(result);
   }
 
-  mp_obj_t image_draw(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    self->image->draw(shape->shape);
-    return mp_const_none;
-  }
 
   mp_obj_t image_rectangle(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
@@ -335,7 +331,6 @@ extern "C" {
 
   static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_rectangle_obj, 5, image_rectangle);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_draw_obj, 2, image_draw);
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
@@ -346,7 +341,6 @@ extern "C" {
 
   static const mp_rom_map_elem_t image_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_draw), MP_ROM_PTR(&image_draw_obj) },
       { MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&image_window_obj) },
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
       { MP_ROM_QSTR(MP_QSTR_rectangle), MP_ROM_PTR(&image_rectangle_obj) },
