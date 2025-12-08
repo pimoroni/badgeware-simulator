@@ -128,14 +128,21 @@ namespace picovector {
 
 
   void pattern_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
-    // uint8_t *dst = (uint8_t*)target->ptr(x, y);
-    // uint8_t *src = (uint8_t*)&color;
-    // while(w--) {
-    //   uint32_t xored = _make_col(dst[0] ^ src[0], dst[1] ^ src[1], dst[2] ^ src[2], *sb);
-    //   _blend_rgba_rgba(dst, (uint8_t*)&xored);
-    //   dst += 4;
-    //   sb++;
-    // }
+    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+
+    uint8_t *src1 = (uint8_t*)&c1;
+    uint8_t *src2 = (uint8_t*)&c2;
+
+    while(w--) {
+      uint8_t u = 7 - (x & 0b111);
+      uint8_t v = y & 0b111;
+      uint8_t b = p[v];
+      uint8_t *src = b & (1 << u) ? src1 : src2;
+      _blend_rgba_rgba(dst, src, *sb);
+      dst += 4;
+      x++;
+      sb++;
+    }
   }
 
 
