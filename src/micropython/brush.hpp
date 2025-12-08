@@ -63,6 +63,13 @@ extern "C" {
 
 
   mp_obj_t brush_pattern(size_t n_args, const mp_obj_t *pos_args) {
+    if(!mp_obj_is_type(pos_args[0], &type_color)) {
+      mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of color type"));
+    }
+    if(!mp_obj_is_type(pos_args[1], &type_color)) {
+      mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of color type"));
+    }
+
     const color_obj_t *c1 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const color_obj_t *c2 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
 

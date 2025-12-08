@@ -96,6 +96,7 @@ namespace picovector {
   pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t i) {
     this->c1 = c1;
     this->c2 = c2;
+    memcpy(this->p, &patterns[i], sizeof(uint8_t) * 8);
   }
 
   pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t *p) {
