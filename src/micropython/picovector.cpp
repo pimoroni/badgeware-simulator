@@ -19,17 +19,7 @@ using namespace picovector;
 extern "C" {
 
   #include "py/runtime.h"
-
-  int screen_width = 160;
-  int screen_height = 120;
-  uint32_t framebuffer[160 * 120];
   image_obj_t *default_target;
-
-#ifndef PICO
-  int debug_width = 300;
-  int debug_height = 360;
-  uint32_t debug_buffer[300 * 360];
-#endif
 
   mp_obj_t modpicovector___init__(void) {
       return mp_const_none;

@@ -15,7 +15,15 @@ bool debug_show_alloc_count = false;
 bool debug_show_individual_allocs = false;
 int simulator_realtime = true;
 
-extern uint32_t framebuffer[];
+int screen_width = 160;
+int screen_height = 120;
+uint32_t framebuffer[320 * 240];
+
+#ifndef PICO
+  int debug_width = 300;
+  int debug_height = 360;
+  uint32_t debug_buffer[300 * 360];
+#endif
 
 #ifdef HEADLESS
 const bool is_headless = true;
@@ -57,6 +65,27 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
                 bufinfo.len = 320 * 240 * 4;
                 bufinfo.typecode = 'B';*/
                 dest[0] = mp_obj_new_bytearray_by_ref(320 * 240 * 4, framebuffer);
+            } break;
+        case MP_QSTR_hires:
+            if(action == GET) {
+                dest[0] = mp_obj_new_bool(screen_width == 320);
+            } else {
+                if(mp_obj_is_true(dest[1])) {
+                    screen_width = 320;
+                    screen_height = 240;
+                } else {
+                    screen_width = 160;
+                    screen_height = 120;
+                }
+                dest[0] = MP_OBJ_NULL;
+            } break;
+        case MP_QSTR_width:
+            if(action == GET) {
+                dest[0] = mp_obj_new_int(screen_width);
+            } break;
+        case MP_QSTR_height:
+            if(action == GET) {
+                dest[0] = mp_obj_new_int(screen_height);
             } break;
         case MP_QSTR_show_individual_allocs:
             if(action == GET) {
