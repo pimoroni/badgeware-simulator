@@ -12,6 +12,7 @@ import st7789
 import builtins
 
 import picovector
+import simulator
 
 
 class DummyPin:
@@ -449,26 +450,34 @@ def update_backlight():
     display.backlight(sum(backlight_smoothing) / MAX_BACKLIGHT_SAMPLES)
 
 
-def hires():
+_current_mode = None
+_last_mode = None
+
+def mode(mode):
+    global _current_mode
+    _current_mode = mode
+
+
+def update_display_mode():
+    global _current_mode, _last_mode
+
+    if _current_mode == _last_mode:
+        return False
+    
+    _last_mode = _current_mode
+
     # TODO: Mutate the existing screen object?
     font = screen.font
     brush = screen.brush
-    setattr(builtins, "screen", Image(320, 240, framebuffer))
-    if font is not None:
-        screen.font = font
-    if brush is not None:
-        screen.brush = brush
+    if _last_mode & HIRES:
+        setattr(builtins, "screen", Image(320, 240, framebuffer))
+    else:
+        setattr(builtins, "screen", Image(160, 120, framebuffer))
+    screen.font = font if font is not None else DEFAULT_FONT
+    screen.brush = brush if brush is not None else BG
+    simulator.hires = _last_mode & HIRES
 
-
-def lores():
-    # TODO: Mutate the existing screen object?
-    font = screen.font
-    brush = screen.brush
-    setattr(builtins, "screen", Image(160, 120, framebuffer))
-    if font is not None:
-        screen.font = font
-    if brush is not None:
-        screen.brush = brush
+    return True
 
 
 def run(update, init=None, on_exit=None, auto_clear=True):
@@ -481,7 +490,7 @@ def run(update, init=None, on_exit=None, auto_clear=True):
             init()
         try:
             while True:
-                if auto_clear:
+                if update_display_mode() or auto_clear:
                     screen.brush = BG
                     screen.clear()
                     screen.brush = FG
@@ -489,7 +498,7 @@ def run(update, init=None, on_exit=None, auto_clear=True):
                 if (result := update()) is not None:
                     return result
                 gc.collect()
-                display.update(screen.width == 320)
+                #display.update(screen.width == 320)
         except KeyboardInterrupt:
             pass
         finally:
@@ -591,13 +600,16 @@ ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
 FG = brushes.color(255, 255, 255)
 BG = brushes.color(0, 0, 0)
 
-VBAT_SENSE = DummyADC(3.3)
 VBUS_DETECT = DummyPin(0)
-CHARGE_STAT = DummyPin(0)
-SENSE_1V1 = DummyADC(1.1)
+CHARGE_STAT = DummyPin(1)
+VBAT_SENSE = DummyADC(lambda: (sin(io.ticks / 1000) + 1) * 32767)
+SENSE_1V1 = DummyADC(32767)
 
 BAT_MAX = 4.10
 BAT_MIN = 3.00
+
+HIRES = 1
+LORES = 0
 
 conversion_factor = 3.3 / 65536
 
@@ -615,7 +627,7 @@ class Colors:
 
 
 # Build in some badgeware helpers, so we don't have to "bw.lores" etc
-for k in ("lores", "hires", "SpriteSheet", "Colors"):
+for k in ("mode", "HIRES", "LORES", "SpriteSheet", "Colors"):
     setattr(builtins, k, locals()[k])
 
 

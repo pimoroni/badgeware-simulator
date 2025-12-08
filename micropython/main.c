@@ -81,6 +81,30 @@ static void recalculate_render_sizes(void) {
     state.debug.render_size.x += 1;
 }
 
+static void display_reinit(void) {
+    if(state.badgeware.buffer_size.x != screen_width || state.badgeware.buffer_size.y != screen_height) {
+        state.badgeware.buffer_size.x = screen_width;
+        state.badgeware.buffer_size.y = screen_height;
+
+        recalculate_render_sizes();
+
+        sg_resource_state img_state = sg_query_image_state(state.badgeware.screen);
+        if(img_state == SG_RESOURCESTATE_VALID || img_state == SG_RESOURCESTATE_FAILED) {
+            sg_uninit_image(state.badgeware.screen);
+            sg_destroy_view(state.badgeware.view);
+        }
+
+        // Main Badgeware display output
+        sg_init_image(state.badgeware.screen, &(sg_image_desc){
+            .width = state.badgeware.buffer_size.x,
+            .height = state.badgeware.buffer_size.y,
+            .pixel_format = SG_PIXELFORMAT_RGBA8,
+            .usage.dynamic_update = true
+        });
+        state.badgeware.view = sg_make_view(&(sg_view_desc){ .texture.image = state.badgeware.screen });
+    }
+}
+
 static void sokol_init(void) {
     stm_setup(); // sokol_time.h
 
@@ -117,23 +141,15 @@ static void sokol_init(void) {
         .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.5f, 1.0f, 1.0 } }
     };
 
-    state.badgeware.buffer_size.x = 160;
-    state.badgeware.buffer_size.y = 120;
+    state.badgeware.buffer_size.x = 0;
+    state.badgeware.buffer_size.y = 0;
 
     state.debug.buffer_size.x = DEBUG_BUFFER_WIDTH;
     state.debug.buffer_size.y = DEBUG_BUFFER_HEIGHT;
 
-    recalculate_render_sizes();
-
-    // Main Badgeware display output
+    // Regular badgeware output
     state.badgeware.screen = sg_alloc_image();
-    sg_init_image(state.badgeware.screen, &(sg_image_desc){
-        .width = state.badgeware.buffer_size.x,
-        .height = state.badgeware.buffer_size.y,
-        .pixel_format = SG_PIXELFORMAT_RGBA8,
-        .usage.dynamic_update = true
-    });
-    state.badgeware.view = sg_make_view(&(sg_view_desc){ .texture.image = state.badgeware.screen });
+    display_reinit();
 
     // Supplementary debug output
     state.debug.screen = sg_alloc_image();
@@ -179,6 +195,9 @@ static void sokol_frame(void) {
     if(badgeware_will_hot_reload()) {
         stm_setup();
     }
+
+    display_reinit();
+
     badgeware_update(stm_ms(stm_now()));
 
     if(continuous_screenshots) {
