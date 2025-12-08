@@ -196,9 +196,9 @@ static void sokol_frame(void) {
         stm_setup();
     }
 
-    display_reinit();
-
     badgeware_update(stm_ms(stm_now()));
+
+    display_reinit();
 
     if(continuous_screenshots) {
         char filename[1024];

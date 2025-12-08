@@ -1,8 +1,8 @@
 import simulator
 import gc
-from picovector import debug, brushes, shapes, PixelFont
 import time
 
+debug = Image(simulator.debug_width, simulator.debug_height, simulator.debug_framebuffer)
 
 DEBUG_FONT = PixelFont.load("/system/assets/fonts/ignore.ppf")
 DEBUG_BG = brushes.color(0, 0, 0)

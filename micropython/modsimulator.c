@@ -19,11 +19,9 @@ int screen_width = 160;
 int screen_height = 120;
 uint32_t framebuffer[320 * 240];
 
-#ifndef PICO
-  int debug_width = 300;
-  int debug_height = 360;
-  uint32_t debug_buffer[300 * 360];
-#endif
+int debug_width = 300;
+int debug_height = 360;
+uint32_t debug_buffer[300 * 360];
 
 #ifdef HEADLESS
 const bool is_headless = true;
@@ -53,6 +51,13 @@ mp_obj_t modsimulator_screenshot(size_t n_args, const mp_obj_t *args) {
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(modsimulator_screenshot_obj, 0, 1, modsimulator_screenshot);
 
+mp_obj_t modsimulator_resolution(mp_obj_t width_in, mp_obj_t height_in) {
+    screen_width = mp_obj_get_int(width_in);
+    screen_height = mp_obj_get_int(height_in);
+    return mp_const_none;
+}
+static MP_DEFINE_CONST_FUN_OBJ_2(modsimulator_resolution_obj, modsimulator_resolution);
+
 void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
 
     action_t action = m_attr_action(dest);
@@ -60,24 +65,14 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     switch(attr) {
         case MP_QSTR_framebuffer:
             if(action == GET) {
-                /*mp_buffer_info_t bufinfo;
-                bufinfo.buf = (uint8_t *)framebuffer;
-                bufinfo.len = 320 * 240 * 4;
-                bufinfo.typecode = 'B';*/
+                // Always return the full-sized framebuffer here, since
+                // screen_width and screen_height are updated on the fly to
+                // display lores/hires modes correctly.
                 dest[0] = mp_obj_new_bytearray_by_ref(320 * 240 * 4, framebuffer);
             } break;
-        case MP_QSTR_hires:
+        case MP_QSTR_debug_framebuffer:
             if(action == GET) {
-                dest[0] = mp_obj_new_bool(screen_width == 320);
-            } else {
-                if(mp_obj_is_true(dest[1])) {
-                    screen_width = 320;
-                    screen_height = 240;
-                } else {
-                    screen_width = 160;
-                    screen_height = 120;
-                }
-                dest[0] = MP_OBJ_NULL;
+                dest[0] = mp_obj_new_bytearray_by_ref(debug_width * debug_height * 4, debug_buffer);
             } break;
         case MP_QSTR_width:
             if(action == GET) {
@@ -86,6 +81,14 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
         case MP_QSTR_height:
             if(action == GET) {
                 dest[0] = mp_obj_new_int(screen_height);
+            } break;
+        case MP_QSTR_debug_width:
+            if(action == GET) {
+                dest[0] = mp_obj_new_int(debug_width);
+            } break;
+        case MP_QSTR_debug_height:
+            if(action == GET) {
+                dest[0] = mp_obj_new_int(debug_height);
             } break;
         case MP_QSTR_show_individual_allocs:
             if(action == GET) {
@@ -118,6 +121,7 @@ static const mp_rom_map_elem_t modsimulator_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_modsimulator) },
     { MP_ROM_QSTR(MP_QSTR_screenshot), MP_ROM_PTR(&modsimulator_screenshot_obj) },
     { MP_ROM_QSTR(MP_QSTR_realtime), MP_ROM_PTR(&modsimulator_realtime_obj) },
+    { MP_ROM_QSTR(MP_QSTR_resolution), MP_ROM_PTR(&modsimulator_resolution_obj) },
 };
 static MP_DEFINE_CONST_DICT(modsimulator_globals, modsimulator_globals_table);
 

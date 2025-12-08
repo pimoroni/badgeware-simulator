@@ -168,20 +168,6 @@ extern "C" {
         }
       };
     }
-    /*if (dest[0] == MP_OBJ_NULL) {
-      if (attr == MP_QSTR_screen) {
-        image_obj_t *image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
-        image->image = new(m_malloc(sizeof(image_t))) image_t(framebuffer, screen_width, screen_height);
-        dest[0] = MP_OBJ_FROM_PTR(image);
-      }
-#ifndef PICO
-      if (attr == MP_QSTR_debug) {
-        image_obj_t *image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
-        image->image = new(m_malloc(sizeof(image_t))) image_t(debug_buffer, debug_width, debug_height);
-        dest[0] = MP_OBJ_FROM_PTR(image);
-      }
-#endif
-    }*/
   }
 
 

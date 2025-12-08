@@ -2,8 +2,6 @@ import picovector
 import simulator
 import builtins
 
-print(dir(picovector))
-
 # Import PicoSystem module constants to builtins,
 # so they are available globally.
 for k, v in picovector.__dict__.items():
