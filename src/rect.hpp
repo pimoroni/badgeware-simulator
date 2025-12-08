@@ -70,9 +70,11 @@ namespace picovector {
       return n;
     }
 
-    rect_t intersection(rect_t r) {
-      rect_t rn = r.normalise();
-      rect_t tn = this->normalise();
+    rect_t intersection(const rect_t &r) const {
+      rect_t rn = r;
+      rn.normalise();
+      rect_t tn = *this;
+      tn.normalise();
 
       // Compute the edges of the intersection
       float x1 = max(tn.x, rn.x);

@@ -341,7 +341,8 @@ namespace picovector {
     render(shape, this, &shape->transform, _brush);
   }
 
-  void image_t::rectangle(const rect_t &r) {
+  void image_t::rectangle(const rect_t &_r) {
+    rect_t r = _r.intersection(_bounds);
     for(int y = r.y; y < r.y + r.h; y++) {
       this->_brush->render_span(this, r.x, y, r.w);
     }
