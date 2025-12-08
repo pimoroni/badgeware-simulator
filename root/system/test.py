@@ -8,26 +8,23 @@ screen.font = PixelFont.load("/system/assets/fonts/sins.ppf")
 # red.alpha =
 # red.blend(blue, 50)
 
-green = color.rgb(0, 255, 0)
+
 
 def update():
 
+  red = color.rgb(255, 0, 0, 100)
 
+  for y in range(120):
+    for x in range(160):
+      if y < 60:
+        col = color.hsv(int(360 * (x / 160)), 255 - y, 155)
+      else:
+        col = color.oklch(155 , 155, int(360 * (x / 160)))
 
-  print(green.r, green.g)
-
-  green.g += 1
-
-  # green = red.blend(blue, 10)
-
-  # brush(green)
-
-  # brush(pattern(col1 | (,,,), col2 | (,,,), [p1, p2, p3]))
-
-  # spritesheet.brush()
-
-  # green = alpha(green, 10)
-
+      if x % 2 == 0:
+        col.blend(red)
+      screen.brush = brushes.color(col.r, col.g, col.b)
+      screen.rectangle(x, y, 1, 1)
 
 
   # color(red)
