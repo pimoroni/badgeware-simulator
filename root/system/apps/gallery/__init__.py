@@ -5,7 +5,7 @@ sys.path.insert(0, "/system/apps/gallery")
 os.chdir("/system/apps/gallery")
 
 import math
-from badgeware import SpriteSheet, PixelFont, Image, screen, run, io, brushes, shapes
+from badgeware import SpriteSheet, run
 
 mona = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1).animation()
 screen.font = PixelFont.load("/system/assets/fonts/nope.ppf")

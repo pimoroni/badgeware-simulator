@@ -23,6 +23,7 @@ extern "C" {
   int screen_width = 160;
   int screen_height = 120;
   uint32_t framebuffer[160 * 120];
+  image_obj_t *default_target;
 
 #ifndef PICO
   int debug_width = 300;
@@ -160,7 +161,20 @@ extern "C" {
 
 
   void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
-    if (dest[0] == MP_OBJ_NULL) {
+    action_t action = m_attr_action(dest);
+
+    switch(attr) {
+      case MP_QSTR_default_target: {
+        if(action == SET) {
+          if(!mp_obj_is_type(dest[1], &type_Image)) {
+            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Image"));
+          }
+          default_target = (image_obj_t *)dest[1];
+          return;
+        }
+      };
+    }
+    /*if (dest[0] == MP_OBJ_NULL) {
       if (attr == MP_QSTR_screen) {
         image_obj_t *image = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
         image->image = new(m_malloc(sizeof(image_t))) image_t(framebuffer, screen_width, screen_height);
@@ -173,7 +187,8 @@ extern "C" {
         dest[0] = MP_OBJ_FROM_PTR(image);
       }
 #endif
-    }
+    }*/
   }
+
 
 }

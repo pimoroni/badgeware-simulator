@@ -32,7 +32,8 @@ def draw_graph(title, graph, x, y, bar_width=8, bar_height=100, max_value=None):
     if graph:
         max_avg = max_value if max_value else max(graph)
         for avg in graph:
-            avg = int(avg / max_avg * bar_height)
+            if avg > 0:
+                avg = int(avg / max_avg * bar_height)
             shapes.rectangle(x, y + bar_height - avg, bar_width, avg).draw(debug)
             x += bar_width + 1
     shapes.line(0, y + bar_height, debug.width, y + bar_height, 2).draw(debug)

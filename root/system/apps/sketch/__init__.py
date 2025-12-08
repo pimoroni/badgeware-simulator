@@ -4,11 +4,11 @@ import os
 sys.path.insert(0, "/system/apps/sketch")
 os.chdir("/system/apps/sketch")
 
-from badgeware import Image, brushes, shapes, screen, io, run
+from badgeware import run
 import ui
 
 
-canvas = Image(0, 0, ui.canvas_area[2], ui.canvas_area[3])
+canvas = Image(ui.canvas_area[2], ui.canvas_area[3])
 cursor = (ui.canvas_area[2] / 2, ui.canvas_area[3] / 2)
 mona_position = (10, 76)
 mona_target = (10, 76)
@@ -84,7 +84,7 @@ def update():
     screen.blit(canvas, ui.canvas_area[0], ui.canvas_area[1])
     ui.draw_cursor(cursor)
 
-    ui.draw_mona(mona_position, mona_direction)
+    #ui.draw_mona(mona_position, mona_direction)
 
     ui.draw_dial(left_dial_angle, (5, 115))
     ui.draw_dial(right_dial_angle, (155, 115))

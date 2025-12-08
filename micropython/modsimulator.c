@@ -15,6 +15,8 @@ bool debug_show_alloc_count = false;
 bool debug_show_individual_allocs = false;
 int simulator_realtime = true;
 
+extern uint32_t framebuffer[];
+
 #ifdef HEADLESS
 const bool is_headless = true;
 #else
@@ -48,6 +50,14 @@ void modsimulator_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     action_t action = m_attr_action(dest);
 
     switch(attr) {
+        case MP_QSTR_framebuffer:
+            if(action == GET) {
+                /*mp_buffer_info_t bufinfo;
+                bufinfo.buf = (uint8_t *)framebuffer;
+                bufinfo.len = 320 * 240 * 4;
+                bufinfo.typecode = 'B';*/
+                dest[0] = mp_obj_new_bytearray_by_ref(320 * 240 * 4, framebuffer);
+            } break;
         case MP_QSTR_show_individual_allocs:
             if(action == GET) {
                 dest[0] = mp_obj_new_bool(debug_show_individual_allocs);

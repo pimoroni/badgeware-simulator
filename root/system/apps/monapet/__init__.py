@@ -7,7 +7,7 @@ os.chdir("/system/apps/monapet")
 
 import ui
 from mona import Mona
-from badgeware import io, run, State
+from badgeware import run, State
 
 mona = Mona(82)  # create mona!
 

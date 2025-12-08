@@ -1,5 +1,5 @@
 import math
-from badgeware import screen, brushes, SpriteSheet, shapes, PixelFont, io
+from badgeware import SpriteSheet
 
 # load user interface sprites
 icons = SpriteSheet("assets/icons.png", 4, 1)

@@ -5,7 +5,7 @@ sys.path.insert(0, "/system/apps/menu")
 os.chdir("/system/apps/menu")
 
 import math
-from badgeware import screen, PixelFont, Image, SpriteSheet, is_dir, file_exists, shapes, brushes, io, run
+from badgeware import SpriteSheet, is_dir, file_exists, run
 from icon import Icon
 import ui
 
@@ -19,7 +19,7 @@ import ui
 # - what would mona do...?
 apps = [
     ("mona's quest", "quest"),
-    ("mona pet", "monapet"),
+    ("Snarky Sciuridae", "monapet"),
     ("monasketch", "sketch"),
     ("flappy mona", "flappy"),
     ("gallery", "gallery"),

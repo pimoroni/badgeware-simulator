@@ -1,4 +1,3 @@
-print("hello badgeware")
 import gc
 import json
 import os
@@ -10,49 +9,27 @@ import pcf85063a
 import machine
 import powman
 import st7789
-from picovector import brushes, shapes, screen, PixelFont, io, Image, Matrix  # noqa F401
-from math import floor, sin
+import builtins
+
+import picovector
 
 
-ASSETS = "/system/assets"
-try:
-    LIGHT_SENSOR = machine.ADC(machine.Pin("LIGHT_SENSE"))
-except AttributeError:
-    LIGHT_SENSOR = None
-WIDTH, HEIGHT = screen.width, screen.height
-DEFAULT_FONT = PixelFont.load(f"{ASSETS}/fonts/sins.ppf")
-ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
+class DummyPin:
+    def __init__(self, value):
+        self._value = value
 
-# RTC
-try:
-    rtc = pcf85063a.PCF85063A(machine.I2C())
-except AttributeError:
-    rtc = pcf85063a.PCF85063A()
-display = st7789.ST7789()
-screen.font = DEFAULT_FONT
+    def value(self):
+        return self._value
 
+class DummyADC:
+    def __init__(self, value):
+        self._value = value
 
-class Colors:
-    GREEN_1 = brushes.color(86, 211, 100)
-    GREEN_2 = brushes.color(46, 160, 67)
-    GREEN_3 = brushes.color(25, 108, 46)
-    GREEN_4 = brushes.color(3, 58, 22)
-    GRAY_1 = brushes.color(242, 245, 243)
-    GRAY_2 = brushes.color(228, 235, 230)
-    GRAY_3 = brushes.color(182, 191, 184)
-    GRAY_4 = brushes.color(144, 150, 146)
-    GRAY_5 = brushes.color(35, 41, 37)
-    GRAY_6 = brushes.color(16, 20, 17)
+    def read_u16(self):
+        if callable(self._value):
+            return self._value()
+        return self._value
 
-    BLACK = brushes.color(0, 0, 0)
-    WHITE = brushes.color(255, 255, 255)
-
-    RED = brushes.color(255, 0, 0)
-    YELLOW = brushes.color(255, 255, 0)
-    GREEN = brushes.color(0, 255, 0)
-    TEAL = brushes.color(0, 255, 255)
-    BLUE = brushes.color(0, 0, 255)
-    PURPLE = brushes.color(255, 0, 255)
 
 
 def get_light():
@@ -76,64 +53,6 @@ def time_from_ntp():
     del sys.modules["ntptime"]
     gc.collect()
     localtime_to_rtc()
-
-
-if time.localtime()[0] >= 2025:
-    localtime_to_rtc()
-
-elif rtc.datetime()[0] >= 2025:
-    rtc_to_localtime()
-
-
-# We can rely on these having been set up by powman... maybe
-""""
-BUTTON_DOWN = machine.Pin.board.BUTTON_DOWN
-BUTTON_A = machine.Pin.board.BUTTON_A
-BUTTON_B = machine.Pin.board.BUTTON_B
-BUTTON_C = machine.Pin.board.BUTTON_C
-BUTTON_UP = machine.Pin.board.BUTTON_UP
-BUTTON_HOME = machine.Pin.board.BUTTON_HOME
-
-VBAT_SENSE = machine.ADC(machine.Pin.board.VBAT_SENSE)
-VBUS_DETECT = machine.Pin.board.VBUS_DETECT
-CHARGE_STAT = machine.Pin.board.CHARGE_STAT
-SENSE_1V1 = machine.ADC(machine.Pin.board.SENSE_1V1)
-"""
-
-class DummyPin:
-    def __init__(self, value):
-        self._value = value
-
-    def value(self):
-        return self._value
-
-class DummyADC:
-    def __init__(self, value):
-        self._value = value
-
-    def read_u16(self):
-        if callable(self._value):
-            return self._value()
-        return self._value
-
-
-VBUS_DETECT = DummyPin(0)
-CHARGE_STAT = DummyPin(1)
-VBAT_SENSE = DummyADC(lambda: (sin(io.ticks / 1000) + 1) * 32767)
-SENSE_1V1 = DummyADC(32767)
-
-SYSTEM_VERY_SLOW = 0
-SYSTEM_SLOW = 1
-SYSTEM_NORMAL = 2
-SYSTEM_FAST = 3
-SYSTEM_TURBO = 4
-
-BAT_MAX = 4.10
-BAT_MIN = 3.00
-
-# BUTTONS = {BUTTON_DOWN, BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_UP}
-
-conversion_factor = 3.3 / 65536
 
 
 # takes a text string (that may include newline characters) and performs word
@@ -530,18 +449,47 @@ def update_backlight():
     display.backlight(sum(backlight_smoothing) / MAX_BACKLIGHT_SAMPLES)
 
 
-def run(update, init=None, on_exit=None):
+def hires():
+    # TODO: Mutate the existing screen object?
+    font = screen.font
+    brush = screen.brush
+    setattr(builtins, "screen", Image(320, 240, framebuffer))
+    if font is not None:
+        screen.font = font
+    if brush is not None:
+        screen.brush = brush
+
+
+def lores():
+    # TODO: Mutate the existing screen object?
+    font = screen.font
+    brush = screen.brush
+    setattr(builtins, "screen", Image(160, 120, framebuffer))
+    if font is not None:
+        screen.font = font
+    if brush is not None:
+        screen.brush = brush
+
+
+def run(update, init=None, on_exit=None, auto_clear=True):
+    screen.font = DEFAULT_FONT
+    screen.brush = BG
+    screen.clear()
+    screen.brush = FG
     try:
         if init:
             init()
         try:
             while True:
+                if auto_clear:
+                    screen.brush = BG
+                    screen.clear()
+                    screen.brush = FG
                 io.poll()
-                #update_backlight()
                 if (result := update()) is not None:
                     return result
                 gc.collect()
-                display.update()
+                display.update(screen.width == 320)
         except KeyboardInterrupt:
             pass
         finally:
@@ -598,7 +546,7 @@ def message(title, text, window=None):
         error_window.text(line, 5, y)
         y += 10
 
-    display.update()
+    display.update(screen.width == 320)
     while True:
         io.poll()
         if io.pressed:
@@ -610,6 +558,69 @@ def message(title, text, window=None):
 def warning(title, text):
     print(f"- ERROR: {text}")
     message(title, text)
+
+
+# RTC
+try:
+    rtc = pcf85063a.PCF85063A(machine.I2C())
+
+    if time.localtime()[0] >= 2025:
+        localtime_to_rtc()
+
+    elif rtc.datetime()[0] >= 2025:
+        rtc_to_localtime()
+
+except AttributeError:
+    rtc = None
+
+
+# Import PicoSystem module constants to builtins,
+# so they are available globally.
+for k, v in picovector.__dict__.items():
+    if not k.startswith("__"):
+        setattr(builtins, k, v)
+
+setattr(builtins, "screen", Image(160, 120, framebuffer))
+
+
+ASSETS = "/system/assets"
+LIGHT_SENSOR = DummyADC(0)
+DEFAULT_FONT = PixelFont.load(f"{ASSETS}/fonts/sins.ppf")
+ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
+
+FG = brushes.color(255, 255, 255)
+BG = brushes.color(0, 0, 0)
+
+VBAT_SENSE = DummyADC(3.3)
+VBUS_DETECT = DummyPin(0)
+CHARGE_STAT = DummyPin(0)
+SENSE_1V1 = DummyADC(1.1)
+
+BAT_MAX = 4.10
+BAT_MIN = 3.00
+
+conversion_factor = 3.3 / 65536
+
+
+# TODO: Add these to `brushes` ?
+class Colors:
+    black = brushes.color(0, 0, 0)
+    white = brushes.color(255, 255, 255)
+    red = brushes.color(255, 0, 0)
+    yellow = brushes.color(255, 255, 0)
+    green = brushes.color(0, 255, 0)
+    teal = brushes.color(0, 255, 255)
+    blue = brushes.color(0, 0, 255)
+    purple = brushes.color(255, 0, 255)
+
+
+# Build in some badgeware helpers, so we don't have to "bw.lores" etc
+for k in ("lores", "hires", "SpriteSheet", "Colors"):
+    setattr(builtins, k, locals()[k])
+
+
+# Finally, build in badgeware as "bw" for less frequently used things
+setattr(builtins, "bw", sys.modules["badgeware"])
 
 
 if __name__ == "__main__":

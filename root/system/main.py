@@ -4,14 +4,14 @@ import sys
 import os
 import micropython
 import simulator
-import debug
+#import debug
 
 HEADLESS = simulator.headless
 SKIP_CINEMATIC = True # simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
 app = None
-
+ 
 
 simulator.show_alloc_count = False        # Show number of MPAllocator allocs per frame
 simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and location
@@ -109,12 +109,12 @@ else:
     launch(APP_STARTUP)
 
 def update():
-    with debug:
-        if (result := app.update()) is not None:
-            if app.__name__ == APP_MENU:
-                launch(result)
-            elif app.__name__ == APP_STARTUP:
-                launch(APP_MENU)
+    #with debug:
+    if (result := app.update()) is not None:
+        if app.__name__ == APP_MENU:
+            launch(result)
+        elif app.__name__ == APP_STARTUP:
+            launch(APP_MENU)
     return True
 
 # """

@@ -1,5 +1,5 @@
 import math
-from badgeware import screen, PixelFont, SpriteSheet, shapes, brushes, io, Image
+from badgeware import SpriteSheet
 
 screen.antialias = Image.X2
 canvas_area = (10, 15, 140, 85)
@@ -19,11 +19,11 @@ def draw_background():
 
     # draw the embossed gold logo
     screen.font = font
-    w, _ = screen.measure_text("MonaSketch")
+    w, _ = screen.measure_text("SketchySketch")
     screen.brush = brushes.color(240, 210, 160)
-    screen.text("MonaSketch", 80 - (w / 2) - 1, -1)
+    screen.text("SketchySketch", 80 - (w / 2) - 1, -1)
     screen.brush = brushes.color(190, 140, 80, 100)
-    screen.text("MonaSketch", 80 - (w / 2), 0)
+    screen.text("SketchySketch", 80 - (w / 2), 0)
 
     # draw the canvas area grey background and screen shadows
     screen.brush = brushes.color(210, 210, 210)
