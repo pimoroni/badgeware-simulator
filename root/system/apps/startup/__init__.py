@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, "/system/apps/startup")
 os.chdir("/system/apps/startup")
 
-from badgeware import io, screen, run, brushes, shapes, display
+from badgeware import run
 
 # animation settings
 animation_duration = 3

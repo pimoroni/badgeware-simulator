@@ -5,7 +5,7 @@ sys.path.insert(0, "/system/apps/menu")
 os.chdir("/system/apps/menu")
 
 import math
-from badgeware import screen, PixelFont, Image, SpriteSheet, is_dir, file_exists, shapes, brushes, io, run
+from badgeware import SpriteSheet, is_dir, file_exists, run
 from icon import Icon
 import ui
 
@@ -19,7 +19,7 @@ import ui
 # - what would mona do...?
 apps = [
     ("mona's quest", "quest"),
-    ("mona pet", "monapet"),
+    ("Snarky Sciuridae", "monapet"),
     ("monasketch", "sketch"),
     ("flappy mona", "flappy"),
     ("gallery", "gallery"),
@@ -89,11 +89,6 @@ def update():
 
   screen.antialias = Image.X4
   screen.brush = brushes.color(255, 255, 255)
-  poly = shapes.custom(
-    [(10, 10), (22, 12), (20, 20), (5, 18)],
-    [(30, 10), (42, 12), (40, 20), (15, 18)]
-  )
-  screen.draw(poly)
 
   return None
 

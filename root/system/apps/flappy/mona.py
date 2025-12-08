@@ -1,4 +1,4 @@
-from badgeware import screen, SpriteSheet, io
+from badgeware import SpriteSheet
 from obstacle import Obstacle
 
 sprites = SpriteSheet("assets/mona.png", 7, 2)

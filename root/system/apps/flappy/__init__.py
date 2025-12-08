@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, "/system/apps/flappy")
 os.chdir("/system/apps/flappy")
 
-from badgeware import screen, Image, PixelFont, SpriteSheet, io, brushes, shapes, run
+from badgeware import SpriteSheet, run
 from mona import Mona
 from obstacle import Obstacle
 

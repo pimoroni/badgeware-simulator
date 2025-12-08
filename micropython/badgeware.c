@@ -399,8 +399,10 @@ int badgeware_screenshot(void *buffer, const char *fn) {
     } else {
         struct timeval tv;
         gettimeofday(&tv, NULL);
-        unsigned long long time_ms = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
-        snprintf(filename + strlen(path_screenshots), PATH_MAX, "/screenshot-%llu.png", time_ms);
+        uint64_t time_ms = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
+        // TODO: What's up with snprintf not supporting uint64_t?
+        //snprintf(filename + strlen(path_screenshots), PATH_MAX - strlen(path_screenshots), "/screenshot-%" PRIu64 ".png", time_ms);
+        sprintf(filename + strlen(path_screenshots), "/screenshot-%" PRIu64 ".png", time_ms);
     }
     if(access(filename, R_OK) == 0) {
         debug_printf("badgeware_screenshot: Refusing to overwrite %s\n", filename);

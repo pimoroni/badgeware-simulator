@@ -9,7 +9,7 @@ import micropython
 import math
 import time
 import random
-from badgeware import State, PixelFont, Image, brushes, screen, io, shapes, run
+from badgeware import State, run
 from picovector import dda
 from badgeware import SpriteSheet
 
