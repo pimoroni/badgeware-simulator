@@ -23,7 +23,8 @@ def update():
 
       if x % 2 == 0:
         col.blend(red)
-      screen.brush = brushes.color(col.r, col.g, col.b)
+      screen.brush = brush.color(col.r, col.g, col.b)
+
       screen.rectangle(x, y, 1, 1)
 
 

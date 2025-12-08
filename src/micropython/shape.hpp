@@ -233,7 +233,7 @@ extern "C" {
         }
 
         if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_Brush)) {
+          if(!mp_obj_is_type(dest[1], &type_brush)) {
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Brush"));
           }
           brush_obj_t *brush = (brush_obj_t *)dest[1];
