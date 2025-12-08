@@ -90,9 +90,50 @@ namespace picovector {
       dst += 4;
       sb++;
     }
+  }
 
-    //uint32_t *dst = target->ptr(x, y);
-    //span_argb8(dst, w, color, sb);
+
+  pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t i) {
+    this->c1 = c1;
+    this->c2 = c2;
+  }
+
+  pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t *p) {
+    this->c1 = c1;
+    this->c2 = c2;
+    memcpy(this->p, p, sizeof(uint8_t) * 8);
+  }
+
+  void pattern_brush::pixel(uint32_t *dst) {
+    return;
+  }
+
+  void pattern_brush::render_span(image_t *target, int x, int y, int w) {
+    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+
+    uint8_t *src1 = (uint8_t*)&c1;
+    uint8_t *src2 = (uint8_t*)&c2;
+
+    while(w--) {
+      uint8_t u = x & 0b111;
+      uint8_t v = y & 0b111;
+      uint8_t b = p[y];
+      uint8_t *src = b & (1 << x) ? src1 : src2;
+      _blend_rgba_rgba(dst, src);
+      dst += 4;
+    }
+  }
+
+
+  void pattern_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
+    // uint8_t *dst = (uint8_t*)target->ptr(x, y);
+    // uint8_t *src = (uint8_t*)&color;
+    // while(w--) {
+    //   uint32_t xored = _make_col(dst[0] ^ src[0], dst[1] ^ src[1], dst[2] ^ src[2], *sb);
+    //   _blend_rgba_rgba(dst, (uint8_t*)&xored);
+    //   dst += 4;
+    //   sb++;
+    // }
   }
 
 
