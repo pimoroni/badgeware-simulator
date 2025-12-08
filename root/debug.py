@@ -5,8 +5,8 @@ import time
 debug = Image(simulator.debug_width, simulator.debug_height, simulator.debug_framebuffer)
 
 DEBUG_FONT = PixelFont.load("/system/assets/fonts/ignore.ppf")
-DEBUG_BG = brushes.color(0, 0, 0)
-DEBUG_FG = brushes.color(255, 255, 255)
+DEBUG_BG = brush.color(0, 0, 0)
+DEBUG_FG = brush.color(255, 255, 255)
 
 AVERAGE_OVER = 10
 
@@ -24,9 +24,9 @@ mem_averages = []
 
 def draw_graph(title, graph, x, y, bar_width=8, bar_height=100, max_value=None):
     debug.text(title, x, y)
-    debug.brush = brushes.color(255, 0, 0)
+    debug.brush = brush.color(255, 0, 0)
     shapes.line(0, y, debug.width, y, 2).draw(debug)
-    debug.brush = brushes.color(255, 255, 255)
+    debug.brush = brush.color(255, 255, 255)
     _tw, th = debug.measure_text(title)
     y += th + 5
     if graph:

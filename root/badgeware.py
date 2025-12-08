@@ -519,13 +519,13 @@ def message(title, text, window=None):
         0, 0, error_window.width, error_window.height, 5, 5, 5, 5
     )
     heading = shapes.rounded_rectangle(0, 0, error_window.width, 12, 5, 5, 0, 0)
-    error_window.brush = brushes.color(100, 100, 100, 200)
+    error_window.brush = brush.color(100, 100, 100, 200)
     error_window.draw(background)
 
-    error_window.brush = brushes.color(255, 100, 100, 200)
+    error_window.brush = brush.color(255, 100, 100, 200)
     error_window.draw(heading)
 
-    error_window.brush = brushes.color(50, 100, 50)
+    error_window.brush = brush.color(50, 100, 50)
     tw = 35
     error_window.draw(
         shapes.rounded_rectangle(
@@ -533,7 +533,7 @@ def message(title, text, window=None):
         )
     )
 
-    error_window.brush = brushes.color(255, 200, 200)
+    error_window.brush = brush.color(255, 200, 200)
     error_window.text(
         "Okay", error_window.width - tw + 5 - 10, error_window.height - 12
     )
@@ -541,7 +541,7 @@ def message(title, text, window=None):
     error_window.text(title, 5, y)
     y += 17
 
-    error_window.brush = brushes.color(200, 200, 200)
+    error_window.brush = brush.color(200, 200, 200)
     text_lines = wrap_and_measure(error_window, text, 12, error_window.width - 10)
     for line, _width in text_lines:
         error_window.text(line, 5, y)
@@ -590,8 +590,8 @@ LIGHT_SENSOR = DummyADC(0)
 DEFAULT_FONT = PixelFont.load(f"{ASSETS}/fonts/sins.ppf")
 ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
 
-FG = brushes.color(255, 255, 255)
-BG = brushes.color(0, 0, 0)
+FG = brush.color(255, 255, 255)
+BG = brush.color(0, 0, 0)
 
 VBUS_DETECT = DummyPin(0)
 CHARGE_STAT = DummyPin(1)
@@ -610,16 +610,16 @@ _current_mode = LORES
 simulator.resolution(160, 120)
 
 
-# TODO: Add these to `brushes` ?
+# TODO: Add these to `brush` ?
 class Colors:
-    black = brushes.color(0, 0, 0)
-    white = brushes.color(255, 255, 255)
-    red = brushes.color(255, 0, 0)
-    yellow = brushes.color(255, 255, 0)
-    green = brushes.color(0, 255, 0)
-    teal = brushes.color(0, 255, 255)
-    blue = brushes.color(0, 0, 255)
-    purple = brushes.color(255, 0, 255)
+    black = brush.color(0, 0, 0)
+    white = brush.color(255, 255, 255)
+    red = brush.color(255, 0, 0)
+    yellow = brush.color(255, 255, 0)
+    green = brush.color(0, 255, 0)
+    teal = brush.color(0, 255, 255)
+    blue = brush.color(0, 0, 255)
+    purple = brush.color(255, 0, 255)
 
 
 # Build in some badgeware helpers, so we don't have to "bw.lores" etc

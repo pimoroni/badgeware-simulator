@@ -26,6 +26,19 @@ extern "C" {
       return mp_const_none;
   }
 
+  mp_obj_t modpicovector_pen(mp_obj_t pen_in) {
+    if(!mp_obj_is_type(pen_in, &type_brush)) {
+      mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Brush"));
+    }
+    // TODO: This should set a GLOBAL brush along with other state on 
+    // picovector, and the default target (an image) should then use the
+    // global brush for painting
+    if(default_target) {
+      default_target->brush = (brush_obj_t *)pen_in;
+      default_target->image->brush(default_target->brush->brush);
+    }
+    return mp_const_none;
+  }
 
   mp_obj_t modpicovector_dda(size_t n_args, const mp_obj_t *pos_args) {
     float x = mp_obj_get_float(pos_args[0]);
