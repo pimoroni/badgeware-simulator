@@ -118,8 +118,8 @@ namespace picovector {
     while(w--) {
       uint8_t u = x & 0b111;
       uint8_t v = y & 0b111;
-      uint8_t b = p[y];
-      uint8_t *src = b & (1 << x) ? src1 : src2;
+      uint8_t b = p[v];
+      uint8_t *src = b & (1 << u) ? src1 : src2;
       _blend_rgba_rgba(dst, src);
       dst += 4;
       x++;
