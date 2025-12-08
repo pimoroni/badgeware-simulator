@@ -146,20 +146,49 @@ namespace picovector {
   }
 
 
-  // void xor::render_spans(image *target, shape *shape, render_span *spans, int count) {
-  //   while(count--) {
-  //     debug_printf("%d, %d (%d)\n", spans->x, spans->y, spans->w);
 
-  //     uint32_t *dst = target->ptr(spans->x, spans->y);
-  //     for(int i = 0; i < spans->w; i++) {
-  //       uint8_t *pd = (uint8_t *)dst;
-  //       pd[1] = ^pd[1];
-  //       pd[2] = ^pd[2];
-  //       pd[3] = ^pd[3];
+  image_brush::image_brush(image_t *src) {
+    this->src = src;
+  }
 
-  //       dst++;
-  //     }
-  //     spans++;
-  //   }
-  // }
+  void image_brush::pixel(uint32_t *dst) {
+    return;
+  }
+
+  void image_brush::render_span(image_t *target, int x, int y, int w) {
+    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+
+    rect_t b = src->bounds();
+
+    uint8_t u = x % int(b.w);
+    uint8_t v = y % int(b.h);
+    uint8_t *p = (uint8_t*)src->ptr(u, v);
+    while(w--) {
+      _blend_rgba_rgba(dst, p);
+      dst += 4;
+      p++;
+      u++;
+      u %= int(b.w);
+    }
+  }
+
+
+  void image_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
+    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+
+    rect_t b = src->bounds();
+
+    uint8_t u = x % int(b.w);
+    uint8_t v = y % int(b.h);
+    uint8_t *p = (uint8_t*)src->ptr(u, v);
+    while(w--) {
+      _blend_rgba_rgba(dst, p, *sb);
+      dst += 4;
+      p++;
+      u++;
+      u %= int(b.w);
+      sb++;
+    }
+  }
+
 }

@@ -7,10 +7,11 @@
 #include "../blend.hpp"
 #include "../font.hpp"
 #include "../pixel_font.hpp"
-#include "../brush.hpp"
+
 
 #include "image_png.hpp"
 #include "font.hpp"
+#include "brush.hpp"
 #include "pixel_font.hpp"
 
 #include "mp_helpers.hpp"
@@ -24,6 +25,12 @@ extern "C" {
   #include "py/runtime.h"
 
   extern const mp_obj_type_t type_Image;
+  extern const mp_obj_type_t type_brush;
+
+  typedef struct _brush_obj_t {
+    mp_obj_base_t base;
+    brush_t *brush;
+  } brush_obj_t;
 
   typedef struct _image_obj_t {
     mp_obj_base_t base;
