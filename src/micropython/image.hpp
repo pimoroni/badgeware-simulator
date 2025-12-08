@@ -41,6 +41,7 @@ extern "C" {
     }
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_1(image__del___obj, image__del__);
 
   static mp_obj_t image_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     image_obj_t *self = mp_obj_malloc_with_finaliser(image_obj_t, type);
@@ -59,7 +60,7 @@ extern "C" {
     return MP_OBJ_FROM_PTR(self);
   }
 
-  mp_obj_t image_load(mp_obj_t path) {
+  static mp_obj_t image_load(mp_obj_t path) {
     const char *s = mp_obj_str_get_str(path);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
 
@@ -71,9 +72,11 @@ extern "C" {
     png->close();
     return MP_OBJ_FROM_PTR(result);
   }
+  static MP_DEFINE_CONST_FUN_OBJ_1(image_load_obj, image_load);
+  static MP_DEFINE_CONST_STATICMETHOD_OBJ(image_load_static_obj, MP_ROM_PTR(&image_load_obj));
 
 
-  mp_obj_t image_load_into(mp_obj_t self_in, mp_obj_t path) {
+  static mp_obj_t image_load_into(mp_obj_t self_in, mp_obj_t path) {
     self(self_in, image_obj_t);
     //const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     PNG *png = new(PicoVector_working_buffer) PNG();
@@ -83,9 +86,10 @@ extern "C" {
     png->close();
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_2(image_load_into_obj, image_load_into);
 
 
-  mp_obj_t image_window(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_window(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     int x = mp_obj_get_int(pos_args[1]);
     int y = mp_obj_get_int(pos_args[2]);
@@ -95,9 +99,10 @@ extern "C" {
     result->image = new(m_malloc(sizeof(image_t))) image_t(self->image, rect_t(x, y, w, h));
     return MP_OBJ_FROM_PTR(result);
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
 
 
-  mp_obj_t image_rectangle(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_rectangle(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     int x = mp_obj_get_int(pos_args[1]);
     int y = mp_obj_get_int(pos_args[2]);
@@ -106,9 +111,10 @@ extern "C" {
     self->image->rectangle(rect_t(x, y, w, h));
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_rectangle_obj, 4, image_rectangle);
 
 
-  mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);
 
@@ -131,8 +137,9 @@ extern "C" {
 
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 3, image_text);
 
-  mp_obj_t image_measure_text(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_measure_text(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const char *text = mp_obj_str_get_str(pos_args[1]);
 
@@ -157,8 +164,9 @@ extern "C" {
 
     return mp_obj_new_tuple(2, result);
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 2, image_measure_text);
 
-  mp_obj_t image_vspan_tex(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_vspan_tex(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
     int x = mp_obj_get_float(pos_args[2]);
@@ -171,9 +179,10 @@ extern "C" {
     src->image->vspan_tex(self->image, point_t(x, y), c, point_t(us, vs), point_t(ue, ve));
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
 
 
-  mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
     int x = mp_obj_get_float(pos_args[2]);
@@ -181,8 +190,9 @@ extern "C" {
     src->image->blit(self->image, point_t(x, y));
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
 
-  mp_obj_t image_scale_blit(size_t n_args, const mp_obj_t *pos_args) {
+  static mp_obj_t image_scale_blit(size_t n_args, const mp_obj_t *pos_args) {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
 
@@ -207,12 +217,14 @@ extern "C" {
     }
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
 
-  mp_obj_t image_clear(mp_obj_t self_in) {
+  static mp_obj_t image_clear(mp_obj_t self_in) {
     self(self_in, image_obj_t);
     self->image->clear();
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
 
   static void image_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, image_obj_t);
@@ -325,25 +337,6 @@ extern "C" {
     // we didn't handle this, fall back to alternative methods
     dest[1] = MP_OBJ_SENTINEL;
   }
-
-  static MP_DEFINE_CONST_FUN_OBJ_1(image__del___obj, image__del__);
-
-  static MP_DEFINE_CONST_FUN_OBJ_1(image_load_obj, image_load);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(image_load_static_obj, MP_ROM_PTR(&image_load_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_2(image_load_into_obj, image_load_into);
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
-
-  static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_rectangle_obj, 5, image_rectangle);
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 3, image_text);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 2, image_measure_text);
 
   static const mp_rom_map_elem_t image_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
