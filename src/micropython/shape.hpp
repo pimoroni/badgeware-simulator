@@ -127,7 +127,11 @@ extern "C" {
     float x = mp_obj_get_float(pos_args[0]);
     float y = mp_obj_get_float(pos_args[1]);
     float s = mp_obj_get_float(pos_args[2]);
-    float n = mp_obj_get_float(pos_args[3]);
+    if(n_args == 4) {
+      float n = mp_obj_get_float(pos_args[3]);
+      n = max(2.0f, n);
+      n = max(2.0f, n);
+    }
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = squircle(x, y, s, n);
     return MP_OBJ_FROM_PTR(shape);
@@ -323,7 +327,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_rounded_rectangle_obj, 5, shapes_rounded_rectangle);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_rounded_rectangle_static_obj, MP_ROM_PTR(&shapes_rounded_rectangle_obj));
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_squircle_obj, 4, shapes_squircle);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_squircle_obj, 3, shapes_squircle);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_squircle_static_obj, MP_ROM_PTR(&shapes_squircle_obj));
 
   static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_circle_obj, 3, shapes_circle);
