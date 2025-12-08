@@ -127,8 +127,9 @@ extern "C" {
     float x = mp_obj_get_float(pos_args[0]);
     float y = mp_obj_get_float(pos_args[1]);
     float s = mp_obj_get_float(pos_args[2]);
+    float n = 4.0f;
     if(n_args == 4) {
-      float n = mp_obj_get_float(pos_args[3]);
+      n = mp_obj_get_float(pos_args[3]);
       n = max(2.0f, n);
       n = max(2.0f, n);
     }
