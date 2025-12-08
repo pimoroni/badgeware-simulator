@@ -121,6 +121,7 @@ namespace picovector {
       uint8_t *src = b & (1 << x) ? src1 : src2;
       _blend_rgba_rgba(dst, src);
       dst += 4;
+      x++;
     }
   }
 

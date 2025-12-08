@@ -63,8 +63,8 @@ extern "C" {
 
 
   mp_obj_t brush_pattern(size_t n_args, const mp_obj_t *pos_args) {
-    uint32_t c1 = mp_obj_get_int(pos_args[0]);
-    uint32_t c2 = mp_obj_get_int(pos_args[1]);
+    const color_obj_t *c1 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    const color_obj_t *c2 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
 
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
     if(mp_obj_is_int(pos_args[2])) {
@@ -75,7 +75,7 @@ extern "C" {
         mp_raise_TypeError(MP_ERROR_TEXT("pattern index must be a number between 0 and 37"));
       }
 
-      brush->brush = m_new_class(pattern_brush, c1, c2, i);
+      brush->brush = m_new_class(pattern_brush, c1->c, c2->c, i);
     }else if(mp_obj_is_type(pos_args[2], &mp_type_tuple)) {
       size_t len;
       mp_obj_t *items;
@@ -89,7 +89,7 @@ extern "C" {
       for(int i = 0; i < 8; i++) {
         p[i] = mp_obj_get_int(items[i]);
       }
-      brush->brush = m_new_class(pattern_brush, c1, c2, p);
+      brush->brush = m_new_class(pattern_brush, c1->c, c2->c, p);
     }
 
 
