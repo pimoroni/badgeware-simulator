@@ -4,6 +4,7 @@
 // #include "../image.hpp"
 
 
+#include "color.hpp"
 #include "brush.hpp"
 #include "shape.hpp"
 #include "font.hpp"

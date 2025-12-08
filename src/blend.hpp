@@ -10,6 +10,16 @@ inline uint32_t __not_in_flash_func(_make_col)(uint8_t r, uint8_t g, uint8_t b, 
   return __builtin_bswap32((r << 24) | (g << 16) | (b << 8) | a);
 }
 
+inline uint32_t __not_in_flash_func(_r)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[0];}
+inline uint32_t __not_in_flash_func(_g)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[1];}
+inline uint32_t __not_in_flash_func(_b)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[2];}
+inline uint32_t __not_in_flash_func(_a)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[3];}
+
+inline void __not_in_flash_func(_r)(const uint32_t *c, uint8_t r) {uint8_t *p = (uint8_t*)c; p[0] = r;}
+inline void __not_in_flash_func(_g)(const uint32_t *c, uint8_t g) {uint8_t *p = (uint8_t*)c; p[1] = g;}
+inline void __not_in_flash_func(_b)(const uint32_t *c, uint8_t b) {uint8_t *p = (uint8_t*)c; p[2] = b;}
+inline void __not_in_flash_func(_a)(const uint32_t *c, uint8_t a) {uint8_t *p = (uint8_t*)c; p[3] = a;}
+
 // TODO: consider making all images pre-multiplied alpha
 
 // note: previously we had blend paths using the rp2 interpolators but these
