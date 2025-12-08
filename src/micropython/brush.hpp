@@ -76,7 +76,7 @@ extern "C" {
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
     if(mp_obj_is_int(pos_args[2])) {
       // brush index supplied, use pre-baked brush
-      int i = mp_obj_is_int(pos_args[2]);
+      int i = mp_obj_get_int(pos_args[2]);
 
       if(i < 0 || i > 37) {
         mp_raise_TypeError(MP_ERROR_TEXT("pattern index must be a number between 0 and 37"));
