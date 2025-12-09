@@ -117,7 +117,7 @@ MPY_BIND_VAR(3, text, {
     return mp_const_none;
   })
 
-MPY_BIND_VAR(3, measure_text, {
+MPY_BIND_VAR(2, measure_text, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const char *text = mp_obj_str_get_str(args[1]);
 
