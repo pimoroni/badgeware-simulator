@@ -1,7 +1,7 @@
+#ifndef NO_QSTR
 #include <algorithm>
 #include "mp_tracked_allocator.hpp"
 
-#ifndef NO_QSTR
 #include "../picovector.hpp"
 #include "../primitive.hpp"
 #include "../shape.hpp"
@@ -16,13 +16,6 @@
 using namespace picovector;
 
 extern "C" {
-  // image.cpp uses pngdec_open_callback from image_png
-  extern void *pngdec_open_callback(const char *filename, int32_t *size);
-  extern void pngdec_close_callback(void *handle);
-  extern int32_t pngdec_read_callback(PNGFILE *png, uint8_t *p, int32_t c);
-  extern int32_t pngdec_seek_callback(PNGFILE *png, int32_t p);
-  extern void pngdec_decode_callback(PNGDRAW *pDraw);
-
   extern const mp_obj_type_t type_brush;
   extern const mp_obj_type_t type_Image;
   extern const mp_obj_type_t type_color;
@@ -83,5 +76,13 @@ extern "C" {
     void *parent;
   } image_obj_t;
 
+  // used by image.pen = N and picovector.pen() (global pen)
   extern brush_obj_t *mp_obj_to_brush(size_t n_args, const mp_obj_t *args);
+
+  // image.cpp uses pngdec_open_callback from image_png
+  extern void *pngdec_open_callback(const char *filename, int32_t *size);
+  extern void pngdec_close_callback(void *handle);
+  extern int32_t pngdec_read_callback(PNGFILE *png, uint8_t *p, int32_t c);
+  extern int32_t pngdec_seek_callback(PNGFILE *png, int32_t p);
+  extern void pngdec_decode_callback(PNGDRAW *pDraw);
 }

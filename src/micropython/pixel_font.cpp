@@ -3,8 +3,6 @@
 #include "mp_helpers.hpp"
 #include "picovector.hpp"
 
-using namespace picovector;
-
 extern "C" {
   #include <inttypes.h>
   #include "py/stream.h"

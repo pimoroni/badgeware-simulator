@@ -16,11 +16,16 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(mpy_binding_##fn_name##_obj, var_min_args, mpy_binding_##fn_name);\
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(mpy_binding_##fn_name##_static_obj, MP_ROM_PTR(&mpy_binding_##fn_name##_obj));
 
+
+// Class methods. These have an explicit "self_in".
 #define MPY_BIND_CLASSMETHOD_ARGS1(fn_name, arg1, fn_body) static mp_obj_t mpy_binding_##fn_name(mp_obj_t self_in, mp_obj_t arg1) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_2(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);
 
 #define MPY_BIND_CLASSMETHOD_ARGS0(fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(mp_obj_t self_in) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_1(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);
+
+#define MPY_BIND_ARGS1(fn_name, arg1, fn_body)
+
 
 // Var args with lower bounds
 // Class versions of this method just use args[0] for self, so it needs no special case
@@ -30,10 +35,14 @@ extern "C" {
 // "new" / class constructor
 #define MPY_BIND_NEW(fn_name, fn_body) static mp_obj_t fn_name##_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) fn_body
 
+#define MPY_BIND_DEL(fn_name, fn_body) static mp_obj_t fn_name##__del__(mp_obj_t self_in) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_1(fn_name##__del___obj, fn_name##__del__);
+
 #define MPY_BIND_ATTR(fn_name, fn_body) static void fn_name##_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) fn_body
 
 #define MPY_BIND_ROM_PTR(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&mpy_binding_##name##_obj) }
 #define MPY_BIND_ROM_PTR_STATIC(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&mpy_binding_##name##_static_obj) }
+#define MPY_BIND_ROM_PTR_DEL(name) { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&name##__del___obj) }
 
 #define MPY_BIND_LOCALS_DICT(prefix, ...) \
   static const mp_rom_map_elem_t prefix##_locals_dict_table[] = {\

@@ -5,8 +5,6 @@
 #include "mp_helpers.hpp"
 #include "picovector.hpp"
 
-using namespace picovector;
-
 extern "C" {
   #include "py/stream.h"
   #include "py/reader.h"

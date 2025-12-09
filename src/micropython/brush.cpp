@@ -1,56 +1,49 @@
 #include "mp_helpers.hpp"
 #include "picovector.hpp"
 
-using namespace picovector;
-
 extern "C" {
-
   #include "py/runtime.h"
 
-  mp_obj_t brush__del__(mp_obj_t self_in) {
+  MPY_BIND_DEL(brush, {
     self(self_in, brush_obj_t);
     m_del_class(brush_t, self->brush);
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_1(brush__del___obj, brush__del__);
+  })
 
 
-  mp_obj_t brush_xor(size_t n_args, const mp_obj_t *pos_args) {
-    int r = mp_obj_get_float(pos_args[0]);
-    int g = mp_obj_get_float(pos_args[1]);
-    int b = mp_obj_get_float(pos_args[2]);
+  MPY_BIND_STATICMETHOD_VAR(3, xor, {
+    int r = mp_obj_get_float(args[0]);
+    int g = mp_obj_get_float(args[1]);
+    int b = mp_obj_get_float(args[2]);
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
     brush->brush = m_new_class(xor_brush, _make_col(r, g, b));
     return MP_OBJ_FROM_PTR(brush);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_xor_obj, 3, brush_xor);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_xor_static_obj, MP_ROM_PTR(&brush_xor_obj));
+  })
 
-  mp_obj_t brush_brighten(size_t n_args, const mp_obj_t *pos_args) {
-    int amount = mp_obj_get_float(pos_args[0]);
+
+  MPY_BIND_STATICMETHOD_VAR(1, brighten, {
+    int amount = mp_obj_get_float(args[0]);
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
     brush->brush = m_new_class(brighten_brush, amount);
     return MP_OBJ_FROM_PTR(brush);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_brighten_obj, 1, brush_brighten);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_brighten_static_obj, MP_ROM_PTR(&brush_brighten_obj));
+  })
 
 
-  mp_obj_t brush_pattern(size_t n_args, const mp_obj_t *pos_args) {
-    if(!mp_obj_is_type(pos_args[0], &type_color)) {
+  MPY_BIND_STATICMETHOD_VAR(3, pattern, {
+    if(!mp_obj_is_type(args[0], &type_color)) {
       mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of color type"));
     }
-    if(!mp_obj_is_type(pos_args[1], &type_color)) {
+    if(!mp_obj_is_type(args[1], &type_color)) {
       mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of color type"));
     }
 
-    const color_obj_t *c1 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const color_obj_t *c2 = (color_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+    const color_obj_t *c1 = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const color_obj_t *c2 = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
 
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-    if(mp_obj_is_int(pos_args[2])) {
+    if(mp_obj_is_int(args[2])) {
       // brush index supplied, use pre-baked brush
-      int i = mp_obj_get_int(pos_args[2]);
+      int i = mp_obj_get_int(args[2]);
 
       if(i < 0 || i > 37) {
         mp_raise_TypeError(MP_ERROR_TEXT("pattern index must be a number between 0 and 37"));
@@ -58,10 +51,10 @@ extern "C" {
 
       brush->brush = m_new_class(pattern_brush, c1->c, c2->c, i);
 
-    }else if(mp_obj_is_type(pos_args[2], &mp_type_tuple)) {
+    }else if(mp_obj_is_type(args[2], &mp_type_tuple)) {
       size_t len;
       mp_obj_t *items;
-      mp_obj_get_array(pos_args[2], &len, &items);
+      mp_obj_get_array(args[2], &len, &items);
 
       if(len != 8) {
         mp_raise_TypeError(MP_ERROR_TEXT("pattern must be a tuple with 8 elements"));
@@ -77,46 +70,41 @@ extern "C" {
     }
 ;
     return MP_OBJ_FROM_PTR(brush);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_pattern_obj, 3, brush_pattern);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_pattern_static_obj, MP_ROM_PTR(&brush_pattern_obj));
+  })
 
 
-  mp_obj_t brush_image(size_t n_args, const mp_obj_t *pos_args) {
-    if(!mp_obj_is_type(pos_args[0], &type_Image)) {
+  MPY_BIND_STATICMETHOD_VAR(1, image, {
+    if(!mp_obj_is_type(args[0], &type_Image)) {
       mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of image type"));
     }
 
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
     if(n_args == 1) {
       brush->brush = m_new_class(image_brush, src->image);
     } else {
-      if(!mp_obj_is_type(pos_args[1], &type_Matrix)) {
+      if(!mp_obj_is_type(args[1], &type_Matrix)) {
         mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of matrix type"));
       }
 
-      matrix_obj_t *transform = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+      matrix_obj_t *transform = (matrix_obj_t *)MP_OBJ_TO_PTR(args[1]);
       mat3_t *m = &transform->m;
       brush->brush = m_new_class(image_brush, src->image, m);
     }
 
     return MP_OBJ_FROM_PTR(brush);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_image_obj, 1, brush_image);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_image_static_obj, MP_ROM_PTR(&brush_image_obj));
+  })
 
 
-  static const mp_rom_map_elem_t brush_locals_dict_table[] = {
-      { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&brush__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_xor), MP_ROM_PTR(&brush_xor_static_obj) },
-      { MP_ROM_QSTR(MP_QSTR_brighten), MP_ROM_PTR(&brush_brighten_static_obj) },
-      { MP_ROM_QSTR(MP_QSTR_pattern), MP_ROM_PTR(&brush_pattern_static_obj) },
-      { MP_ROM_QSTR(MP_QSTR_image), MP_ROM_PTR(&brush_image_static_obj) },
-  };
-  static MP_DEFINE_CONST_DICT(brush_locals_dict, brush_locals_dict_table);
+  MPY_BIND_LOCALS_DICT(brush,
+    MPY_BIND_ROM_PTR_DEL(brush),
+    MPY_BIND_ROM_PTR(xor),
+    MPY_BIND_ROM_PTR_STATIC(brighten),
+    MPY_BIND_ROM_PTR_STATIC(pattern),
+    MPY_BIND_ROM_PTR_STATIC(image),
+  )
+
 
   MP_DEFINE_CONST_OBJ_TYPE(
       type_brush,
