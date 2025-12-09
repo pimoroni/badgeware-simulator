@@ -5,6 +5,31 @@ extern "C" {
   #include "py/stream.h"
 }
 
+// Binding shortcuts
+
+// Var args with lower bounds, static class method
+#define MPY_BIND_STATICMETHOD_VAR(var_min_args, fn_name, fn_body) static mp_obj_t fn_name(size_t n_args, const mp_obj_t *args) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(fn_name##_obj, var_min_args, fn_name);\
+  static MP_DEFINE_CONST_STATICMETHOD_OBJ(fn_name##_static_obj, MP_ROM_PTR(&fn_name##_obj));
+
+// Var args with lower bounds
+#define MPY_BIND_VAR(var_min_args, fn_name, fn_body) static mp_obj_t fn_name(size_t n_args, const mp_obj_t *args) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(fn_name##_obj, var_min_args, fn_name);
+
+// "new" / class constructor
+#define MPY_BIND_NEW(var_min_args, fn_name, fn_body) static mp_obj_t fn_name(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(fn_name##_obj, var_min_args, fn_name);
+
+#define MPY_BIND_ROM_PTR(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&name##_obj) }
+#define MPY_BIND_ROM_PTR_STATIC(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&name##_static_obj) }
+
+#define MPY_BIND_LOCALS_DICT(...) \
+  static const mp_rom_map_elem_t locals_dict_table[] = {\
+    __VA_ARGS__\
+  };\
+  static MP_DEFINE_CONST_DICT(locals_dict, locals_dict_table);
+
+
 #define self(self_in, T) T *self = (T *)MP_OBJ_TO_PTR(self_in)
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
 #define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
