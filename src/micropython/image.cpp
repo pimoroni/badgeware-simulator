@@ -85,7 +85,7 @@ MPY_BIND_VAR(5, window, {
       size_t len;
       mp_obj_t *items;
       mp_obj_list_get(args[1], &len, &items);
-      for(int i = 0; i < len; i++) {
+      for(size_t i = 0; i < len; i++) {
         const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(items[i]);
         self->image->draw(shape->shape);
       }
