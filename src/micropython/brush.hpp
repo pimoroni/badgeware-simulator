@@ -118,23 +118,9 @@ extern "C" {
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
 
-    //const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-
-    image_t *srcsram = new(PicoVector_working_buffer + (50 * 1024)) image_t(PicoVector_working_buffer + (50 * 1024) + sizeof(image_t), 24, 24, RGBA8888, true);
-
-    //image_t *srcsram = m_new_class(image_t, PicoVector_working_buffer + (50 * 1024), 24, 24, RGBA8888, true);
-    for(int y = 0; y < 24; y++) {
-      memcpy(PicoVector_working_buffer + (50 * 1024) + (y * 24) + sizeof(image_t), src->image->ptr(0, y), 24);
-    }
-
-    for(int i = 0; i < 256; i++) {
-      srcsram->palette(i, src->image->palette(i));
-    }
-
-//image_t(void *buffer, int w, int h, pixel_format_t pixel_format=RGBA8888, bool has_palette=false);
 
     if(n_args == 1) {
-      brush->brush = m_new_class(image_brush, srcsram);
+      brush->brush = m_new_class(image_brush, src->image);
     } else {
       if(!mp_obj_is_type(pos_args[1], &type_Matrix)) {
         mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of matrix type"));
@@ -142,7 +128,7 @@ extern "C" {
 
       matrix_obj_t *transform = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
       mat3_t *m = &transform->m;
-      brush->brush = m_new_class(image_brush, srcsram, m);
+      brush->brush = m_new_class(image_brush, src->image, m);
     }
 
 
