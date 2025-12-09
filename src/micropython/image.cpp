@@ -251,7 +251,7 @@ MPY_BIND_ATTR(image, {
         }
       };
 
-      case MP_QSTR_brush: {
+      case MP_QSTR_pen: {
         if(action == GET) {
           if(self->brush) {
             dest[0] = MP_OBJ_FROM_PTR(self->brush);
@@ -262,10 +262,11 @@ MPY_BIND_ATTR(image, {
         }
 
         if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_brush)) {
-            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Brush"));
+          brush_obj_t *brush = mp_obj_to_brush(1, &dest[1]);
+          if(!brush){
+            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type brush or color"));
           }
-          self->brush = (brush_obj_t *)dest[1];
+          self->brush = brush;
           self->image->brush(self->brush->brush);
           dest[0] = MP_OBJ_NULL;
           return;

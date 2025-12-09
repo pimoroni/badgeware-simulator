@@ -19,9 +19,8 @@ namespace picovector {
   class color_brush : public brush_t {
   public:
     uint32_t color;
-    color_brush(int r, int g, int b, int a = 255) {
-      this->color = _make_col(r, g, b, a);
-    }
+    color_brush(int r, int g, int b, int a = 255) : color(_make_col(r, g, b, a)) {};
+    color_brush(uint32_t c) : color(c) {};
     void render_span(image_t *target, int x, int y, int w);
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
   };

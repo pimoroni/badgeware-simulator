@@ -14,17 +14,6 @@ extern "C" {
   }
   static MP_DEFINE_CONST_FUN_OBJ_1(brush__del___obj, brush__del__);
 
-  mp_obj_t brush_color(size_t n_args, const mp_obj_t *pos_args) {
-    int r = mp_obj_get_float(pos_args[0]);
-    int g = mp_obj_get_float(pos_args[1]);
-    int b = mp_obj_get_float(pos_args[2]);
-    int a = n_args == 4 ? mp_obj_get_float(pos_args[3]) : 255;
-    brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-    brush->brush = m_new_class(color_brush, r, g, b, a);
-    return MP_OBJ_FROM_PTR(brush);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_color_obj, 3, brush_color);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_color_static_obj, MP_ROM_PTR(&brush_color_obj));
 
   mp_obj_t brush_xor(size_t n_args, const mp_obj_t *pos_args) {
     int r = mp_obj_get_float(pos_args[0]);
@@ -68,6 +57,7 @@ extern "C" {
       }
 
       brush->brush = m_new_class(pattern_brush, c1->c, c2->c, i);
+
     }else if(mp_obj_is_type(pos_args[2], &mp_type_tuple)) {
       size_t len;
       mp_obj_t *items;
@@ -82,12 +72,13 @@ extern "C" {
         p[i] = mp_obj_get_int(items[i]);
       }
       brush->brush = m_new_class(pattern_brush, c1->c, c2->c, p);
+    } else {
+        mp_raise_TypeError(MP_ERROR_TEXT("pattern or index expected"));
     }
-
-
+;
     return MP_OBJ_FROM_PTR(brush);
   }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_pattern_obj, 1, brush_pattern);
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_pattern_obj, 3, brush_pattern);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(brush_pattern_static_obj, MP_ROM_PTR(&brush_pattern_obj));
 
 
@@ -112,8 +103,6 @@ extern "C" {
       brush->brush = m_new_class(image_brush, src->image, m);
     }
 
-
-
     return MP_OBJ_FROM_PTR(brush);
   }
   static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_image_obj, 1, brush_image);
@@ -122,7 +111,6 @@ extern "C" {
 
   static const mp_rom_map_elem_t brush_locals_dict_table[] = {
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&brush__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_color), MP_ROM_PTR(&brush_color_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_xor), MP_ROM_PTR(&brush_xor_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_brighten), MP_ROM_PTR(&brush_brighten_static_obj) },
       { MP_ROM_QSTR(MP_QSTR_pattern), MP_ROM_PTR(&brush_pattern_static_obj) },

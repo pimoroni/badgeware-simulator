@@ -10,30 +10,30 @@ extern "C" {
   #include "py/runtime.h"
 
   MPY_BIND_STATICMETHOD_VAR(3, rgb, {
-    int r = mp_obj_get_int(args[0]);
-    int g = mp_obj_get_int(args[1]);
-    int b = mp_obj_get_int(args[2]);
-    int a = n_args > 3 ? mp_obj_get_int(args[3]) : 255;
+    int r = (int)mp_obj_get_float(args[0]);
+    int g = (int)mp_obj_get_float(args[1]);
+    int b = (int)mp_obj_get_float(args[2]);
+    int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
     color->c = _make_col(r, g, b, a);
     return MP_OBJ_FROM_PTR(color);
   })
 
   MPY_BIND_STATICMETHOD_VAR(3, hsv, {
-    int h = mp_obj_get_int(args[0]);
-    int s = mp_obj_get_int(args[1]);
-    int v = mp_obj_get_int(args[2]);
-    int a = n_args > 3 ? mp_obj_get_int(args[3]) : 255;
+    int h = (int)mp_obj_get_float(args[0]);
+    int s = (int)mp_obj_get_float(args[1]);
+    int v = (int)mp_obj_get_float(args[2]);
+    int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
     color->c = _make_col_hsv(h, s, v, a);
     return MP_OBJ_FROM_PTR(color);
   })
 
   MPY_BIND_STATICMETHOD_VAR(3, oklch, {
-    int l = mp_obj_get_float(args[0]);
-    int c = mp_obj_get_float(args[1]);
-    int h = mp_obj_get_float(args[2]);
-    int a = n_args > 3 ? mp_obj_get_int(args[3]) : 255;
+    int l = (int)mp_obj_get_float(args[0]);
+    int c = (int)mp_obj_get_float(args[1]);
+    int h = (int)mp_obj_get_float(args[2]);
+    int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
     color->c = _make_col_oklch(l, c, h, a);
     return MP_OBJ_FROM_PTR(color);
@@ -52,7 +52,7 @@ extern "C" {
 
   MPY_BIND_VAR(2, darken, {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int v = 255 - mp_obj_get_int(args[1]);
+    int v = 255 - (int)mp_obj_get_float(args[1]);
     _r(&self->c, darken_u8(_r(&self->c), v));
     _g(&self->c, darken_u8(_g(&self->c), v));
     _b(&self->c, darken_u8(_b(&self->c), v));
@@ -67,7 +67,7 @@ extern "C" {
 
   MPY_BIND_VAR(2, lighten, {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int v = 256 + mp_obj_get_int(args[1]);
+    int v = 256 + (int)mp_obj_get_float(args[1]);
     _r(&self->c, lighten_u8(_r(&self->c), v));
     _g(&self->c, lighten_u8(_g(&self->c), v));
     _b(&self->c, lighten_u8(_b(&self->c), v));
@@ -89,7 +89,7 @@ extern "C" {
         return;
 
       case MP_QSTR_r | SET:
-        _r(&self->c, mp_obj_get_int(dest[1]));
+        _r(&self->c, (int)mp_obj_get_float(dest[1]));
         dest[0] = MP_OBJ_NULL;
         return;
 
@@ -98,7 +98,7 @@ extern "C" {
         return;
 
       case MP_QSTR_g | SET:
-        _g(&self->c, mp_obj_get_int(dest[1]));
+        _g(&self->c, (int)mp_obj_get_float(dest[1]));
         dest[0] = MP_OBJ_NULL;
         return;
 
@@ -107,7 +107,7 @@ extern "C" {
         return;
 
       case MP_QSTR_b | SET:
-        _b(&self->c, mp_obj_get_int(dest[1]));
+        _b(&self->c, (int)mp_obj_get_float(dest[1]));
         dest[0] = MP_OBJ_NULL;
         return;
 
@@ -116,7 +116,7 @@ extern "C" {
         return;
 
       case MP_QSTR_a | SET:
-        _a(&self->c, mp_obj_get_int(dest[1]));
+        _a(&self->c, (int)mp_obj_get_float(dest[1]));
         dest[0] = MP_OBJ_NULL;
         return;
     };

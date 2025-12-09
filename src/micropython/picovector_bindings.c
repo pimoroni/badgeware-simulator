@@ -44,10 +44,10 @@ MP_REGISTER_MODULE_DELEGATION(modinput, modinput_attr);
 // modpicovector
 extern void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest);
 extern mp_obj_t modpicovector___init__(void);
-extern mp_obj_t modpicovector_pen(mp_obj_t pen_in);
+extern mp_obj_t modpicovector_pen(size_t n_args, const mp_obj_t *args);
 extern mp_obj_t modpicovector_dda(size_t n_args, const mp_obj_t *pos_args);
 static MP_DEFINE_CONST_FUN_OBJ_0(modpicovector___init___obj, modpicovector___init__);
-static MP_DEFINE_CONST_FUN_OBJ_1(modpicovector_pen_obj, modpicovector_pen);
+static MP_DEFINE_CONST_FUN_OBJ_VAR(modpicovector_pen_obj, 1, modpicovector_pen);
 static MP_DEFINE_CONST_FUN_OBJ_VAR(modpicovector_dda_obj, 5, modpicovector_dda);
 
 static const mp_rom_map_elem_t modpicovector_globals_table[] = {

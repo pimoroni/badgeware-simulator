@@ -82,4 +82,6 @@ extern "C" {
     pixel_font_obj_t *pixel_font;
     void *parent;
   } image_obj_t;
+
+  extern brush_obj_t *mp_obj_to_brush(size_t n_args, const mp_obj_t *args);
 }

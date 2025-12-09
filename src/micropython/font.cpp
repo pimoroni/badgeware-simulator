@@ -10,7 +10,7 @@ extern "C" {
   #include "py/runtime.h"
   #include "extmod/vfs.h"
 
-  mp_obj_t font__del__(mp_obj_t self_in) {
+  static mp_obj_t font__del__(mp_obj_t self_in) {
     self(self_in, font_obj_t);
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
     m_free(self->buffer, self->buffer_size);
@@ -19,8 +19,9 @@ extern "C" {
 #endif
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_1(font__del___obj, font__del__);
 
-  mp_obj_t font_load(mp_obj_t path) {
+  static mp_obj_t font_load(mp_obj_t path) {
     //const char *s = mp_obj_str_get_str(path);
     font_obj_t *result = mp_obj_malloc_with_finaliser(font_obj_t, &type_Font);
 
@@ -114,9 +115,6 @@ extern "C" {
 
     return MP_OBJ_FROM_PTR(result);
   }
-
-  static MP_DEFINE_CONST_FUN_OBJ_1(font__del___obj, font__del__);
-
   static MP_DEFINE_CONST_FUN_OBJ_1(font_load_obj, font_load);
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(font_load_static_obj, MP_ROM_PTR(&font_load_obj));
 
