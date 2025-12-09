@@ -28,12 +28,12 @@ extern "C" {
 
   mp_obj_t pixel_font__del__(mp_obj_t self_in) {
     self(self_in, pixel_font_obj_t);
-#if PICO
-    m_free(self->glyph_buffer);
-    m_free(self->glyph_data_buffer);
-#else
+#if MICROPY_MALLOC_USES_ALLOCATED_SIZE
     m_free(self->glyph_buffer, self->glyph_buffer_size);
     m_free(self->glyph_data_buffer, self->glyph_data_buffer_size);
+#else
+    m_free(self->glyph_buffer);
+    m_free(self->glyph_data_buffer);
 #endif
     return mp_const_none;
   }
