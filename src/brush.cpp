@@ -4,10 +4,6 @@
 
 namespace picovector {
 
-  color_brush::color_brush(int r, int g, int b, int a) {
-    this->color = _make_col(r, g, b, a);
-  }
-
   void color_brush::render_span(image_t *target, int x, int y, int w) {
     _span_blend_rgba_rgba((uint8_t*)target->ptr(x, y), (uint8_t*)&color, w);
   }
@@ -16,8 +12,7 @@ namespace picovector {
     _span_blend_rgba_rgba_masked((uint8_t*)target->ptr(x, y), (uint8_t*)&color, sb, w);
   }
 
-  brighten_brush::brighten_brush(int amount) : amount(amount) {
-  }
+
 
 
   void brighten_brush::render_span(image_t *target, int x, int y, int w) {
@@ -44,10 +39,6 @@ namespace picovector {
     }
   }
 
-  xor_brush::xor_brush(int r, int g, int b) {
-    this->color = _make_col(r, g, b);
-  }
-
   void xor_brush::render_span(image_t *target, int x, int y, int w) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
     uint8_t *src = (uint8_t*)&color;
@@ -70,18 +61,6 @@ namespace picovector {
     }
   }
 
-
-  pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t i) {
-    this->c1 = c1;
-    this->c2 = c2;
-    memcpy(this->p, &patterns[i], sizeof(uint8_t) * 8);
-  }
-
-  pattern_brush::pattern_brush(uint32_t c1, uint32_t c2, uint8_t *p) {
-    this->c1 = c1;
-    this->c2 = c2;
-    memcpy(this->p, p, sizeof(uint8_t) * 8);
-  }
 
 
   void pattern_brush::render_span(image_t *target, int x, int y, int w) {
@@ -118,11 +97,6 @@ namespace picovector {
       x++;
       sb++;
     }
-  }
-
-  image_brush::image_brush(image_t *src, mat3_t *transform) {
-    this->src = src;
-    this->transform = transform;
   }
 
   void image_brush::render_span(image_t *target, int x, int y, int w) {

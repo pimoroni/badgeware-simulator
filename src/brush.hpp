@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "picovector.hpp"
+#include "blend.hpp"
 
 namespace picovector {
 
@@ -17,8 +18,9 @@ namespace picovector {
   class color_brush : public brush_t {
   public:
     uint32_t color;
-    color_brush(int r, int g, int b, int a = 255);
-
+    color_brush(int r, int g, int b, int a = 255) {
+      this->color = _make_col(r, g, b, a);
+    }
     void render_span(image_t *target, int x, int y, int w);
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
   };
@@ -27,8 +29,7 @@ namespace picovector {
   class brighten_brush : public brush_t {
   public:
     int amount;
-    brighten_brush(int amount);
-
+    brighten_brush(int amount) : amount(amount) {}
     void render_span(image_t *target, int x, int y, int w);
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {};
   };
@@ -36,41 +37,10 @@ namespace picovector {
   class xor_brush : public brush_t {
   public:
     uint32_t color;
-    xor_brush(int r, int g, int b);
-
+    xor_brush(uint32_t color) : color(color) {}
     void render_span(image_t *target, int x, int y, int w);
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
   };
-
-
-
-  class pattern_brush : public brush_t {
-  public:
-    uint8_t p[8];
-    uint32_t c1;
-    uint32_t c2;
-
-    pattern_brush(uint32_t c1, uint32_t c2, uint8_t i);
-    pattern_brush(uint32_t c1, uint32_t c2, uint8_t *p);
-
-    void render_span(image_t *target, int x, int y, int w);
-    void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
-  };
-
-
-  class image_brush : public brush_t {
-  public:
-    image_t *src;
-    mat3_t *transform;
-
-    image_brush(image_t *src, mat3_t *transform = nullptr);
-
-    void render_span(image_t *target, int x, int y, int w);
-    void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
-  };
-
-
-
 
   // embedded patterns
   const uint8_t patterns[38][8] = {
@@ -113,4 +83,38 @@ namespace picovector {
     {0b10001000,0b01110110,0b01110000,0b01110000,0b10001000,0b01100111,0b00000111,0b00000111},
     {0b11111111,0b11110111,0b11101011,0b11010101,0b10101010,0b11010101,0b11101011,0b11110111}
   };
+
+  class pattern_brush : public brush_t {
+  public:
+    uint8_t p[8];
+    uint32_t c1;
+    uint32_t c2;
+
+    pattern_brush(uint32_t c1, uint32_t c2, uint8_t i) : c1(c1), c2(c2) {
+      memcpy(this->p, &patterns[i], sizeof(uint8_t) * 8);
+    }
+
+    pattern_brush(uint32_t c1, uint32_t c2, uint8_t *p) : c1(c1), c2(c2) {
+      memcpy(this->p, p, sizeof(uint8_t) * 8);
+    }
+
+    void render_span(image_t *target, int x, int y, int w);
+    void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
+  };
+
+
+  class image_brush : public brush_t {
+  public:
+    image_t *src;
+    mat3_t *transform;
+
+    image_brush(image_t *src, mat3_t *transform = nullptr) : src(src), transform(transform) {}
+
+    void render_span(image_t *target, int x, int y, int w);
+    void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);
+  };
+
+
+
+
 }

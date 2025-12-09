@@ -50,7 +50,7 @@ extern "C" {
     int g = mp_obj_get_float(pos_args[1]);
     int b = mp_obj_get_float(pos_args[2]);
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-    brush->brush = m_new_class(xor_brush, r, g, b);
+    brush->brush = m_new_class(xor_brush, _make_col(r, g, b));
     return MP_OBJ_FROM_PTR(brush);
   }
   static MP_DEFINE_CONST_FUN_OBJ_VAR(brush_xor_obj, 3, brush_xor);

@@ -6,6 +6,15 @@ image = Image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24
 
 import math
 
+def magic_sprite(src, pos, scale=1, angle=0):
+  w, h = src.width, src.height
+  t = Matrix().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h / 2)
+  imgbrush = brush.image(src, t)
+  pen(imgbrush)
+  rect = shapes.rectangle(0, 0, w, h)
+  rect.transform = t
+  rect.draw()
+
 def update():
   pen(brush.color(200, 255, 200))
   screen.clear()
@@ -40,20 +49,24 @@ def update():
   shapes.circle(160 + math.sin(io.ticks / 500) * 30, 120 + math.sin(io.ticks / 1000) * 30, 80).draw()
   # """
 
-  cx = 80 + math.sin(io.ticks / 500) * 20
-  cy = 60 + math.sin(io.ticks / 250) * 20
+  # cx = 80 + math.sin(io.ticks / 500) * 20
+  # cy = 60 + math.sin(io.ticks / 250) * 20
 
-  t = Matrix().translate(cx, cy).scale(2, 2).rotate(io.ticks / 100).translate(12, 12)
-  imgbrush = brush.image(image, t)
+  # t = Matrix().translate(cx, cy).scale(2, 2).rotate(io.ticks / 100).translate(12, 12)
+  # imgbrush = brush.image(image, t)
+  scale = (math.sin(io.ticks / 1000) + 1.0) * 5 + 2
+  angle = math.cos(io.ticks / 500) * 150
+  magic_sprite(image, (160, 120), scale, angle)
+
+  # for y in range(-80, 240, 60):
+  #   for x in range(-80, 320, 60):
+  #     pen(brush.color(20, 40, 60, 100))
+  #     shapes.circle(cx + x, cy + y, 30).draw()
+  #     pen(imgbrush)
+  #     shapes.circle(cx + x, cy + y, 30).draw()
 
 
 
-  for y in range(-80, 240, 60):
-    for x in range(-80, 320, 60):
-      pen(brush.color(20, 40, 60, 100))
-      shapes.circle(cx + x, cy + y, 30).draw()
-      pen(imgbrush)
-      shapes.circle(cx + x, cy + y, 30).draw()
 
   #for _ in range(255):
   #  screen.rectangle(20, 20, 280, 200)
