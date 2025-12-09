@@ -18,7 +18,7 @@ def magic_sprite(src, pos, scale=1, angle=0):
 def update():
   pen(brush.color(200, 255, 200))
   screen.clear()
-  """
+
   pattern = brush.pattern(color.rgb(255, 0, 0, 255), color.rgb(0, 0, 255, 100), (
     0b00000000,
     0b01111110,
@@ -65,16 +65,3 @@ def update():
   #     pen(imgbrush)
   #     shapes.circle(cx + x, cy + y, 30).draw()
 
-
-
-
-  #for _ in range(255):
-  #  screen.rectangle(20, 20, 280, 200)
-
-  # pen(brush.color(255, 0, 0))
-  # screen.rectangle(0, 0, 24 * 1, 24 * 1)
-  # screen.scale_blit(image, 0, 0, 24 * 1, 24 * 1)
-
-  pen(brush.color(255, 0, 0))
-  screen.text("this is a test", 0, 0)
-  return True

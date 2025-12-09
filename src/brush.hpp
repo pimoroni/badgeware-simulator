@@ -3,6 +3,7 @@
 #include <vector>
 #include "picovector.hpp"
 #include "blend.hpp"
+#include "matrix.hpp"
 
 namespace picovector {
 
@@ -106,9 +107,14 @@ namespace picovector {
   class image_brush : public brush_t {
   public:
     image_t *src;
-    mat3_t *transform;
+    mat3_t it;
 
-    image_brush(image_t *src, mat3_t *transform = nullptr) : src(src), transform(transform) {}
+    image_brush(image_t *src, mat3_t *transform = nullptr) : src(src) {
+      if(transform) {
+        this->it = *transform;
+      }
+      this->it.inverse();
+    }
 
     void render_span(image_t *target, int x, int y, int w);
     void render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb);

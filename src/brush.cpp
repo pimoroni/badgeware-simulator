@@ -104,24 +104,26 @@ namespace picovector {
 
     rect_t b = src->bounds();
 
-    point_t p1(x / b.w, y / b.h);
-    point_t p2((x + w) / b.w, y / b.h);
+    point_t p1(x, y);
+    point_t p2((x + w), y);
 
-    if(this->transform) {
-      p1 = p1.transform(this->transform);
-      p2 = p2.transform(this->transform);
-    }
+    p1 = p1.transform(&this->it);
+    p2 = p2.transform(&this->it);
+
+    point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
+    point_t p = p1;
+
+    int tw = int(b.w);
+    int th = int(b.h);
 
     for(int i = 0; i < w; i++) {
-      float t = (float)i / (float)(w);
-      float x = p1.x + (p2.x - p1.x) * t;
-      float y = p1.y + (p2.y - p1.y) * t;
-
-      uint8_t u = int(x) % int(b.w);
-      uint8_t v = int(y) % int(b.h);
-      uint8_t *p = (uint8_t*)src->ptr(u, v);
-
-      _blend_rgba_rgba(dst, p);
+      p.x += pd.x;
+      p.y += pd.y;
+      int u = (int(p.x) % tw + tw) % tw;
+      int v = (int(p.y) % th + th) % th;
+      uint32_t c = src->pixel_unsafe(u, v);
+      _blend_rgba_rgba(dst, (uint8_t*)&c);
+      dst += 4;
       dst += 4;
     }
   }
@@ -134,12 +136,8 @@ namespace picovector {
     point_t p1(x, y);
     point_t p2((x + w), y);
 
-    if(this->transform) {
-      mat3_t ti = *this->transform;
-      ti.inverse();
-      p1 = p1.transform(&ti);
-      p2 = p2.transform(&ti);
-    }
+    p1 = p1.transform(&this->it);
+    p2 = p2.transform(&this->it);
 
     point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
     point_t p = p1;
