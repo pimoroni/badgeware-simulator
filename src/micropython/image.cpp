@@ -75,7 +75,7 @@ MPY_BIND_VAR(5, window, {
   MPY_BIND_VAR(2, shape, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
-    if (mp_obj_is_type(args[1], &type_Shape)) {
+    if (mp_obj_is_type(args[1], &type_shape)) {
       const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
       self->image->draw(shape->shape);
       return mp_const_none;

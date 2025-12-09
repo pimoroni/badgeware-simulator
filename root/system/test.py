@@ -11,9 +11,9 @@ def magic_sprite(src, pos, scale=1, angle=0):
   t = Matrix().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h / 2)
   imgbrush = brush.image(src, t)
   pen(imgbrush)
-  rect = shapes.rectangle(0, 0, w, h)
+  rect = shape.rectangle(0, 0, w, h)
   rect.transform = t
-  rect.draw()
+  screen.shape(rect)
 
 def update():
   pen(200, 255, 200)
@@ -46,7 +46,7 @@ def update():
   pen(pattern)
 
 
-  shapes.circle(160 + math.sin(io.ticks / 500) * 30, 120 + math.sin(io.ticks / 1000) * 30, 80).draw()
+  screen.shape(shape.circle(160 + math.sin(io.ticks / 500) * 30, 120 + math.sin(io.ticks / 1000) * 30, 80))
   # """
 
   # cx = 80 + math.sin(io.ticks / 500) * 20
@@ -66,7 +66,7 @@ def update():
   #print(r3.x, r3.y, r3.w, r3.h)
 
   p = point(12, 12)
-  print(r1.contains(p))
+
 
   # screen.rectangle(rect(10, 20, 30, 40))
   # screen.rectangle(10, 20, 30, 40)
@@ -117,7 +117,9 @@ def update():
   pen(0, 255, 0)
   screen.rectangle(r3)
 
-  print(r3.l, r3.t, r3.r, r3.b)
+  s = shape.custom([point(10, 10), point(20, 10), point(20, 20), point(10, 20)], [point(15, 15), point(25, 15), point(25, 25), point(15, 25)])
+  s.transform = Matrix().translate(160, 120).scale(5).rotate(io.ticks / 50)
+  screen.shape(s)
 
   # for y in range(-80, 240, 60):
   #   for x in range(-80, 320, 60):
