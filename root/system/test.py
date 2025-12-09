@@ -2,7 +2,7 @@ mode(HIRES)
 
 screen.font = PixelFont.load("/system/assets/fonts/sins.ppf")
 
-image = Image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24, 24)
+image = image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24, 24)
 
 import math
 
@@ -16,7 +16,7 @@ def magic_sprite(src, pos, scale=1, angle=0):
   rect.draw()
 
 def update():
-  pen(brush.color(200, 255, 200))
+  pen(200, 255, 200)
   screen.clear()
 
   pattern = brush.pattern(color.rgb(255, 0, 0, 255), color.rgb(0, 0, 255, 100), (
@@ -80,7 +80,7 @@ def update():
 
 
 
-  pen(brush.color(255, 255, 255))
+  pen(255, 255, 255)
 
   x1 = int(math.sin(io.ticks / 500) * 20 + 0)
   y1 = int(math.sin(io.ticks / 400) * 30 + 0)
@@ -93,8 +93,32 @@ def update():
     for x in range(0, 30):
       c = screen.get(x, y)
       c.lighten(200)
-      pen(brush.color(c.r, c.g, c.b))
+      pen(c.r, c.g, c.b)
       screen.put(x + 100, y + 100)
+
+
+  r1s = 50
+  r1x = (math.sin(io.ticks / 100) * 20) + 160 - r1s / 2
+  r1y = (math.cos(io.ticks / 100) * 20) + 160 - r1s / 2
+  r1 = rect(r1x, r1y, r1s, r1s)
+
+  pen(255, 0, 0)
+  screen.rectangle(r1)
+
+  r2s = 50
+  r2x = (math.sin(io.ticks / 200) * 40) + 160 - r1s / 2
+  r2y = (math.cos(io.ticks / 200) * 40) + 160 - r1s / 2
+  r2 = rect(r2x, r2y, r2s, r2s)
+
+  pen(0, 0, 255)
+  screen.rectangle(r2)
+
+  r3 = r1.intersection(r2)
+  pen(0, 255, 0)
+  screen.rectangle(r3)
+
+  print(r3.l, r3.t, r3.r, r3.b)
+
   # for y in range(-80, 240, 60):
   #   for x in range(-80, 320, 60):
   #     pen(brush.color(20, 40, 60, 100))

@@ -36,7 +36,7 @@ MPY_BIND_NEW(image, {
 
 MPY_BIND_STATICMETHOD_ARGS1(load, path, {
     const char *s = mp_obj_str_get_str(path);
-    image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+    image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_image);
 
     PNG *png = new(PicoVector_working_buffer) PNG();
     int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
@@ -65,39 +65,78 @@ MPY_BIND_VAR(5, window, {
     int y = mp_obj_get_int(args[2]);
     int w = mp_obj_get_int(args[3]);
     int h = mp_obj_get_int(args[4]);
-    image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
+    image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_image);
     result->image = new(m_malloc(sizeof(image_t))) image_t(self->image, rect_t(x, y, w, h));
     result->parent = (void*)self;
     return MP_OBJ_FROM_PTR(result);
   })
 
 
-MPY_BIND_VAR(2, draw, {
+  MPY_BIND_VAR(2, shape, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    self->image->draw(shape->shape);
-    return mp_const_none;
+
+    if (mp_obj_is_type(args[1], &type_Shape)) {
+      const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
+      self->image->draw(shape->shape);
+      return mp_const_none;
+    }
+
+    if (mp_obj_is_type(args[1], &mp_type_list)) {
+      size_t len;
+      mp_obj_t *items;
+      mp_obj_list_get(args[1], &len, &items);
+      for(int i = 0; i < len; i++) {
+        const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(items[i]);
+        self->image->draw(shape->shape);
+      }
+      return mp_const_none;
+    }
+
+    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either shape(s) or shape([s1, s2, s3, ...])"));
   })
 
 
-MPY_BIND_VAR(5, rectangle, {
+  MPY_BIND_VAR(2, rectangle, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int x = mp_obj_get_int(args[1]);
-    int y = mp_obj_get_int(args[2]);
-    int w = mp_obj_get_int(args[3]);
-    int h = mp_obj_get_int(args[4]);
-    self->image->rectangle(rect_t(x, y, w, h));
-    return mp_const_none;
+
+    if(mp_obj_is_type(args[1], &type_rect)) {
+      rect_obj_t *rect = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
+      self->image->rectangle(rect->rect);
+      return mp_const_none;
+    }
+
+    if(n_args == 5) {
+      int x = mp_obj_get_int(args[1]);
+      int y = mp_obj_get_int(args[2]);
+      int w = mp_obj_get_int(args[3]);
+      int h = mp_obj_get_int(args[4]);
+      self->image->rectangle(rect_t(x, y, w, h));
+      return mp_const_none;
+    }
+
+    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either rectangle(r) or rectangle(x, y, w, h)"));
   })
 
-MPY_BIND_VAR(5, line, {
+  MPY_BIND_VAR(3, line, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int x1 = mp_obj_get_int(args[1]);
-    int y1 = mp_obj_get_int(args[2]);
-    int x2 = mp_obj_get_int(args[3]);
-    int y2 = mp_obj_get_int(args[4]);
-    self->image->line(point_t(x1, y1), point_t(x2, y2));
-    return mp_const_none;
+
+    if(mp_obj_is_type(args[1], &type_point) && mp_obj_is_type(args[2], &type_point)) {
+      point_obj_t *p1 = (point_obj_t *)MP_OBJ_TO_PTR(args[1]);
+      point_obj_t *p2 = (point_obj_t *)MP_OBJ_TO_PTR(args[2]);
+      self->image->line(p1->point, p2->point);
+      return mp_const_none;
+    }
+
+    if(n_args == 5) {
+      int x1 = mp_obj_get_int(args[1]);
+      int y1 = mp_obj_get_int(args[2]);
+      int x2 = mp_obj_get_int(args[3]);
+      int y2 = mp_obj_get_int(args[4]);
+      self->image->line(point_t(x1, y1), point_t(x2, y2));
+      return mp_const_none;
+    }
+
+    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either line(p1, p2) or line(x1, y1, x2, y2)"));
   })
 
 MPY_BIND_VAR(3, get, {
@@ -337,20 +376,30 @@ MPY_BIND_ATTR(image, {
 
 MPY_BIND_LOCALS_DICT(image,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
-      MPY_BIND_ROM_PTR(draw),
+
+      MPY_BIND_ROM_PTR_STATIC(load),
+      MPY_BIND_ROM_PTR(load_into),
       MPY_BIND_ROM_PTR(window),
+
+      // primitives
       MPY_BIND_ROM_PTR(clear),
       MPY_BIND_ROM_PTR(rectangle),
       MPY_BIND_ROM_PTR(line),
       MPY_BIND_ROM_PTR(get),
       MPY_BIND_ROM_PTR(put),
+
+      // vector
+      MPY_BIND_ROM_PTR(shape),
+
+      // text
       MPY_BIND_ROM_PTR(text),
       MPY_BIND_ROM_PTR(measure_text),
+
+      // blitting
       MPY_BIND_ROM_PTR(vspan_tex),
       MPY_BIND_ROM_PTR(blit),
       MPY_BIND_ROM_PTR(scale_blit),
-      MPY_BIND_ROM_PTR_STATIC(load),
-      MPY_BIND_ROM_PTR(load_into),
+
       // TODO: Just define these in MicroPython?
       { MP_ROM_QSTR(MP_QSTR_X4), MP_ROM_INT(antialias_t::X4)},
       { MP_ROM_QSTR(MP_QSTR_X2), MP_ROM_INT(antialias_t::X2)},
@@ -358,8 +407,8 @@ MPY_BIND_LOCALS_DICT(image,
 )
 
   MP_DEFINE_CONST_OBJ_TYPE(
-      type_Image,
-      MP_QSTR_Image,
+      type_image,
+      MP_QSTR_image,
       MP_TYPE_FLAG_NONE,
       make_new, (const void *)image_new,
       attr, (const void *)image_attr,

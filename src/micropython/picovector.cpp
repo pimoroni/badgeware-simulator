@@ -214,8 +214,8 @@ extern "C" {
     switch(attr) {
       case MP_QSTR_default_target: {
         if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_Image)) {
-            mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Image"));
+          if(!mp_obj_is_type(dest[1], &type_image)) {
+            mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameter, expected image"));
           }
           default_target = (image_obj_t *)dest[1];
           dest[0] = MP_OBJ_NULL;

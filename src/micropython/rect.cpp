@@ -69,7 +69,6 @@ extern "C" {
     return mp_const_none;
   })
 
-
   MPY_BIND_VAR(2, offset, {
     rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
@@ -100,19 +99,23 @@ extern "C" {
     action_t action = m_attr_action(dest);
 
     switch(attr | action) {
+      case MP_QSTR_l | GET:
       case MP_QSTR_x | GET:
         dest[0] = mp_obj_new_int(self->rect.x);
         return;
 
+      case MP_QSTR_l | SET:
       case MP_QSTR_x | SET:
         self->rect.x = mp_obj_get_int(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
+      case MP_QSTR_t | GET:
       case MP_QSTR_y | GET:
         dest[0] = mp_obj_new_int(self->rect.y);
         return;
 
+      case MP_QSTR_t | SET:
       case MP_QSTR_y | SET:
         self->rect.y = mp_obj_get_int(dest[1]);
         dest[0] = MP_OBJ_NULL;
@@ -133,6 +136,24 @@ extern "C" {
 
       case MP_QSTR_h | SET:
         self->rect.h = mp_obj_get_int(dest[1]);
+        dest[0] = MP_OBJ_NULL;
+        return;
+
+      case MP_QSTR_r | GET:
+        dest[0] = mp_obj_new_int(self->rect.w + self->rect.x);
+        return;
+
+      case MP_QSTR_r | SET:
+        self->rect.w = mp_obj_get_int(dest[1]) - self->rect.x;
+        dest[0] = MP_OBJ_NULL;
+        return;
+
+      case MP_QSTR_b | GET:
+        dest[0] = mp_obj_new_int(self->rect.h + self->rect.y);
+        return;
+
+      case MP_QSTR_b | SET:
+        self->rect.h = mp_obj_get_int(dest[1]) - self->rect.y;
         dest[0] = MP_OBJ_NULL;
         return;
     };

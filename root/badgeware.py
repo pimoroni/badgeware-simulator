@@ -124,7 +124,7 @@ def is_dir(path):
 
 class SpriteSheet:
     def __init__(self, file, columns, rows):
-        self.image = Image.load(file)
+        self.image = image.load(file)
         self.sw = int(self.image.width / columns)
         self.sh = int(self.image.height / rows)
 
@@ -169,7 +169,7 @@ class AnimatedSprite:
 
 class BitmapFont:
     def __init__(self, file, char_width, char_height):
-        self.image = Image.load(file)
+        self.image = image.load(file)
         self.cw = char_width
         self.ch = char_height
 
@@ -463,7 +463,7 @@ def mode(mode):
     font = screen.font
     #brush = screen.pen
     resolution = (320, 240) if HIRES else (160, 120)
-    setattr(builtins, "screen", Image(*resolution, framebuffer))
+    setattr(builtins, "screen", image(*resolution, framebuffer))
     screen.font = font if font is not None else DEFAULT_FONT
     #screen.pen = brush if brush is not None else BG
     simulator.resolution(*resolution)
@@ -581,7 +581,7 @@ for k, v in picovector.__dict__.items():
     if not k.startswith("__"):
         setattr(builtins, k, v)
 
-setattr(builtins, "screen", Image(160, 120, framebuffer))
+setattr(builtins, "screen", image(160, 120, framebuffer))
 picovector.default_target = screen
 
 

@@ -1,7 +1,7 @@
 #include "py/runtime.h"
 
 extern const mp_obj_type_t type_brush;
-extern const mp_obj_type_t type_Image;
+extern const mp_obj_type_t type_image;
 extern const mp_obj_type_t type_color;
 extern const mp_obj_type_t type_Font;
 extern const mp_obj_type_t type_Input;

@@ -74,7 +74,7 @@ extern "C" {
 
 
   MPY_BIND_STATICMETHOD_VAR(1, image, {
-    if(!mp_obj_is_type(args[0], &type_Image)) {
+    if(!mp_obj_is_type(args[0], &type_image)) {
       mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of image type"));
     }
 
