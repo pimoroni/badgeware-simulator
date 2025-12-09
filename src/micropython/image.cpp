@@ -157,52 +157,48 @@ MPY_BIND_VAR(9, vspan_tex, {
     return mp_const_none;
   })
 
-
-  static mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    int x = mp_obj_get_float(pos_args[2]);
-    int y = mp_obj_get_float(pos_args[3]);
+MPY_BIND_VAR(4, blit, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    int x = mp_obj_get_float(args[2]);
+    int y = mp_obj_get_float(args[3]);
     src->image->blit(self->image, point_t(x, y));
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_blit_obj, 4, image_blit);
+  })
 
-  static mp_obj_t image_scale_blit(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+MPY_BIND_VAR(6, scale_blit, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
 
     if(n_args == 6) {
-      int x = mp_obj_get_float(pos_args[2]);
-      int y = mp_obj_get_float(pos_args[3]);
-      int w = mp_obj_get_float(pos_args[4]);
-      int h = mp_obj_get_float(pos_args[5]);
+      int x = mp_obj_get_float(args[2]);
+      int y = mp_obj_get_float(args[3]);
+      int w = mp_obj_get_float(args[4]);
+      int h = mp_obj_get_float(args[5]);
 
       src->image->blit(self->image, rect_t(x, y, w, h));
     }else{
-      int sx = mp_obj_get_float(pos_args[2]);
-      int sy = mp_obj_get_float(pos_args[3]);
-      int sw = mp_obj_get_float(pos_args[4]);
-      int sh = mp_obj_get_float(pos_args[5]);
-      int dx = mp_obj_get_float(pos_args[6]);
-      int dy = mp_obj_get_float(pos_args[7]);
-      int dw = mp_obj_get_float(pos_args[8]);
-      int dh = mp_obj_get_float(pos_args[9]);
+      int sx = mp_obj_get_float(args[2]);
+      int sy = mp_obj_get_float(args[3]);
+      int sw = mp_obj_get_float(args[4]);
+      int sh = mp_obj_get_float(args[5]);
+      int dx = mp_obj_get_float(args[6]);
+      int dy = mp_obj_get_float(args[7]);
+      int dw = mp_obj_get_float(args[8]);
+      int dh = mp_obj_get_float(args[9]);
 
       src->image->blit(self->image, rect_t(sx, sy, sw, sh), rect_t(dx, dy, dw, dh));
     }
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_scale_blit_obj, 4, image_scale_blit);
+  })
 
-  static mp_obj_t image_clear(mp_obj_t self_in) {
+MPY_BIND_CLASSMETHOD_ARGS0(clear, {
     self(self_in, image_obj_t);
     self->image->clear();
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_1(image_clear_obj, image_clear);
+  })
 
-  static void image_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+MPY_BIND_ATTR(image, {
     self(self_in, image_obj_t);
 
     action_t action = m_attr_action(dest);
@@ -312,21 +308,22 @@ MPY_BIND_VAR(9, vspan_tex, {
 
     // we didn't handle this, fall back to alternative methods
     dest[1] = MP_OBJ_SENTINEL;
-  }
+  })
 
 MPY_BIND_LOCALS_DICT(image,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
       MPY_BIND_ROM_PTR(draw),
       MPY_BIND_ROM_PTR(window),
-      { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
+      MPY_BIND_ROM_PTR(clear),
       MPY_BIND_ROM_PTR(rectangle),
       MPY_BIND_ROM_PTR(text),
       MPY_BIND_ROM_PTR(measure_text),
       MPY_BIND_ROM_PTR(vspan_tex),
-      { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
-      { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
+      MPY_BIND_ROM_PTR(blit),
+      MPY_BIND_ROM_PTR(scale_blit),
       MPY_BIND_ROM_PTR_STATIC(load),
       MPY_BIND_ROM_PTR(load_into),
+      // TODO: Just define these in MicroPython?
       { MP_ROM_QSTR(MP_QSTR_X4), MP_ROM_INT(antialias_t::X4)},
       { MP_ROM_QSTR(MP_QSTR_X2), MP_ROM_INT(antialias_t::X2)},
       { MP_ROM_QSTR(MP_QSTR_OFF), MP_ROM_INT(antialias_t::OFF)},
