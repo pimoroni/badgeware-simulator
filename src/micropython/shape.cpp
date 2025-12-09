@@ -29,45 +29,13 @@ extern "C" {
       mp_obj_list_get(args[i], &points_count, &points);
 
       path_t poly(points_count);
-
       for(size_t i = 0; i < points_count; i++) {
         if(!mp_obj_is_type(points[i], &type_point)) {
           mp_raise_msg_varg(&mp_type_TypeError, MP_ERROR_TEXT("invalid parameter, expected custom([p1, p2, p3, ...])"));
         }
-
         const point_obj_t *point = (point_obj_t *)MP_OBJ_TO_PTR(points[i]);
-
         poly.add_point(point->point);
-/*
-        size_t point_count;
-        mp_obj_t *points;
-        mp_obj_list_get(path, &len, &items);
-        for(int i = 0; i < len; i++) {
-          const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(items[i]);
-          self->image->draw(shape->shape);
       }
-
-        mp_obj_t point_obj = path[i];
-
-        if(!mp_obj_is_type(point_obj, &type_point)) {
-          mp_raise_msg_varg(&mp_type_TypeError, MP_ERROR_TEXT("invalid parameter, expected custom([p1, p2, p3, ...])"));
-        }
-
-        size_t tuple_len;
-        mp_obj_t *tuple_items;
-        mp_obj_tuple_get(point_obj, &tuple_len, &tuple_items);
-
-        if (tuple_len != 2) {
-          mp_raise_ValueError(MP_ERROR_TEXT("tuples must contain (x, y) coordinates"));
-        }
-
-        // Extract elements; assuming ints here
-        float x = mp_obj_get_float(tuple_items[0]);
-        float y = mp_obj_get_float(tuple_items[1]);
-
-        poly.add_point(x, y);*/
-      }
-
       shape->shape->add_path(poly);
     }
 

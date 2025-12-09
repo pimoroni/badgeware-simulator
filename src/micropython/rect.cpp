@@ -13,7 +13,7 @@ extern "C" {
   MPY_BIND_NEW(rect, {
     rect_obj_t *self = mp_obj_malloc_with_finaliser(rect_obj_t, type);
     if(n_args != 4) {
-      mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("rect constructor takes four values: x, y, width, and height"));
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected rect(x, y, w, h)"));
     }
     self->rect.x = mp_obj_get_float(args[0]);
     self->rect.y = mp_obj_get_float(args[1]);
@@ -85,7 +85,7 @@ extern "C" {
       return mp_const_none;
     }
 
-    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("offset expects either a point or x and y offset"));
+    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either offset(p) or offset(x, y)"));
   })
 
   MPY_BIND_VAR(1, empty, {
