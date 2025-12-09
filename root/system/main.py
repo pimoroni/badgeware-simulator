@@ -24,8 +24,8 @@ if HEADLESS:
     if len(sys.argv) > 2:
         video_length_ticks = float(sys.argv[2]) * 1000
 
-    BG = brushes.color(20, 30, 40)
-    FG = brushes.color(255, 255, 255)
+    BG = color.rgb(20, 30, 40)
+    FG = color.rgb(255, 255, 255)
     screen.antialias = Image.X2
     io.poll()
     t_start = io.ticks
@@ -33,9 +33,9 @@ if HEADLESS:
     def update():
         global ss_frame
         io.poll()
-        screen.brush = BG
+        screen.pen = BG
         screen.clear()
-        screen.brush = FG
+        screen.pen = FG
         try:
             app.update()
         except Exception as e:
@@ -55,13 +55,13 @@ if HEADLESS:
 
 gc.threshold(10_000)
 
-from badgeware import screen, brushes, shapes
+from badgeware import screen, brush, shapes
 
 print("main_window...")
 main_window = screen.window(0, 0, 160, 120)
 
-print("main_window.brush...")
-main_window.brush = brushes.color(255, 0, 0)
+print("main_window.pen...")
+main_window.pen = color.rgb(255, 0, 0)
 
 print("pentagon...")
 pentagon = shapes.regular_polygon(80, 60, 50, 5)
@@ -69,9 +69,9 @@ pentagon = shapes.regular_polygon(80, 60, 50, 5)
 def update():
     print(gc.mem_free())
     screen.window(0, 0, 1, 1)
-    main_window.brush = brushes.color(255, 0, 0)
+    main_window.pen = color.rgb(255, 0, 0)
     main_window.clear()
-    main_window.brush = brushes.color(0, 255, 0)
+    main_window.pen = color.rgb(0, 255, 0)
     main_window.draw(pentagon)
 """
 

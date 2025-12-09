@@ -44,9 +44,9 @@ def perf_dump():
     total = round(total / 1000)
     output = f"{name}: {count}x {total}ms"
     w, h = screen.measure_text(output)
-    screen.brush = brushes.color(20, 30, 40, 128)
+    screen.pen = color.rgb(20, 30, 40, 128)
     screen.rectangle(5, y + 5, int(w), int(h))
-    screen.brush = brushes.color(220, 230, 240)
+    screen.pen = color.rgb(220, 230, 240)
     screen.text(output, 5, y + 5)
 
     y += 12

@@ -62,14 +62,14 @@ def draw_thumbnails():
         thumbnail_image = thumbnails[thumbnail]
 
         # draw the thumbnail shadow
-        screen.brush = brushes.color(0, 0, 0, 50)
+        screen.pen = color.rgb(0, 0, 0, 50)
         screen.draw(shapes.rectangle(
             pos[0] + 2, pos[1] + 2, thumbnail_image.width, thumbnail_image.height))
 
         # draw the active thumbnail outline
         if i == 0:
             brightness = (math.sin(io.ticks / 200) * 127) + 127
-            screen.brush = brushes.color(
+            screen.pen = color.rgb(
                 brightness, brightness, brightness, 150)
             screen.draw(shapes.rectangle(
                 pos[0] - 1, pos[1] - 1, thumbnail_image.width + 2, thumbnail_image.height + 2))
@@ -129,11 +129,11 @@ def update():
     width, _ = screen.measure_text(title)
 
     if not ui_hidden:
-        screen.brush = brushes.color(0, 0, 0, 100)
+        screen.pen = color.rgb(0, 0, 0, 100)
         screen.draw(shapes.rounded_rectangle(
             80 - (width / 2) - 8, -6, width + 16, 22, 6))
         screen.text(title, 80 - (width / 2) + 1, 1)
-        screen.brush = brushes.color(255, 255, 255)
+        screen.pen = color.rgb(255, 255, 255)
         screen.text(title, 80 - (width / 2), 0)
 
 

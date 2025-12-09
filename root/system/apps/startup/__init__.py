@@ -27,7 +27,7 @@ def show_frame(i, alpha=255):
     filename = f"frames/intro_{i:05d}.png"
     screen.load_into(filename)
 
-    screen.brush = brushes.color(0, 0, 0, 255 - alpha)
+    screen.pen = color.rgb(0, 0, 0, 255 - alpha)
     screen.draw(CLEAR)
 
     # render the frame
@@ -67,7 +67,7 @@ def update():
             alpha = 255 - ((time_since_pressed / fade_duration) * 255)
         else:
             # Return control to the menu
-            screen.brush = brushes.color(0, 0, 0)
+            screen.pen = color.rgb(0, 0, 0)
             screen.draw(CLEAR)
             display.update()
             return False

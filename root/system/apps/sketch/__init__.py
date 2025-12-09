@@ -47,7 +47,7 @@ def update_cursor():
 
     if not last_cursor or int(last_cursor[0]) != int(cursor[0]) or int(last_cursor[1]) != int(cursor[1]):
         # draw to the canvas at the cursor position
-        canvas.brush = brushes.color(105, 105, 105)
+        canvas.pen = color.rgb(105, 105, 105)
         canvas.draw(shapes.rectangle(int(cursor[0]), int(cursor[1]), 1, 1))
     last_cursor = cursor
 

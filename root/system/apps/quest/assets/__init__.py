@@ -9,7 +9,7 @@ import micropython
 import math
 import time
 import random
-from badgeware import State, PixelFont, Image, brushes, screen, io, shapes, run
+from badgeware import State, PixelFont, Image, brush, screen, io, shapes, run
 from picovector import dda
 from badgeware import SpriteSheet
 
@@ -272,7 +272,7 @@ def update():
     global lastFrameMs
     #rayHits = dda(1, 1, 1, 1, 5)
     player_move()
-    screen.brush = brushes.color(20, 40, 0)
+    screen.pen = color.rgb(20, 40, 0)
     gc.collect()
 
     total_ray_casting_us = 0

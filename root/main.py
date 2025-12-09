@@ -4,9 +4,9 @@ import debug
 app = __import__("/system/test")
 
 def update():
-    screen.brush = badgeware.BG
+    screen.pen = badgeware.BG
     screen.clear()
-    screen.brush = badgeware.FG
+    screen.pen = badgeware.FG
     io.poll()
     with debug:
         app.update()

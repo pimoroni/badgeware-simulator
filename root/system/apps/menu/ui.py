@@ -2,23 +2,23 @@ import math
 import random
 from badgeware import get_battery_level, is_charging
 
-black = brushes.color(0, 0, 0)
-background = brushes.color(60, 15, 10)
-phosphor = brushes.color(246, 135, 4)
-terminal_text = brushes.color(123, 72, 2)
-terminal_fade = brushes.color(60, 15, 10, 150)
+black = color.rgb(0, 0, 0)
+background = color.rgb(60, 15, 10)
+phosphor = color.rgb(246, 135, 4)
+terminal_text = color.rgb(123, 72, 2)
+terminal_fade = color.rgb(60, 15, 10, 150)
 
 def draw_background():
     # draw over the corners in black ready for the rounded rectangle that makes
     # up most of the background
-    screen.brush = black
+    screen.pen = black
     shapes.rectangle(0, 0, 10, 10).draw()
     shapes.rectangle(150, 0, 10, 10).draw()
     shapes.rectangle(0, 110, 10, 10).draw()
     shapes.rectangle(150, 110, 10, 10).draw()
 
     # draw the faux crt shape background area
-    screen.brush = background
+    screen.pen = background
     shapes.rounded_rectangle(0, 0, 160, 120, 8).draw()
 
     # draw the scrolling terminal effects
@@ -52,7 +52,7 @@ for _ in range(25):
 # the terminal effect creates a rolling window of text that is infinitely
 # populated with new lines
 def draw_terminal():
-    screen.brush = terminal_text
+    screen.pen = terminal_text
 
     # update the fake terminal
     Terminal.update()
@@ -78,7 +78,7 @@ def draw_terminal():
             cx += w + 2
 
     # draw the terminal fade at top
-    screen.brush = terminal_fade
+    screen.pen = terminal_fade
     screen.rectangle(0, 13, 160, 5)
     screen.rectangle(0, 13, 160, 3)
 
@@ -90,7 +90,7 @@ def draw_header():
     pos = (5, 2)
 
     # draw the OS title
-    screen.brush = phosphor
+    screen.pen = phosphor
     screen.text(label, *pos)
 
 
@@ -101,16 +101,16 @@ def draw_header():
         battery_level = get_battery_level()
     pos = (137, 4)
     size = (16, 8)
-    screen.brush = phosphor
+    screen.pen = phosphor
     shapes.rectangle(*pos, *size).draw()
     shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4).draw()
-    screen.brush = background
+    screen.pen = background
 
     shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2).draw()
 
     # draw the battery fill level
     width = ((size[0] - 4) / 100) * battery_level
-    screen.brush = phosphor
+    screen.pen = phosphor
     shapes.rectangle(pos[0] + 2, pos[1] + 2, width, size[1] - 4).draw()
 
 

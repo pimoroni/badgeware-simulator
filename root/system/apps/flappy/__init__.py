@@ -116,7 +116,7 @@ def game_over():
 
     # flash press button message
     if int(io.ticks / 500) % 2:
-        screen.brush = brushes.color(255, 255, 255)
+        screen.pen = color.rgb(255, 255, 255)
         center_text("Press A to restart", 70)
 
     if io.BUTTON_A in io.pressed:
@@ -132,7 +132,7 @@ def draw_background():
     global background_offset
 
     # clear the whole screen in a bright blue
-    screen.brush = brushes.color(73, 219, 255)
+    screen.pen = color.rgb(73, 219, 255)
     screen.draw(shapes.rectangle(0, 0, 160, 120))
 
     # if we're on the intro screen or mona is alive then scroll the background
@@ -158,9 +158,9 @@ def draw_background():
 
 
 def shadow_text(text, x, y):
-    screen.brush = brushes.color(20, 40, 60, 100)
+    screen.pen = color.rgb(20, 40, 60, 100)
     screen.text(text, x + 1, y + 1)
-    screen.brush = brushes.color(255, 255, 255)
+    screen.pen = color.rgb(255, 255, 255)
     screen.text(text, x, y)
 
 

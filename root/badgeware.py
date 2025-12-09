@@ -461,11 +461,11 @@ def mode(mode):
 
     # TODO: Mutate the existing screen object?
     font = screen.font
-    brush = screen.brush
+    #brush = screen.pen
     resolution = (320, 240) if HIRES else (160, 120)
     setattr(builtins, "screen", Image(*resolution, framebuffer))
     screen.font = font if font is not None else DEFAULT_FONT
-    screen.brush = brush if brush is not None else BG
+    #screen.pen = brush if brush is not None else BG
     simulator.resolution(*resolution)
     picovector.default_target = screen
 
@@ -474,18 +474,18 @@ def mode(mode):
 
 def run(update, init=None, on_exit=None, auto_clear=True):
     screen.font = DEFAULT_FONT
-    screen.brush = BG
+    pen(BG)
     screen.clear()
-    screen.brush = FG
+    pen(FG)
     try:
         if init:
             init()
         try:
             while True:
                 if auto_clear:
-                    screen.brush = BG
+                    pen(BG)
                     screen.clear()
-                    screen.brush = FG
+                    pen(FG)
                 io.poll()
                 if (result := update()) is not None:
                     return result
@@ -519,13 +519,13 @@ def message(title, text, window=None):
         0, 0, error_window.width, error_window.height, 5, 5, 5, 5
     )
     heading = shapes.rounded_rectangle(0, 0, error_window.width, 12, 5, 5, 0, 0)
-    error_window.brush = brush.color(100, 100, 100, 200)
+    error_window.pen = color.rgb(100, 100, 100, 200)
     error_window.draw(background)
 
-    error_window.brush = brush.color(255, 100, 100, 200)
+    error_window.pen = color.rgb(255, 100, 100, 200)
     error_window.draw(heading)
 
-    error_window.brush = brush.color(50, 100, 50)
+    error_window.pen = color.rgb(50, 100, 50)
     tw = 35
     error_window.draw(
         shapes.rounded_rectangle(
@@ -533,7 +533,7 @@ def message(title, text, window=None):
         )
     )
 
-    error_window.brush = brush.color(255, 200, 200)
+    error_window.pen = color.rgb(255, 200, 200)
     error_window.text(
         "Okay", error_window.width - tw + 5 - 10, error_window.height - 12
     )
@@ -541,7 +541,7 @@ def message(title, text, window=None):
     error_window.text(title, 5, y)
     y += 17
 
-    error_window.brush = brush.color(200, 200, 200)
+    error_window.pen = color.rgb(200, 200, 200)
     text_lines = wrap_and_measure(error_window, text, 12, error_window.width - 10)
     for line, _width in text_lines:
         error_window.text(line, 5, y)
@@ -590,8 +590,8 @@ LIGHT_SENSOR = DummyADC(0)
 DEFAULT_FONT = PixelFont.load(f"{ASSETS}/fonts/sins.ppf")
 ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
 
-FG = brush.color(255, 255, 255)
-BG = brush.color(0, 0, 0)
+FG = color.rgb(255, 255, 255)
+BG = color.rgb(0, 0, 0)
 
 VBUS_DETECT = DummyPin(0)
 CHARGE_STAT = DummyPin(1)
@@ -612,14 +612,14 @@ simulator.resolution(160, 120)
 
 # TODO: Add these to `brush` ?
 class Colors:
-    black = brush.color(0, 0, 0)
-    white = brush.color(255, 255, 255)
-    red = brush.color(255, 0, 0)
-    yellow = brush.color(255, 255, 0)
-    green = brush.color(0, 255, 0)
-    teal = brush.color(0, 255, 255)
-    blue = brush.color(0, 0, 255)
-    purple = brush.color(255, 0, 255)
+    black = color.rgb(0, 0, 0)
+    white = color.rgb(255, 255, 255)
+    red = color.rgb(255, 0, 0)
+    yellow = color.rgb(255, 255, 0)
+    green = color.rgb(0, 255, 0)
+    teal = color.rgb(0, 255, 255)
+    blue = color.rgb(0, 0, 255)
+    purple = color.rgb(255, 0, 255)
 
 
 # Build in some badgeware helpers, so we don't have to "bw.lores" etc

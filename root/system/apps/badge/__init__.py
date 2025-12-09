@@ -91,12 +91,12 @@ def on_exit():
 #         handle = self.handle
 
 #         w, _ = screen.measure_text(handle)
-#         screen.brush = white
+#         screen.pen = white
 #         screen.text(handle, 80 - (w / 2), 2)
 
 #         # draw name
 #         screen.font = small_font
-#         screen.brush = phosphor
+#         screen.pen = phosphor
 #         name = placeholder_if_none(self.name)
 #         w, _ = screen.measure_text(name)
 #         screen.text(name, 80 - (w / 2), 16)
@@ -109,9 +109,9 @@ def on_exit():
 #         # draw avatar imagee
 #         if not self.avatar:
 #             # create a spinning loading animation while we wait for the avatar to load
-#             screen.brush = phosphor
+#             screen.pen = phosphor
 #             squircle = shapes.squircle(0, 0, 10, 5)
-#             screen.brush = brushes.color(211, 250, 55, 50)
+#             screen.pen = color.rgb(211, 250, 55, 50)
 #             for i in range(4):
 #                 mul = sin(io.ticks / 1000) * 14000
 #                 squircle.transform = Matrix().translate(42, 75).rotate(
@@ -141,11 +141,11 @@ def on_exit():
 
 # class User:
 #     levels = [
-#         brushes.color(21 / 2,  27 / 2,  35 / 2),
-#         brushes.color(3 / 2,  58 / 2,  22 / 2),
-#         brushes.color(25 / 2, 108 / 2,  46 / 2),
-#         brushes.color(46 / 2, 160 / 2,  67 / 2),
-#         brushes.color(86 / 2, 211 / 2, 100 / 2),
+#         color.rgb(21 / 2,  27 / 2,  35 / 2),
+#         color.rgb(3 / 2,  58 / 2,  22 / 2),
+#         color.rgb(25 / 2, 108 / 2,  46 / 2),
+#         color.rgb(46 / 2, 160 / 2,  67 / 2),
+#         color.rgb(86 / 2, 211 / 2, 100 / 2),
 #     ]
 
 #     def __init__(self):
@@ -163,11 +163,11 @@ def on_exit():
 #         self._force_update = force_update
 
 #     def draw_stat(self, title, value, x, y):
-#         screen.brush = white if value else faded
+#         screen.pen = white if value else faded
 #         screen.font = large_font
 #         screen.text(str(value) if value is not None else str(fake_number()), x, y)
 #         screen.font = small_font
-#         screen.brush = phosphor
+#         screen.pen = phosphor
 #         screen.text(title, x - 1, y + 13)
 
 #     def draw(self, connected):
@@ -183,9 +183,9 @@ def on_exit():
 #             for x in range(53):
 #                 if self.contribution_data:
 #                     level = self.contribution_data[y][x]
-#                     screen.brush = User.levels[level]
+#                     screen.pen = User.levels[level]
 #                 else:
-#                     screen.brush = User.levels[1]
+#                     screen.pen = User.levels[1]
 #                 pos = (x * (size + 2) - xo, y * (size + 2) + 1)
 #                 if pos[0] + size < 0 or pos[0] > 160:
 #                     # skip tiles that aren't in view
@@ -221,12 +221,12 @@ def on_exit():
 #             handle = "connecting..."
 
 #         w, _ = screen.measure_text(handle)
-#         screen.brush = white
+#         screen.pen = white
 #         screen.text(handle, 80 - (w / 2), 2)
 
 #         # draw name
 #         screen.font = small_font
-#         screen.brush = phosphor
+#         screen.pen = phosphor
 #         name = placeholder_if_none(self.name)
 #         w, _ = screen.measure_text(name)
 #         screen.text(name, 80 - (w / 2), 16)
@@ -239,9 +239,9 @@ def on_exit():
 #         # draw avatar imagee
 #         if not self.avatar:
 #             # create a spinning loading animation while we wait for the avatar to load
-#             screen.brush = phosphor
+#             screen.pen = phosphor
 #             squircle = shapes.squircle(0, 0, 10, 5)
-#             screen.brush = brushes.color(211, 250, 55, 50)
+#             screen.pen = color.rgb(211, 250, 55, 50)
 #             for i in range(4):
 #                 mul = sin(io.ticks / 1000) * 14000
 #                 squircle.transform = Matrix().translate(42, 75).rotate(
@@ -261,14 +261,14 @@ def on_exit():
 # # tell the user where to fill in their details
 # def no_secrets_error():
 #   screen.font = large_font
-#   screen.brush = white
+#   screen.pen = white
 #   center_text("Missing Details!", 5)
 
 #   screen.text("1:", 10, 23)
 #   screen.text("2:", 10, 55)
 #   screen.text("3:", 10, 87)
 
-#   screen.brush = phosphor
+#   screen.pen = phosphor
 #   screen.font = small_font
 #   wrap_text("""Put your badge into\ndisk mode (tap\nRESET twice)""", 30, 24)
 
@@ -280,13 +280,13 @@ def on_exit():
 # # tell the user that the connection failed :-(
 # def connection_error():
 #   screen.font = large_font
-#   screen.brush = white
+#   screen.pen = white
 #   center_text("Connection Failed!", 5)
 
 #   screen.text("1:", 10, 63)
 #   screen.text("2:", 10, 95)
 
-#   screen.brush = phosphor
+#   screen.pen = phosphor
 #   screen.font = small_font
 #   wrap_text("""Could not connect\nto the WiFi network.\n\n:-(""", 16, 20)
 
@@ -298,7 +298,7 @@ def on_exit():
 # def update():
 #     global connected, force_update
 
-#     screen.brush = brushes.color(0, 0, 0)
+#     screen.pen = color.rgb(0, 0, 0)
 #     screen.draw(shapes.rectangle(0, 0, 160, 120))
 
 #     force_update = False
