@@ -587,8 +587,8 @@ picovector.default_target = screen
 
 ASSETS = "/system/assets"
 LIGHT_SENSOR = DummyADC(0)
-DEFAULT_FONT = PixelFont.load(f"{ASSETS}/fonts/sins.ppf")
-ERROR_FONT = PixelFont.load(f"{ASSETS}/fonts/desert.ppf")
+DEFAULT_FONT = pixel_font.load(f"{ASSETS}/fonts/sins.ppf")
+ERROR_FONT = pixel_font.load(f"{ASSETS}/fonts/desert.ppf")
 
 FG = color.rgb(255, 255, 255)
 BG = color.rgb(0, 0, 0)

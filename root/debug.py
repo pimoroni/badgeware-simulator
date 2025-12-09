@@ -4,7 +4,7 @@ import time
 
 debug = image(simulator.debug_width, simulator.debug_height, simulator.debug_framebuffer)
 
-DEBUG_FONT = PixelFont.load("/system/assets/fonts/ignore.ppf")
+DEBUG_FONT = pixel_font.load("/system/assets/fonts/ignore.ppf")
 DEBUG_BG = color.rgb(0, 0, 0)
 DEBUG_FG = color.rgb(255, 255, 255)
 

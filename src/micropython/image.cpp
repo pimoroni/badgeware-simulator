@@ -351,15 +351,15 @@ MPY_BIND_ATTR(image, {
         }
 
         if(action == SET) {
-          if(!mp_obj_is_type(dest[1], &type_Font) && !mp_obj_is_type(dest[1], &type_PixelFont)) {
+          if(!mp_obj_is_type(dest[1], &type_font) && !mp_obj_is_type(dest[1], &type_pixel_font)) {
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type Font or PixelFont"));
           }
-          if(mp_obj_is_type(dest[1], &type_Font)) {
+          if(mp_obj_is_type(dest[1], &type_font)) {
             self->font = (font_obj_t *)dest[1];
             self->pixel_font = nullptr;
             self->image->font(&self->font->font);
           }
-          if(mp_obj_is_type(dest[1], &type_PixelFont)) {
+          if(mp_obj_is_type(dest[1], &type_pixel_font)) {
             self->pixel_font = (pixel_font_obj_t *)dest[1];
             self->font = nullptr;
             self->image->pixel_font(self->pixel_font->font);

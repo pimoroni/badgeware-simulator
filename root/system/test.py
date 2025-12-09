@@ -1,6 +1,6 @@
 mode(HIRES)
 
-screen.font = PixelFont.load("/system/assets/fonts/sins.ppf")
+screen.font = pixel_font.load("/system/assets/fonts/sins.ppf")
 
 image = image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24, 24)
 

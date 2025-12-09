@@ -23,11 +23,11 @@ extern "C" {
   })
 
   MPY_BIND_STATICMETHOD_ARGS1(load, path, {
-    pixel_font_obj_t *result = mp_obj_malloc_with_finaliser(pixel_font_obj_t, &type_PixelFont);
+    pixel_font_obj_t *result = mp_obj_malloc_with_finaliser(pixel_font_obj_t, &type_pixel_font);
 
     // open the file for binary reading
     //mp_obj_t args[2] = {path, MP_ROM_QSTR(MP_QSTR_r)} // Brace enclosed initialiser lists don't work in the binding macros :(
-    mp_obj_t args[2]; 
+    mp_obj_t args[2];
     args[0] = path;
     args[1] = MP_ROM_QSTR(MP_QSTR_r);
     mp_obj_t file = mp_vfs_open(MP_ARRAY_SIZE(args), args, (mp_map_t *)&mp_const_empty_map);
@@ -131,8 +131,8 @@ extern "C" {
   )
 
   MP_DEFINE_CONST_OBJ_TYPE(
-      type_PixelFont,
-      MP_QSTR_PixelFont,
+      type_pixel_font,
+      MP_QSTR_pixel_font,
       MP_TYPE_FLAG_NONE,
       attr, (const void *)pixel_font_attr,
       locals_dict, &pixel_font_locals_dict
