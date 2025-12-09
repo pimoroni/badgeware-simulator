@@ -81,6 +81,10 @@ namespace picovector {
 
     // clip the shape bounds to the target bounds
     rect_t cb = b.intersection(target->bounds());
+    cb.x = floor(cb.x);
+    cb.y = floor(cb.y);
+    cb.w = ceil(cb.w);
+    cb.h = ceil(cb.h);
 
     //debug_printf("rendering shape %p with %d paths\n", (void*)shape, int(shape->paths.size()));
     //debug_printf("setup interpolators\n");

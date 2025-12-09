@@ -2,26 +2,10 @@
 #include "image.hpp"
 #include "blend.hpp"
 
-//using namespace std;
-
 namespace picovector {
-
-  #define debug_printf(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
-
-
-  void brush_t::render_spans(image_t *target, _rspan *spans, int count) {
-    while(count--) {
-      this->render_span(target, spans->x, spans->y, spans->w);
-      spans++;
-    }
-  }
 
   color_brush::color_brush(int r, int g, int b, int a) {
     this->color = _make_col(r, g, b, a);
-  }
-
-  void color_brush::pixel(uint32_t *dst) {
-    _blend_rgba_rgba((uint8_t*)dst, (uint8_t*)&color);
   }
 
   void color_brush::render_span(image_t *target, int x, int y, int w) {
@@ -32,11 +16,9 @@ namespace picovector {
     _span_blend_rgba_rgba_masked((uint8_t*)target->ptr(x, y), (uint8_t*)&color, sb, w);
   }
 
-  brighten_brush::brighten_brush(int amount) : amount(amount) {}
-
-  void brighten_brush::pixel(uint32_t *dst) {
-    return;
+  brighten_brush::brighten_brush(int amount) : amount(amount) {
   }
+
 
   void brighten_brush::render_span(image_t *target, int x, int y, int w) {
     uint32_t *dst = (uint32_t*)target->ptr(x, y);
@@ -64,10 +46,6 @@ namespace picovector {
 
   xor_brush::xor_brush(int r, int g, int b) {
     this->color = _make_col(r, g, b);
-  }
-
-  void xor_brush::pixel(uint32_t *dst) {
-    return;
   }
 
   void xor_brush::render_span(image_t *target, int x, int y, int w) {
@@ -105,9 +83,6 @@ namespace picovector {
     memcpy(this->p, p, sizeof(uint8_t) * 8);
   }
 
-  void pattern_brush::pixel(uint32_t *dst) {
-    return;
-  }
 
   void pattern_brush::render_span(image_t *target, int x, int y, int w) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
@@ -145,20 +120,9 @@ namespace picovector {
     }
   }
 
-
-
-  image_brush::image_brush(image_t *src) {
-    this->src = src;
-    this->transform = nullptr;
-  }
-
   image_brush::image_brush(image_t *src, mat3_t *transform) {
     this->src = src;
     this->transform = transform;
-  }
-
-  void image_brush::pixel(uint32_t *dst) {
-    return;
   }
 
   void image_brush::render_span(image_t *target, int x, int y, int w) {

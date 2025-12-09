@@ -62,4 +62,6 @@ def update():
   # screen.rectangle(0, 0, 24 * 1, 24 * 1)
   # screen.scale_blit(image, 0, 0, 24 * 1, 24 * 1)
 
+  pen(brush.color(255, 0, 0))
+  screen.text("this is a test", 0, 0)
   return True
