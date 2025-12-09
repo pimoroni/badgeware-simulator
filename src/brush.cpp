@@ -149,6 +149,12 @@ namespace picovector {
 
   image_brush::image_brush(image_t *src) {
     this->src = src;
+    this->transform = nullptr;
+  }
+
+  image_brush::image_brush(image_t *src, mat3_t *transform) {
+    this->src = src;
+    this->transform = transform;
   }
 
   void image_brush::pixel(uint32_t *dst) {
@@ -160,33 +166,57 @@ namespace picovector {
 
     rect_t b = src->bounds();
 
-    uint8_t u = x % int(b.w);
-    uint8_t v = y % int(b.h);
-    uint8_t *p = (uint8_t*)src->ptr(u, v);
-    while(w--) {
+    point_t p1(x / b.w, y / b.h);
+    point_t p2((x + w) / b.w, y / b.h);
+
+    if(this->transform) {
+      p1 = p1.transform(this->transform);
+      p2 = p2.transform(this->transform);
+    }
+
+    for(int i = 0; i < w; i++) {
+      float t = (float)i / (float)(w);
+      float x = p1.x + (p2.x - p1.x) * t;
+      float y = p1.y + (p2.y - p1.y) * t;
+
+      uint8_t u = int(x) % int(b.w);
+      uint8_t v = int(y) % int(b.h);
+      uint8_t *p = (uint8_t*)src->ptr(u, v);
+
       _blend_rgba_rgba(dst, p);
       dst += 4;
-      p++;
-      u++;
-      u %= int(b.w);
     }
   }
 
 
   void image_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
-
     rect_t b = src->bounds();
 
-    uint8_t u = x % int(b.w);
-    uint8_t v = y % int(b.h);
-    uint8_t *p = (uint8_t*)src->ptr(u, v);
+    point_t p1(x, y);
+    point_t p2((x + w), y);
+
+    if(this->transform) {
+      mat3_t ti = *this->transform;
+      ti.inverse();
+      p1 = p1.transform(&ti);
+      p2 = p2.transform(&ti);
+    }
+
+    point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
+    point_t p = p1;
+
+    int tw = int(b.w);
+    int th = int(b.h);
+
     while(w--) {
-      _blend_rgba_rgba(dst, p, *sb);
+      p.x += pd.x;
+      p.y += pd.y;
+      int u = (int(p.x) % tw + tw) % tw;
+      int v = (int(p.y) % th + th) % th;
+      uint32_t c = src->pixel_unsafe(u, v);
+      _blend_rgba_rgba(dst, (uint8_t*)&c, *sb);
       dst += 4;
-      p++;
-      u++;
-      u %= int(b.w);
       sb++;
     }
   }

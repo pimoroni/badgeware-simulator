@@ -106,8 +106,10 @@ namespace picovector {
   class image_brush : public brush_t {
   public:
     image_t *src;
+    mat3_t *transform;
 
     image_brush(image_t *src);
+    image_brush(image_t *src, mat3_t *transform);
 
     void render_span(image_t *target, int x, int y, int w);
     void pixel(uint32_t *dst);

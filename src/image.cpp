@@ -367,13 +367,17 @@ namespace picovector {
 
 
   uint32_t image_t::pixel_unsafe(int x, int y) {
+    if(this->_has_palette) {
+      uint8_t pi = *((uint8_t *)ptr(x, y));
+      return this->_palette[pi];
+    }
     return *((uint32_t *)ptr(x, y));
   }
 
   uint32_t image_t::pixel(int x, int y) {
     x = max(int(_bounds.x), min(x, int(_bounds.x + _bounds.w - 1)));
     y = max(int(_bounds.y), min(y, int(_bounds.y + _bounds.h - 1)));
-    return *((uint32_t *)ptr(x, y));
+    return this->pixel_unsafe(x, y);
   }
 
 }

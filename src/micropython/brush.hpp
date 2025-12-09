@@ -8,6 +8,7 @@
 #include "../brush.hpp"
 
 #include "image.hpp"
+#include "matrix.hpp"
 
 #include "mp_helpers.hpp"
 
@@ -115,10 +116,22 @@ extern "C" {
     }
 
     brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
 
-    brush->brush = m_new_class(image_brush, src->image);
+
+    if(n_args == 1) {
+      brush->brush = m_new_class(image_brush, src->image);
+    } else {
+      if(!mp_obj_is_type(pos_args[1], &type_Matrix)) {
+        mp_raise_TypeError(MP_ERROR_TEXT("parameter must be of matrix type"));
+      }
+
+      matrix_obj_t *transform = (matrix_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+      mat3_t *m = &transform->m;
+      brush->brush = m_new_class(image_brush, src->image, m);
+    }
+
+
 
     return MP_OBJ_FROM_PTR(brush);
   }

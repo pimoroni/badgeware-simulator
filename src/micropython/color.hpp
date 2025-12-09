@@ -88,62 +88,47 @@ extern "C" {
 
     action_t action = m_attr_action(dest);
 
-    switch(attr) {
-      case MP_QSTR_r: {
-        if(action == GET) {
-          dest[0] = mp_obj_new_int(_r(&self->c));
-          return;
-        }
+    constexpr size_t GET = 0b1 << 31;
+    constexpr size_t SET = 0b1 << 30;
+    constexpr size_t DELETE = 0b1 << 29;
 
-        if(action == SET) {
-          _r(&self->c, mp_obj_get_int(dest[1]));
-          dest[0] = MP_OBJ_NULL;
-          return;
-        }
-      };
+    switch(attr | action) {
+      case MP_QSTR_r | GET:
+        dest[0] = mp_obj_new_int(_r(&self->c));
+        return;
 
-      case MP_QSTR_g: {
-        if(action == GET) {
-          dest[0] = mp_obj_new_int(_g(&self->c));
-          return;
-        }
+      case MP_QSTR_r | SET:
+        _r(&self->c, mp_obj_get_int(dest[1]));
+        dest[0] = MP_OBJ_NULL;
+        return;
 
-        if(action == SET) {
-          _g(&self->c, mp_obj_get_int(dest[1]));
-          dest[0] = MP_OBJ_NULL;
-          return;
-        }
-      };
+      case MP_QSTR_g | GET:
+        dest[0] = mp_obj_new_int(_g(&self->c));
+        return;
 
+      case MP_QSTR_g | SET:
+        _g(&self->c, mp_obj_get_int(dest[1]));
+        dest[0] = MP_OBJ_NULL;
+        return;
 
-      case MP_QSTR_b: {
-        if(action == GET) {
-          dest[0] = mp_obj_new_int(_b(&self->c));
-          return;
-        }
+      case MP_QSTR_b | GET:
+        dest[0] = mp_obj_new_int(_b(&self->c));
+        return;
 
-        if(action == SET) {
-          _b(&self->c, mp_obj_get_int(dest[1]));
-          dest[0] = MP_OBJ_NULL;
-          return;
-        }
-      };
+      case MP_QSTR_b | SET:
+        _b(&self->c, mp_obj_get_int(dest[1]));
+        dest[0] = MP_OBJ_NULL;
+        return;
 
+      case MP_QSTR_a | GET:
+        dest[0] = mp_obj_new_int(_a(&self->c));
+        return;
 
-      case MP_QSTR_a: {
-        if(action == GET) {
-          dest[0] = mp_obj_new_int(_a(&self->c));
-          return;
-        }
-
-        if(action == SET) {
-          _a(&self->c, mp_obj_get_int(dest[1]));
-          dest[0] = MP_OBJ_NULL;
-          return;
-        }
-      };
-
-    }
+      case MP_QSTR_a | SET:
+        _a(&self->c, mp_obj_get_int(dest[1]));
+        dest[0] = MP_OBJ_NULL;
+        return;
+    };
 
     dest[1] = MP_OBJ_SENTINEL;
   }
