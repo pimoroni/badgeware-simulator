@@ -1,22 +1,13 @@
-#pragma once
-
 #include "mp_tracked_allocator.hpp"
-#include "../picovector.hpp"
-#include "../blend.hpp"
+
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
 extern "C" {
 
   #include "py/runtime.h"
-
-  extern const mp_obj_type_t type_color;
-
-  typedef struct _color_obj_t {
-    mp_obj_base_t base;
-    uint32_t c;
-  } color_obj_t;
 
   MPY_BIND_STATICMETHOD_VAR(3, rgb, {
     int r = mp_obj_get_int(args[0]);

@@ -1,20 +1,5 @@
-#pragma once
-
-#include <algorithm>
-#include "mp_tracked_allocator.hpp"
-#include "../picovector.hpp"
-#include "../image.hpp"
-#include "../blend.hpp"
-#include "../font.hpp"
-#include "../pixel_font.hpp"
-
-
-#include "image_png.hpp"
-#include "font.hpp"
-#include "brush.hpp"
-#include "pixel_font.hpp"
-
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
@@ -23,23 +8,6 @@ extern "C" {
   #include "py/stream.h"
   #include "py/reader.h"
   #include "py/runtime.h"
-
-  extern const mp_obj_type_t type_Image;
-  extern const mp_obj_type_t type_brush;
-
-  typedef struct _brush_obj_t {
-    mp_obj_base_t base;
-    brush_t *brush;
-  } brush_obj_t;
-
-  typedef struct _image_obj_t {
-    mp_obj_base_t base;
-    image_t *image;
-    brush_obj_t *brush;
-    font_obj_t *font;
-    pixel_font_obj_t *pixel_font;
-    void *parent;
-  } image_obj_t;
 
   mp_obj_t image__del__(mp_obj_t self_in) {
     self(self_in, image_obj_t);
@@ -51,7 +19,7 @@ extern "C" {
   }
   static MP_DEFINE_CONST_FUN_OBJ_1(image__del___obj, image__del__);
 
-  static mp_obj_t image_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
+MPY_BIND_NEW(image, {
     image_obj_t *self = mp_obj_malloc_with_finaliser(image_obj_t, type);
 
     int w = mp_obj_get_int(args[0]);
@@ -66,9 +34,9 @@ extern "C" {
     }
 
     return MP_OBJ_FROM_PTR(self);
-  }
+})
 
-  static mp_obj_t image_load(mp_obj_t path) {
+MPY_BIND_STATICMETHOD_ARGS1(load, path, {
     const char *s = mp_obj_str_get_str(path);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
 
@@ -79,78 +47,79 @@ extern "C" {
     png->decode((void *)result->image, 0);
     png->close();
     return MP_OBJ_FROM_PTR(result);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_1(image_load_obj, image_load);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(image_load_static_obj, MP_ROM_PTR(&image_load_obj));
+  })
 
-
-  static mp_obj_t image_load_into(mp_obj_t self_in, mp_obj_t path) {
+MPY_BIND_CLASSMETHOD_ARGS1(load_into, path, {
     self(self_in, image_obj_t);
-    //const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+    //const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     PNG *png = new(PicoVector_working_buffer) PNG();
     int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
     bool has_palette = png->getPixelType() == PNG_PIXEL_INDEXED;
     png->decode((void *)self->image, 0);
     png->close();
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_2(image_load_into_obj, image_load_into);
+  })
 
 
-  static mp_obj_t image_window(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    int x = mp_obj_get_int(pos_args[1]);
-    int y = mp_obj_get_int(pos_args[2]);
-    int w = mp_obj_get_int(pos_args[3]);
-    int h = mp_obj_get_int(pos_args[4]);
+MPY_BIND_VAR(5, window, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    int x = mp_obj_get_int(args[1]);
+    int y = mp_obj_get_int(args[2]);
+    int w = mp_obj_get_int(args[3]);
+    int h = mp_obj_get_int(args[4]);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
     result->image = new(m_malloc(sizeof(image_t))) image_t(self->image, rect_t(x, y, w, h));
     result->parent = (void*)self;
     return MP_OBJ_FROM_PTR(result);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
+  })
 
 
-  static mp_obj_t image_rectangle(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    int x = mp_obj_get_int(pos_args[1]);
-    int y = mp_obj_get_int(pos_args[2]);
-    int w = mp_obj_get_int(pos_args[3]);
-    int h = mp_obj_get_int(pos_args[4]);
+MPY_BIND_VAR(2, draw, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    self->image->draw(shape->shape);
+    return mp_const_none;
+  })
+
+
+MPY_BIND_VAR(4, rectangle, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    int x = mp_obj_get_int(args[1]);
+    int y = mp_obj_get_int(args[2]);
+    int w = mp_obj_get_int(args[3]);
+    int h = mp_obj_get_int(args[4]);
     self->image->rectangle(rect_t(x, y, w, h));
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_rectangle_obj, 4, image_rectangle);
+  })
 
 
-  static mp_obj_t image_text(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const char *text = mp_obj_str_get_str(pos_args[1]);
+MPY_BIND_VAR(3, text, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const char *text = mp_obj_str_get_str(args[1]);
 
     if(!self->font && !self->pixel_font) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));
     }
 
     if(self->font) {
-      float x = mp_obj_get_float(pos_args[2]);
-      float y = mp_obj_get_float(pos_args[3]);
-      float size = mp_obj_get_float(pos_args[4]);
+      float x = mp_obj_get_float(args[2]);
+      float y = mp_obj_get_float(args[3]);
+      float size = mp_obj_get_float(args[4]);
       self->image->font()->draw(self->image, text, x, y, size);
     }
 
     if(self->pixel_font) {
-      int x = mp_obj_get_float(pos_args[2]);
-      int y = mp_obj_get_float(pos_args[3]);
+      int x = mp_obj_get_float(args[2]);
+      int y = mp_obj_get_float(args[3]);
       self->image->pixel_font()->draw(self->image, text, x, y);
     }
 
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_text_obj, 3, image_text);
+  })
 
-  static mp_obj_t image_measure_text(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const char *text = mp_obj_str_get_str(pos_args[1]);
+MPY_BIND_VAR(3, measure_text, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const char *text = mp_obj_str_get_str(args[1]);
 
     if(!self->font && !self->pixel_font) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("target image has no font"));
@@ -159,7 +128,7 @@ extern "C" {
     mp_obj_t result[2];
 
     if(self->font) {
-      float size = mp_obj_get_float(pos_args[2]);
+      float size = mp_obj_get_float(args[2]);
       rect_t r = self->image->font()->measure(self->image, text, size);
       result[0] = mp_obj_new_float(r.w);
       result[1] = mp_obj_new_float(r.h);
@@ -172,23 +141,21 @@ extern "C" {
     }
 
     return mp_obj_new_tuple(2, result);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_measure_text_obj, 2, image_measure_text);
+  })
 
-  static mp_obj_t image_vspan_tex(size_t n_args, const mp_obj_t *pos_args) {
-    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
-    int x = mp_obj_get_float(pos_args[2]);
-    int y = mp_obj_get_float(pos_args[3]);
-    int c = mp_obj_get_float(pos_args[4]);
-    int us = mp_obj_get_float(pos_args[5]);
-    int vs = mp_obj_get_float(pos_args[6]);
-    int ue = mp_obj_get_float(pos_args[7]);
-    int ve = mp_obj_get_float(pos_args[8]);
+MPY_BIND_VAR(9, vspan_tex, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    int x = mp_obj_get_float(args[2]);
+    int y = mp_obj_get_float(args[3]);
+    int c = mp_obj_get_float(args[4]);
+    int us = mp_obj_get_float(args[5]);
+    int vs = mp_obj_get_float(args[6]);
+    int ue = mp_obj_get_float(args[7]);
+    int ve = mp_obj_get_float(args[8]);
     src->image->vspan_tex(self->image, point_t(x, y), c, point_t(us, vs), point_t(ue, ve));
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(image_vspan_tex_obj, 4, image_vspan_tex);
+  })
 
 
   static mp_obj_t image_blit(size_t n_args, const mp_obj_t *pos_args) {
@@ -347,23 +314,23 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
-  static const mp_rom_map_elem_t image_locals_dict_table[] = {
+MPY_BIND_LOCALS_DICT(image,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_window), MP_ROM_PTR(&image_window_obj) },
+      MPY_BIND_ROM_PTR(draw),
+      MPY_BIND_ROM_PTR(window),
       { MP_ROM_QSTR(MP_QSTR_clear), MP_ROM_PTR(&image_clear_obj) },
-      { MP_ROM_QSTR(MP_QSTR_rectangle), MP_ROM_PTR(&image_rectangle_obj) },
-      { MP_ROM_QSTR(MP_QSTR_text), MP_ROM_PTR(&image_text_obj) },
-      { MP_ROM_QSTR(MP_QSTR_measure_text), MP_ROM_PTR(&image_measure_text_obj) },
-      { MP_ROM_QSTR(MP_QSTR_vspan_tex), MP_ROM_PTR(&image_vspan_tex_obj) },
+      MPY_BIND_ROM_PTR(rectangle),
+      MPY_BIND_ROM_PTR(text),
+      MPY_BIND_ROM_PTR(measure_text),
+      MPY_BIND_ROM_PTR(vspan_tex),
       { MP_ROM_QSTR(MP_QSTR_blit), MP_ROM_PTR(&image_blit_obj) },
       { MP_ROM_QSTR(MP_QSTR_scale_blit), MP_ROM_PTR(&image_scale_blit_obj) },
-      { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&image_load_static_obj) },
-      { MP_ROM_QSTR(MP_QSTR_load_into), MP_ROM_PTR(&image_load_into_obj) },
+      MPY_BIND_ROM_PTR_STATIC(load),
+      MPY_BIND_ROM_PTR(load_into),
       { MP_ROM_QSTR(MP_QSTR_X4), MP_ROM_INT(antialias_t::X4)},
       { MP_ROM_QSTR(MP_QSTR_X2), MP_ROM_INT(antialias_t::X2)},
       { MP_ROM_QSTR(MP_QSTR_OFF), MP_ROM_INT(antialias_t::OFF)},
-  };
-  static MP_DEFINE_CONST_DICT(image_locals_dict, image_locals_dict_table);
+)
 
   MP_DEFINE_CONST_OBJ_TYPE(
       type_Image,

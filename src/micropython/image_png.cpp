@@ -1,6 +1,5 @@
-#pragma once
-
-#include "image.hpp"
+#include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 extern "C" {
 
@@ -12,10 +11,6 @@ extern "C" {
   #ifndef NO_QSTR
     #include "PNGdec.h"
   #endif
-  
-  typedef struct _png_handle_t {
-    mp_obj_t fhandle;
-  } png_handle_t;
 
   void *pngdec_open_callback(const char *filename, int32_t *size) {
     mp_obj_t fn = mp_obj_new_str(filename, (mp_uint_t)strlen(filename));

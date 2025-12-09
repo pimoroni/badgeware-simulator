@@ -1,22 +1,11 @@
-#pragma once
-
-#include "mp_tracked_allocator.hpp"
-#include "../matrix.hpp"
-
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
 extern "C" {
 
   #include "py/runtime.h"
-
-  extern const mp_obj_type_t type_Matrix;
-
-  typedef struct _matrix_obj_t {
-    mp_obj_base_t base;
-    mat3_t m;
-  } matrix_obj_t;
 
 
   MPY_BIND_NEW(matrix, {

@@ -13,6 +13,15 @@ target_sources(usermod_picovector INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
   ${CMAKE_CURRENT_LIST_DIR}/rasteriser.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/color.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/font.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/image_png.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/image.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/matrix.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/pixel_font.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/shape.cpp
 )
 
 target_include_directories(usermod_picovector INTERFACE
@@ -31,6 +40,15 @@ set_source_files_properties(
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
   ${CMAKE_CURRENT_LIST_DIR}/rasteriser.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/color.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/font.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/image_png.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/image.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/matrix.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/pixel_font.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/shape.cpp
   PROPERTIES COMPILE_FLAGS
   "-Wno-unused-variable"
 )

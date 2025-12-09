@@ -1,10 +1,7 @@
-#pragma once
-
 #include "mp_tracked_allocator.hpp"
-#include "../pixel_font.hpp"
-#include "../blend.hpp"
 
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
@@ -14,17 +11,6 @@ extern "C" {
   #include "py/reader.h"
   #include "py/runtime.h"
   #include "extmod/vfs.h"
-
-  extern const mp_obj_type_t type_PixelFont;
-
-  typedef struct _pixel_font_obj_t {
-    mp_obj_base_t base;
-    pixel_font_t *font;
-    uint8_t *glyph_buffer;
-    uint32_t glyph_buffer_size;
-    uint8_t *glyph_data_buffer;
-    uint32_t glyph_data_buffer_size;
-  } pixel_font_obj_t;
 
   mp_obj_t pixel_font__del__(mp_obj_t self_in) {
     self(self_in, pixel_font_obj_t);

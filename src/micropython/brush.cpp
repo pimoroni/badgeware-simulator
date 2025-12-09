@@ -1,30 +1,11 @@
-#pragma once
-
-#include "mp_tracked_allocator.hpp"
-#include "../picovector.hpp"
-#include "../primitive.hpp"
-#include "../shape.hpp"
-#include "../image.hpp"
-#include "../brush.hpp"
-
-#include "image.hpp"
-#include "matrix.hpp"
-
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
 extern "C" {
 
   #include "py/runtime.h"
-
-  extern const mp_obj_type_t type_brush;
-  extern const mp_obj_type_t type_Image;
-
-  // typedef struct _brush_obj_t {
-  //   mp_obj_base_t base;
-  //   brush_t *brush;
-  // } brush_obj_t;
 
   mp_obj_t brush__del__(mp_obj_t self_in) {
     self(self_in, brush_obj_t);

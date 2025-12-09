@@ -1,10 +1,5 @@
-#pragma once
-
-#include "mp_tracked_allocator.hpp"
-#include "../font.hpp"
-#include "../blend.hpp"
-
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
@@ -14,15 +9,6 @@ extern "C" {
   #include "py/reader.h"
   #include "py/runtime.h"
   #include "extmod/vfs.h"
-
-  extern const mp_obj_type_t type_Font;
-
-  typedef struct _font_obj_t {
-    mp_obj_base_t base;
-    font_t font;
-    uint8_t *buffer;
-    uint32_t buffer_size;
-  } font_obj_t;
 
   mp_obj_t font__del__(mp_obj_t self_in) {
     self(self_in, font_obj_t);

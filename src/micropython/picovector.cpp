@@ -1,24 +1,41 @@
-#include "mp_tracked_allocator.hpp"
-// #include "../picovector.hpp"
-// #include "../primitive.hpp"
-// #include "../image.hpp"
-
-
-#include "color.hpp"
-#include "brush.hpp"
-#include "shape.hpp"
-#include "font.hpp"
-#include "pixel_font.hpp"
-#include "image.hpp"
-#include "input.hpp"
-#include "matrix.hpp"
-
+#include "picovector.hpp"
 #include "mp_helpers.hpp"
 
-using namespace picovector;
+action_t m_attr_action(mp_obj_t *dest) {
+  if(dest[0] == MP_OBJ_NULL && dest[1] == MP_OBJ_NULL) {return GET;}
+  if(dest[0] == MP_OBJ_NULL && dest[1] != MP_OBJ_NULL) {return DELETE;}
+  return SET;
+}
+
+uint32_t ru32(mp_obj_t file) {
+  int error;
+  uint32_t result;
+  mp_stream_read_exactly(file, &result, 4, &error);
+  return __builtin_bswap32(result);
+}
+
+uint16_t ru16(mp_obj_t file) {
+  int error;
+  uint16_t result;
+  mp_stream_read_exactly(file, &result, 2, &error);
+  return __builtin_bswap16(result);
+}
+
+uint8_t ru8(mp_obj_t file) {
+  int error;
+  uint8_t result;
+  mp_stream_read_exactly(file, &result, 1, &error);
+  return result;
+}
+
+int8_t rs8(mp_obj_t file) {
+  int error;
+  int8_t result;
+  mp_stream_read_exactly(file, &result, 1, &error);
+  return result;
+}
 
 extern "C" {
-
   #include "py/runtime.h"
   image_obj_t *default_target;
 

@@ -1,11 +1,9 @@
-
-#include "../picovector.hpp"
-
 #ifdef PICO
 #include "pico/stdlib.h"
 #endif
 
 #include "mp_helpers.hpp"
+#include "picovector.hpp"
 
 using namespace picovector;
 
@@ -15,8 +13,6 @@ extern "C" {
   #include "py/runtime.h"
   #include "extmod/vfs.h"
   #include "py/mphal.h"
-
-  extern const mp_obj_type_t type_Input;
 
 #define BUTTON_HOME 0b100000
 #define BUTTON_A    0b010000
