@@ -88,6 +88,7 @@ namespace picovector {
     return this->_has_palette;
   }
 
+  // TODO: why?
   void image_t::delete_palette() {
     if(this->has_palette()) {
       this->_palette.clear();
@@ -364,6 +365,135 @@ namespace picovector {
     //   span_argb8(ptr(sx, y), ex - sx, c);
     // }
   }
+
+
+  void triangle(const point_t &p1, const point_t &p2, const point_t &p3) {
+
+  }
+
+  void round_rectangle(const rect_t &r, int radius) {
+
+  }
+
+
+  void ellipse(const point_t &p, const int &rx, const int &ry) {
+
+  }
+
+enum {
+    CS_LEFT   = 1,
+    CS_RIGHT  = 2,
+    CS_BOTTOM = 4,
+    CS_TOP    = 8,
+};
+
+
+static int cs_outcode(int x, int y, int xmin, int ymin, int xmax, int ymax) {
+    int code = 0;
+    if (x < xmin) code |= CS_LEFT;
+    else if (x > xmax) code |= CS_RIGHT;
+    if (y < ymin) code |= CS_BOTTOM;
+    else if (y > ymax) code |= CS_TOP;
+    return code;
+}
+
+int clip_line_cs(int *x0, int *y0, int *x1, int *y1,
+                 int xmin, int ymin, int xmax, int ymax)
+{
+    int x0v = *x0, y0v = *y0;
+    int x1v = *x1, y1v = *y1;
+
+    int out0 = cs_outcode(x0v, y0v, xmin, ymin, xmax, ymax);
+    int out1 = cs_outcode(x1v, y1v, xmin, ymin, xmax, ymax);
+
+    for (;;) {
+        if (!(out0 | out1)) {
+            // trivially inside
+            *x0 = x0v; *y0 = y0v;
+            *x1 = x1v; *y1 = y1v;
+            return 1;
+        } else if (out0 & out1) {
+            // trivially outside
+            return 0;
+        } else {
+            // at least one endpoint is outside; pick it
+            int out = out0 ? out0 : out1;
+            int x, y;
+
+            int dx = x1v - x0v;
+            int dy = y1v - y0v;
+
+            if (out & CS_TOP) {
+                // y = ymax
+                y = ymax;
+                x = x0v + dx * (ymax - y0v) / dy;
+            } else if (out & CS_BOTTOM) {
+                // y = ymin
+                y = ymin;
+                x = x0v + dx * (ymin - y0v) / dy;
+            } else if (out & CS_RIGHT) {
+                // x = xmax
+                x = xmax;
+                y = y0v + dy * (xmax - x0v) / dx;
+            } else { // CS_LEFT
+                x = xmin;
+                y = y0v + dy * (xmin - x0v) / dx;
+            }
+
+            if (out == out0) {
+                x0v = x; y0v = y;
+                out0 = cs_outcode(x0v, y0v, xmin, ymin, xmax, ymax);
+            } else {
+                x1v = x; y1v = y;
+                out1 = cs_outcode(x1v, y1v, xmin, ymin, xmax, ymax);
+            }
+        }
+    }
+}
+
+  void image_t::line(point_t p1, point_t p2) {
+    int x0 = p1.x;
+    int x1 = p2.x;
+    int y0 = p1.y;
+    int y1 = p2.y;
+    int xmin = _bounds.x;
+    int ymin = _bounds.y;
+    int xmax = _bounds.x + _bounds.w;
+    int ymax = _bounds.y + _bounds.h;
+
+    if (!clip_line_cs(&x0, &y0, &x1, &y1, xmin, ymin, xmax, ymax)) {
+        return; // fully outside
+    }
+
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+
+    for (;;) {
+        this->pixel(x0, y0);
+        if (x0 == x1 && y0 == y1) break;
+        int e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+    }
+  }
+
+  void image_t::put(const point_t &p) {
+    this->pixel(p.x, p.y);
+  }
+
+  uint32_t image_t::get(const point_t &p) {
+    int x = p.x;
+    int y = p.y;
+    if(p.x < _bounds.x | p.x >= _bounds.x + _bounds.w |
+       p.y < _bounds.y | p.y >= _bounds.y + _bounds.h) {
+      return 0;
+    }
+    return *(uint32_t*)this->ptr(p.x, p.y);
+  }
+
 
 
   uint32_t image_t::pixel_unsafe(int x, int y) {
