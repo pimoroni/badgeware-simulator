@@ -8,9 +8,9 @@ from badgeware import SpriteSheet, run
 from mona import Mona
 from obstacle import Obstacle
 
-background = Image.load("assets/background.png")
-grass = Image.load("assets/grass.png")
-cloud = Image.load("assets/cloud.png")
+background = image.load("assets/background.png")
+grass = image.load("assets/grass.png")
+cloud = image.load("assets/cloud.png")
 large_font = PixelFont.load("/system/assets/fonts/ziplock.ppf")
 small_font = PixelFont.load("/system/assets/fonts/nope.ppf")
 ghost = SpriteSheet("/system/assets/mona-sprites/mona-dead.png", 7, 1).animation()
@@ -133,7 +133,7 @@ def draw_background():
 
     # clear the whole screen in a bright blue
     screen.pen = color.rgb(73, 219, 255)
-    screen.draw(shapes.rectangle(0, 0, 160, 120))
+    screen.shape(shapes.rectangle(0, 0, 160, 120))
 
     # if we're on the intro screen or mona is alive then scroll the background
     if not mona or not mona.is_dead() or state == GameState.INTRO:

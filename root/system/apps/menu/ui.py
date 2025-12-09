@@ -12,14 +12,14 @@ def draw_background():
     # draw over the corners in black ready for the rounded rectangle that makes
     # up most of the background
     screen.pen = black
-    shapes.rectangle(0, 0, 10, 10).draw()
-    shapes.rectangle(150, 0, 10, 10).draw()
-    shapes.rectangle(0, 110, 10, 10).draw()
-    shapes.rectangle(150, 110, 10, 10).draw()
+    screen.shape(shapes.rectangle(0, 0, 10, 10))
+    screen.shape(shapes.rectangle(150, 0, 10, 10))
+    screen.shape(shapes.rectangle(0, 110, 10, 10))
+    screen.shape(shapes.rectangle(150, 110, 10, 10))
 
     # draw the faux crt shape background area
     screen.pen = background
-    shapes.rounded_rectangle(0, 0, 160, 120, 8).draw()
+    screen.shape(shapes.rounded_rectangle(0, 0, 160, 120, 8))
 
     # draw the scrolling terminal effects
     draw_terminal()
@@ -73,7 +73,7 @@ def draw_terminal():
             # draw the "greeked" word
             screen.rectangle(cx + 5, y, w, 2)
             #rect.transform = Matrix().translate(cx + 5, y).scale(w, 2)
-            #screen.draw(rect)
+            #screen.shape(rect)
             # add a space
             cx += w + 2
 
@@ -102,16 +102,16 @@ def draw_header():
     pos = (137, 4)
     size = (16, 8)
     screen.pen = phosphor
-    shapes.rectangle(*pos, *size).draw()
-    shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4).draw()
+    screen.shape(shapes.rectangle(*pos, *size))
+    screen.shape(shapes.rectangle(pos[0] + size[0], pos[1] + 2, 1, 4))
     screen.pen = background
 
-    shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2).draw()
+    screen.shape(shapes.rectangle(pos[0] + 1, pos[1] + 1, size[0] - 2, size[1] - 2))
 
     # draw the battery fill level
     width = ((size[0] - 4) / 100) * battery_level
     screen.pen = phosphor
-    shapes.rectangle(pos[0] + 2, pos[1] + 2, width, size[1] - 4).draw()
+    screen.shape(shapes.rectangle(pos[0] + 2, pos[1] + 2, width, size[1] - 4))
 
 
 

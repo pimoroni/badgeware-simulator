@@ -9,11 +9,11 @@ import micropython
 import math
 import time
 import random
-from badgeware import State, PixelFont, Image, brush, screen, io, shapes, run
+from badgeware import State, PixelFont, image, brush, screen, io, shapes, run
 from picovector import dda
 from badgeware import SpriteSheet
 
-background = Image.load("assets/background.png")
+background = image.load("assets/background.png")
 screen.font = PixelFont.load("/system/assets/fonts/nope.ppf")
 
 class VecXY:

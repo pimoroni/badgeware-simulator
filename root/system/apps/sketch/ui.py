@@ -1,7 +1,7 @@
 import math
 from badgeware import SpriteSheet
 
-screen.antialias = Image.X2
+screen.antialias = image.X2
 canvas_area = (10, 15, 140, 85)
 
 font = PixelFont.load("/system/assets/fonts/vest.ppf")
@@ -15,7 +15,7 @@ def draw_mona(pos, direction):
 def draw_background():
     # fill the background in that classic red...
     screen.pen = color.rgb(170, 45, 40)
-    screen.draw(shapes.rectangle(0, 0, 160, 120))
+    screen.shape(shapes.rectangle(0, 0, 160, 120))
 
     # draw the embossed gold logo
     screen.font = font
@@ -27,14 +27,14 @@ def draw_background():
 
     # draw the canvas area grey background and screen shadows
     screen.pen = color.rgb(210, 210, 210)
-    screen.draw(shapes.rounded_rectangle(*canvas_area, 6))
+    screen.shape(shapes.rounded_rectangle(*canvas_area, 6))
     screen.pen = color.rgb(180, 180, 180)
-    screen.draw(
+    screen.shape(
         shapes.rounded_rectangle(
             canvas_area[0] + 3, canvas_area[1], canvas_area[2] - 5, 3, 2
         )
     )
-    screen.draw(
+    screen.shape(
         shapes.rounded_rectangle(
             canvas_area[0], canvas_area[1] + 3, 3, canvas_area[3] - 5, 2
         )
@@ -42,12 +42,12 @@ def draw_background():
 
     # draw highlights on the plastic "curve"
     screen.pen = color.rgb(255, 255, 255, 100)
-    screen.draw(
+    screen.shape(
         shapes.rectangle(
             canvas_area[0] - 3, canvas_area[1] + 5, 1, canvas_area[3] - 10, 2
         )
     )
-    screen.draw(
+    screen.shape(
         shapes.rectangle(
             canvas_area[0] + canvas_area[2] + 2,
             canvas_area[1] + 5,
@@ -70,15 +70,15 @@ def draw_dial(angle, pos):
 
     # draw the dial shadow
     screen.pen = color.rgb(0, 0, 0, 40)
-    screen.draw(shapes.circle(pos[0] + offset * 1.5, pos[1], radius + 2))
+    screen.shape(shapes.circle(pos[0] + offset * 1.5, pos[1], radius + 2))
 
     # draw the dial shaft
     screen.pen = color.rgb(150, 160, 170)
-    screen.draw(shapes.circle(pos[0] + offset, pos[1], radius))
+    screen.shape(shapes.circle(pos[0] + offset, pos[1], radius))
 
     # draw the dial surface
     screen.pen = color.rgb(220, 220, 230)
-    screen.draw(shapes.circle(*pos, radius))
+    screen.shape(shapes.circle(*pos, radius))
 
     # draw the animated ticks around the dial edge
     screen.pen = color.rgb(190, 190, 220)
@@ -94,7 +94,7 @@ def draw_dial(angle, pos):
             pos[1] + math.cos(r) * (radius - 3),
         )
 
-        screen.draw(shapes.line(*inner, *outer, 1.5))
+        screen.shape(shapes.line(*inner, *outer, 1.5))
 
 
 def draw_cursor(cursor):
@@ -103,7 +103,7 @@ def draw_cursor(cursor):
     # draw the current cursor
     i = (math.sin(io.ticks / 250) * 127) + 127
     screen.pen = brush.xor(i, i, i)
-    screen.draw(shapes.rectangle(cx + 2, cy, 2, 1))
-    screen.draw(shapes.rectangle(cx - 3, cy, 2, 1))
-    screen.draw(shapes.rectangle(cx, cy + 2, 1, 2))
-    screen.draw(shapes.rectangle(cx, cy - 3, 1, 2))
+    screen.shape(shapes.rectangle(cx + 2, cy, 2, 1))
+    screen.shape(shapes.rectangle(cx - 3, cy, 2, 1))
+    screen.shape(shapes.rectangle(cx, cy + 2, 1, 2))
+    screen.shape(shapes.rectangle(cx, cy - 3, 1, 2))

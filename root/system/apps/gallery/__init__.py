@@ -9,7 +9,7 @@ from badgeware import SpriteSheet, run
 
 mona = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1).animation()
 screen.font = PixelFont.load("/system/assets/fonts/nope.ppf")
-screen.antialias = Image.X2
+screen.antialias = image.X2
 
 ui_hidden = False
 
@@ -27,7 +27,7 @@ for file in os.listdir("images"):
 # load the thumbnail images to match
 thumbnails = []
 for file in files:
-    thumbnails.append(Image.load(f"thumbnails/{file["name"]}"))
+    thumbnails.append(image.load(f"thumbnails/{file["name"]}"))
 
 # given a gallery image index it clamps it into the range of available images
 
@@ -41,7 +41,7 @@ def clamp_index(index):
 def load_image(index):
     global image
     index = clamp_index(index)
-    image = Image.load(f"images/{files[index]["name"]}")
+    image = image.load(f"images/{files[index]["name"]}")
 
 # render the thumbnail strip
 
@@ -63,7 +63,7 @@ def draw_thumbnails():
 
         # draw the thumbnail shadow
         screen.pen = color.rgb(0, 0, 0, 50)
-        screen.draw(shapes.rectangle(
+        screen.shape(shapes.rectangle(
             pos[0] + 2, pos[1] + 2, thumbnail_image.width, thumbnail_image.height))
 
         # draw the active thumbnail outline
@@ -71,7 +71,7 @@ def draw_thumbnails():
             brightness = (math.sin(io.ticks / 200) * 127) + 127
             screen.pen = color.rgb(
                 brightness, brightness, brightness, 150)
-            screen.draw(shapes.rectangle(
+            screen.shape(shapes.rectangle(
                 pos[0] - 1, pos[1] - 1, thumbnail_image.width + 2, thumbnail_image.height + 2))
 
         screen.blit(thumbnail_image, *pos)
@@ -130,7 +130,7 @@ def update():
 
     if not ui_hidden:
         screen.pen = color.rgb(0, 0, 0, 100)
-        screen.draw(shapes.rounded_rectangle(
+        screen.shape(shapes.rounded_rectangle(
             80 - (width / 2) - 8, -6, width + 16, 22, 6))
         screen.text(title, 80 - (width / 2) + 1, 1)
         screen.pen = color.rgb(255, 255, 255)

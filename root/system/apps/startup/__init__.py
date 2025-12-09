@@ -28,7 +28,7 @@ def show_frame(i, alpha=255):
     screen.load_into(filename)
 
     screen.pen = color.rgb(0, 0, 0, 255 - alpha)
-    screen.draw(CLEAR)
+    screen.shape(CLEAR)
 
     # render the frame
     current_frame_filename = filename
@@ -68,7 +68,7 @@ def update():
         else:
             # Return control to the menu
             screen.pen = color.rgb(0, 0, 0)
-            screen.draw(CLEAR)
+            screen.shape(CLEAR)
             display.update()
             return False
 

@@ -520,14 +520,14 @@ def message(title, text, window=None):
     )
     heading = shapes.rounded_rectangle(0, 0, error_window.width, 12, 5, 5, 0, 0)
     error_window.pen = color.rgb(100, 100, 100, 200)
-    error_window.draw(background)
+    error_window.shape(background)
 
     error_window.pen = color.rgb(255, 100, 100, 200)
-    error_window.draw(heading)
+    error_window.shape(heading)
 
     error_window.pen = color.rgb(50, 100, 50)
     tw = 35
-    error_window.draw(
+    error_window.shape(
         shapes.rounded_rectangle(
             error_window.width - tw - 10, error_window.height - 12, tw, 12, 3, 3, 0, 0
         )

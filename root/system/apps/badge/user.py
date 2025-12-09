@@ -7,7 +7,7 @@ from lib import *
 class User:
   name = None # full name of user
   handle = None # github username
-  avatar = None # users avatar (type Image)
+  avatar = None # users avatar (type image)
   contributions = None # number of contributions
   repositories = None # number of repositories
   followers = None # number of followers
@@ -40,7 +40,7 @@ class User:
   # load the users avatar image
   def load_avatar(path):
     try:
-      User.avatar = Image.load(path)
+      User.avatar = image.load(path)
     except:
       return False
 

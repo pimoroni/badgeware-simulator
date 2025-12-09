@@ -9,7 +9,7 @@ from badgeware import SpriteSheet, is_dir, file_exists, run
 from icon import Icon
 import ui
 
-# screen.antialias = Image.X4
+# screen.antialias = image.X4
 
 # define the list of installed apps
 #
@@ -28,7 +28,7 @@ apps = [
 
 mona = SpriteSheet("/system/assets/mona-sprites/mona-default.png", 11, 1)
 screen.font = PixelFont.load("/system/assets/fonts/ark.ppf")
-# screen.antialias = Image.X2
+# screen.antialias = image.X2
 
 # find installed apps and create icons
 icons = []
@@ -40,7 +40,7 @@ for app in apps:
             x = len(icons) % 3
             y = math.floor(len(icons) / 3)
             pos = (x * 48 + 32, y * 48 + 42)
-            sprite = Image.load(f"/system/apps/{path}/icon.png")
+            sprite = image.load(f"/system/apps/{path}/icon.png")
             icons.append(Icon(pos, name, len(icons), sprite))
 
 active = 0
@@ -78,7 +78,7 @@ def update():
     label = f"{Icon.active_icon.name}"
     w, _ = screen.measure_text(label)
     screen.pen = ui.phosphor
-    shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4).draw()
+    screen.shape(shapes.rounded_rectangle(80 - (w / 2) - 4, 100, w + 8, 15, 4))
 
     screen.pen = color.rgb(20, 40, 60)
     screen.text(label, 80 - (w / 2), 101)
@@ -88,13 +88,13 @@ def update():
     screen.clear()
     alpha += 30
 
-  screen.antialias = Image.X4
+  screen.antialias = image.X4
   screen.pen = color.rgb(255, 255, 255)
   poly = shapes.custom(
     [(10, 10), (22, 12), (20, 20), (5, 18)],
     [(30, 10), (42, 12), (40, 20), (15, 18)]
   )
-  poly.draw()
+  screen.shape(poly)
 
   return None
 

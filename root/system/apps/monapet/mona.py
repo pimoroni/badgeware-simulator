@@ -64,8 +64,8 @@ class Mona:
 
     # draw monas shadow
     screen.pen = color.rgb(0, 0, 0, 20)
-    screen.draw(shapes.rectangle(x - (width / 2) + 5, y , width - 10, 2))
-    screen.draw(shapes.rectangle(x - (width / 2) + 5 + 2, y - 2, width - 10 - 4, 4))
+    screen.shape(shapes.rectangle(x - (width / 2) + 5, y , width - 10, 2))
+    screen.shape(shapes.rectangle(x - (width / 2) + 5 + 2, y - 2, width - 10 - 4, 4))
 
     # invert mona if they are walking left
     width *= self._direction

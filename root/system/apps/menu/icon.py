@@ -107,7 +107,7 @@ class Icon:
         # draw the icon shading
         screen.pen = shade_brush
         squircle.transform = squircle.transform.scale(1, 1)
-        squircle.draw()
+        screen.shape(squircle)
 
         # draw the icon body
         squircle.transform = squircle.transform.scale(1, 1)
@@ -116,10 +116,10 @@ class Icon:
         else:
             screen.pen = faded[self.index]
         squircle.transform = squircle.transform.translate(-1, -1)
-        squircle.draw()
+        screen.shape(squircle)
         squircle.transform = squircle.transform.translate(2, 2)
         screen.pen = shade_brush
-        squircle.draw()
+        screen.shape(squircle)
 
         # draw the icon sprite
         if sprite_width > 0:

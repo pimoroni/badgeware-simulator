@@ -33,7 +33,7 @@ def background(mona):
 
     # fill the wall background
     screen.pen = color.rgb(30, 50, 70)
-    screen.draw(shapes.rectangle(0, 0, 160, floor_y))
+    screen.shape(shapes.rectangle(0, 0, 160, floor_y))
 
     # animate the wallpaper
     screen.pen = color.rgb(30, 40, 20)
@@ -43,27 +43,27 @@ def background(mona):
             if (x + y) % 2 == 0:
                 xo = math.sin(io.ticks / 1000) * 2
                 yo = math.cos(io.ticks / 1000) * 2
-                screen.draw(shapes.rectangle(
+                screen.shape(shapes.rectangle(
                     x * 10 - mx, y * 10 - 3, xo + 4, yo + 4))
 
     # draw the picture frame
     px = 140 - mx
     screen.pen = color.rgb(80, 90, 100, 100)
-    screen.draw(shapes.line(px + 2, 20 + 2, px + 20, 15, 1))
-    screen.draw(shapes.line(px + 35 + 2, 20 + 2, px + 20, 15, 1))
+    screen.shape(shapes.line(px + 2, 20 + 2, px + 20, 15, 1))
+    screen.shape(shapes.line(px + 35 + 2, 20 + 2, px + 20, 15, 1))
     screen.pen = color.rgb(30, 40, 50, 100)
-    screen.draw(shapes.rectangle(px + 1, 20 + 1, 38, 28))
+    screen.shape(shapes.rectangle(px + 1, 20 + 1, 38, 28))
     screen.pen = color.rgb(50, 40, 30, 255)
-    screen.draw(shapes.rectangle(px, 20, 38, 28))
+    screen.shape(shapes.rectangle(px, 20, 38, 28))
     screen.pen = color.rgb(120, 130, 140, 255)
-    screen.draw(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
+    screen.shape(shapes.rectangle(px + 2, 20 + 2, 38 - 4, 28 - 4))
     portrait = mona._animations["heart"].frame(7)  # noqa: SLF001
     screen.blit(portrait, px + 8, 20)
 
     # draw the skirting board
     screen.pen = color.rgb(80, 90, 100, 150)
-    screen.draw(shapes.rectangle(0, floor_y - 5, 160, 5))
-    screen.draw(shapes.rectangle(0, floor_y - 4, 160, 1))
+    screen.shape(shapes.rectangle(0, floor_y - 5, 160, 5))
+    screen.shape(shapes.rectangle(0, floor_y - 4, 160, 1))
 
     # draw the outlet
     screen.blit(icons.sprite(3, 0), px - 20, floor_y - 18)
@@ -73,7 +73,7 @@ def background(mona):
 
     # draw background fill
     floor.pen = color.rgb(30, 40, 20)
-    floor.draw(shapes.rectangle(0, 0, 160, 120 - floor_y))
+    floor.shape(shapes.rectangle(0, 0, 160, 120 - floor_y))
 
     # draw angled "floorboard" lines centered on mona
     floor.pen = color.rgb(100, 200, 100, 25)
@@ -81,14 +81,14 @@ def background(mona):
         x1 = i - ((mona_x - i) * 1.5)
         x2 = i - ((mona_x - i) * 2)
         line = shapes.line(x1, 5, x2, 19, 2)
-        floor.draw(line)
+        floor.shape(line)
 
 # draw the title banner
 
 
 def draw_header():
     screen.pen = outline_brush
-    screen.draw(shapes.rounded_rectangle(40, -5, 160 - 80, 18, 3))
+    screen.shape(shapes.rounded_rectangle(40, -5, 160 - 80, 18, 3))
 
     screen.pen = color.rgb(255, 255, 255)
     center_text("mona pet", 0)
@@ -116,11 +116,11 @@ def draw_bar(name, x, y, amount):
     bar_width = 50
 
     screen.pen = outline_brush
-    screen.draw(shapes.rounded_rectangle(x, y, bar_width, 12, 3))
+    screen.shape(shapes.rounded_rectangle(x, y, bar_width, 12, 3))
 
     # draw the bar background
     screen.pen = outline_brush
-    screen.draw(shapes.rounded_rectangle(x + 14, y + 3, bar_width - 17, 6, 2))
+    screen.shape(shapes.rounded_rectangle(x + 14, y + 3, bar_width - 17, 6, 2))
 
     # calculate how wide the bar "fill" is and clamp it to at least 3 pixels
     fill_width = round(max(((bar_width - 17) / 100) * amount, 3))
@@ -131,10 +131,10 @@ def draw_bar(name, x, y, amount):
         blink = round(io.ticks / 250) % 2 == 0
         if blink:
             screen.pen = stats_brush["warning"]
-    screen.draw(shapes.rounded_rectangle(x + 14, y + 3, fill_width, 6, 2))
+    screen.shape(shapes.rounded_rectangle(x + 14, y + 3, fill_width, 6, 2))
 
     screen.pen = color.rgb(210, 230, 250, 50)
-    screen.draw(shapes.rounded_rectangle(x + 15, y + 3, fill_width - 2, 1, 1))
+    screen.shape(shapes.rounded_rectangle(x + 15, y + 3, fill_width - 2, 1, 1))
 
     screen.blit(stats_icons[name], x, y)
 

@@ -13,7 +13,7 @@ from badgeware import State, run
 from picovector import dda
 from badgeware import SpriteSheet
 
-background = Image.load("assets/background.png")
+background = image.load("assets/background.png")
 screen.font = PixelFont.load("/system/assets/fonts/nope.ppf")
 
 

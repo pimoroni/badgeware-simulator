@@ -116,7 +116,7 @@ def on_exit():
 #                 mul = sin(io.ticks / 1000) * 14000
 #                 squircle.transform = Matrix().translate(42, 75).rotate(
 #                     (io.ticks + i * mul) / 40).scale(1 + i / 1.3)
-#                 screen.draw(squircle)
+#                 screen.shape(squircle)
 #         else:
 #             screen.blit(self.avatar, 5, 37)
 
@@ -191,7 +191,7 @@ def on_exit():
 #                     # skip tiles that aren't in view
 #                     continue
 #                 rect.transform = Matrix().translate(*pos)
-#                 screen.draw(rect)
+#                 screen.shape(rect)
 
 #         # draw handle
 #         screen.font = large_font
@@ -246,7 +246,7 @@ def on_exit():
 #                 mul = sin(io.ticks / 1000) * 14000
 #                 squircle.transform = Matrix().translate(42, 75).rotate(
 #                     (io.ticks + i * mul) / 40).scale(1 + i / 1.3)
-#                 screen.draw(squircle)
+#                 screen.shape(squircle)
 #         else:
 #             screen.blit(self.avatar, 5, 37)
 
@@ -299,7 +299,7 @@ def on_exit():
 #     global connected, force_update
 
 #     screen.pen = color.rgb(0, 0, 0)
-#     screen.draw(shapes.rectangle(0, 0, 160, 120))
+#     screen.shape(shapes.rectangle(0, 0, 160, 120))
 
 #     force_update = False
 
@@ -309,7 +309,7 @@ def on_exit():
 
 #     if get_connection_details(user):
 #         if wlan_start():
-#             user.draw(connected)
+#             user.shape(connected)
 #         else:  # Connection Failed
 #             connection_error()
 #     else:      # Get Details Failed
