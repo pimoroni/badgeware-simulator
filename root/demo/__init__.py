@@ -7,7 +7,7 @@ def update():
   global selected_item
 
   # clear the framebuffer
-  screen.brush = brushes.color(0, 0, 0)
+  screen.pen = color.rgb(0, 0, 0)
   screen.clear()
 
   # adjust selected item index based on button presses
@@ -21,7 +21,7 @@ def update():
   selected_item %= len(menu_items)
 
   # draw the menu on the screen
-  screen.brush = brushes.color(255, 255, 255)
+  screen.pen = color.rgb(255, 255, 255)
   for i in range(len(menu_items)):
     # if this is the selected item then highlight it
     if i == selected_item:
@@ -45,7 +45,7 @@ def update():
   global dir_x, dir_y, pos_x, pos_y
 
   # clear the framebuffer
-  screen.brush = brushes.color(0, 0, 0)
+  screen.pen = color.rgb(0, 0, 0)
   screen.clear()
 
   if io.BUTTON_A in io.held:
@@ -72,11 +72,11 @@ def update():
     pos_y = 60
 
   # draw the floor
-  screen.brush = brushes.color(255, 255, 255)
+  screen.pen = color.rgb(255, 255, 255)
   screen.draw(shapes.rectangle(0, 60, 160, 10))
 
   # draw the character
-  screen.brush = brushes.color(255, 0, 255)
+  screen.pen = color.rgb(255, 0, 255)
   screen.draw(shapes.circle(pos_x, pos_y, 3))
 
 #"""

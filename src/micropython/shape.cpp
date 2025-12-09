@@ -11,8 +11,9 @@ extern "C" {
     m_del_class(shape_t, self->shape);
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_1(shape__del___obj, shape__del__);
 
-  mp_obj_t shapes_custom(size_t n_args, const mp_obj_t *args) {
+  MPY_BIND_STATICMETHOD_VAR(1, custom, {
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = new(PV_MALLOC(sizeof(shape_t))) shape_t(1);
 
@@ -55,118 +56,120 @@ extern "C" {
     }
 
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_regular_polygon(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float r = mp_obj_get_float(pos_args[2]);
-    int s = mp_obj_get_float(pos_args[3]);
+  MPY_BIND_STATICMETHOD_VAR(4, regular_polygon, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float r = mp_obj_get_float(args[2]);
+    int s = mp_obj_get_float(args[3]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = regular_polygon(x, y, s, r);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_circle(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float r = mp_obj_get_float(pos_args[2]);
+  MPY_BIND_STATICMETHOD_VAR(3, circle, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float r = mp_obj_get_float(args[2]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = circle(x, y, r);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_rectangle(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float w = mp_obj_get_float(pos_args[2]);
-    float h = mp_obj_get_float(pos_args[3]);
+  MPY_BIND_STATICMETHOD_VAR(4, rectangle, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float w = mp_obj_get_float(args[2]);
+    float h = mp_obj_get_float(args[3]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = rectangle(x, y, w, h);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_rounded_rectangle(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float w = mp_obj_get_float(pos_args[2]);
-    float h = mp_obj_get_float(pos_args[3]);
-    float r1 = mp_obj_get_float(pos_args[4]);
-    float r2 = r1, r3 = r1, r4 = r1;
-    if(n_args >= 6) { r2 = mp_obj_get_float(pos_args[5]); }
-    if(n_args >= 7) { r3 = mp_obj_get_float(pos_args[6]); }
-    if(n_args >= 8) { r4 = mp_obj_get_float(pos_args[7]); }
+  MPY_BIND_STATICMETHOD_VAR(5, rounded_rectangle, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float w = mp_obj_get_float(args[2]);
+    float h = mp_obj_get_float(args[3]);
+    float r1 = mp_obj_get_float(args[4]);
+    float r2 = r1;
+    float r3 = r1;
+    float r4 = r1;
+    if(n_args >= 6) { r2 = mp_obj_get_float(args[5]); }
+    if(n_args >= 7) { r3 = mp_obj_get_float(args[6]); }
+    if(n_args >= 8) { r4 = mp_obj_get_float(args[7]); }
 
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = rounded_rectangle(x, y, w, h, r1, r2, r3, r4);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_squircle(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float s = mp_obj_get_float(pos_args[2]);
+  MPY_BIND_STATICMETHOD_VAR(3, squircle, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float s = mp_obj_get_float(args[2]);
     float n = 4.0f;
     if(n_args == 4) {
-      n = mp_obj_get_float(pos_args[3]);
+      n = mp_obj_get_float(args[3]);
       n = max(2.0f, n);
       n = max(2.0f, n);
     }
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = squircle(x, y, s, n);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_arc(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float r = mp_obj_get_float(pos_args[2]);
-    float f = mp_obj_get_float(pos_args[3]);
-    float t = mp_obj_get_float(pos_args[4]);
+  MPY_BIND_STATICMETHOD_VAR(4, arc, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float r = mp_obj_get_float(args[2]);
+    float f = mp_obj_get_float(args[3]);
+    float t = mp_obj_get_float(args[4]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = arc(x, y, f, t, r);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_pie(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    float r = mp_obj_get_float(pos_args[2]);
-    float f = mp_obj_get_float(pos_args[3]);
-    float t = mp_obj_get_float(pos_args[4]);
+  MPY_BIND_STATICMETHOD_VAR(4, pie, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    float r = mp_obj_get_float(args[2]);
+    float f = mp_obj_get_float(args[3]);
+    float t = mp_obj_get_float(args[4]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = pie(x, y, f, t, r);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_star(size_t n_args, const mp_obj_t *pos_args) {
-    float x = mp_obj_get_float(pos_args[0]);
-    float y = mp_obj_get_float(pos_args[1]);
-    int s = mp_obj_get_float(pos_args[2]);
-    float ro = mp_obj_get_float(pos_args[3]);
-    float ri = mp_obj_get_float(pos_args[4]);
+  MPY_BIND_STATICMETHOD_VAR(4, star, {
+    float x = mp_obj_get_float(args[0]);
+    float y = mp_obj_get_float(args[1]);
+    int s = mp_obj_get_float(args[2]);
+    float ro = mp_obj_get_float(args[3]);
+    float ri = mp_obj_get_float(args[4]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = star(x, y, s, ro, ri);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_line(size_t n_args, const mp_obj_t *pos_args) {
-    float x1 = mp_obj_get_float(pos_args[0]);
-    float y1 = mp_obj_get_float(pos_args[1]);
-    float x2 = mp_obj_get_float(pos_args[2]);
-    float y2 = mp_obj_get_float(pos_args[3]);
-    float w = mp_obj_get_float(pos_args[4]);
+  MPY_BIND_STATICMETHOD_VAR(5, line, {
+    float x1 = mp_obj_get_float(args[0]);
+    float y1 = mp_obj_get_float(args[1]);
+    float x2 = mp_obj_get_float(args[2]);
+    float y2 = mp_obj_get_float(args[3]);
+    float w = mp_obj_get_float(args[4]);
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_Shape);
     shape->shape = line(x1, y1, x2, y2, w);
     return MP_OBJ_FROM_PTR(shape);
-  }
+  })
 
-  mp_obj_t shapes_stroke(size_t n_args, const mp_obj_t *pos_args) {
-    const shape_obj_t *self = (shape_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
-    float width = mp_obj_get_float(pos_args[1]);
+  MPY_BIND_VAR(1, stroke, {
+    const shape_obj_t *self = (shape_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    float width = mp_obj_get_float(args[1]);
     self->shape->stroke(width);
     return MP_OBJ_FROM_PTR(self);
-  }
+  })
 
   static void shape_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, shape_obj_t);
@@ -231,11 +234,11 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
-  mp_obj_t shape_draw(size_t n_args, const mp_obj_t *pos_args) {
-    const shape_obj_t *self = (shape_obj_t *)MP_OBJ_TO_PTR(pos_args[0]);
+  mp_obj_t shape_draw(size_t n_args, const mp_obj_t *args) {
+    const shape_obj_t *self = (shape_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
     if(n_args == 2) {
-      const image_obj_t *image = (image_obj_t *)MP_OBJ_TO_PTR(pos_args[1]);
+      const image_obj_t *image = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
       image->image->draw(self->shape);
     }else{
       default_target->image->draw(self->shape);
@@ -272,20 +275,17 @@ extern "C" {
 
     return mp_const_none;
   }
+  static MP_DEFINE_CONST_FUN_OBJ_VAR(shape_draw_obj, 1, shape_draw);
 
   /*
     micropython bindings
   */
-  static MP_DEFINE_CONST_FUN_OBJ_1(shape__del___obj, shape__del__);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_stroke_obj, 1, shapes_stroke);
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shape_draw_obj, 1, shape_draw);
 
-  static const mp_rom_map_elem_t shape_locals_dict_table[] = {
+  MPY_BIND_LOCALS_DICT(shape,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&shape__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_stroke), MP_ROM_PTR(&shapes_stroke_obj) },
+      MPY_BIND_ROM_PTR(stroke),
       { MP_ROM_QSTR(MP_QSTR_draw), MP_ROM_PTR(&shape_draw_obj) },
-  };
-  static MP_DEFINE_CONST_DICT(shape_locals_dict, shape_locals_dict_table);
+  )
 
   MP_DEFINE_CONST_OBJ_TYPE(
       type_Shape,
@@ -295,50 +295,18 @@ extern "C" {
       locals_dict, &shape_locals_dict
   );
 
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_custom_obj, 1, shapes_custom);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_custom_static_obj, MP_ROM_PTR(&shapes_custom_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_regular_polygon_obj, 4, shapes_regular_polygon);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_regular_polygon_static_obj, MP_ROM_PTR(&shapes_regular_polygon_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_rectangle_obj, 4, shapes_rectangle);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_rectangle_static_obj, MP_ROM_PTR(&shapes_rectangle_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_rounded_rectangle_obj, 5, shapes_rounded_rectangle);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_rounded_rectangle_static_obj, MP_ROM_PTR(&shapes_rounded_rectangle_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_squircle_obj, 3, shapes_squircle);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_squircle_static_obj, MP_ROM_PTR(&shapes_squircle_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_circle_obj, 3, shapes_circle);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_circle_static_obj, MP_ROM_PTR(&shapes_circle_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_arc_obj, 4, shapes_arc);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_arc_static_obj, MP_ROM_PTR(&shapes_arc_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_pie_obj, 4, shapes_pie);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_pie_static_obj, MP_ROM_PTR(&shapes_pie_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_star_obj, 4, shapes_star);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_star_static_obj, MP_ROM_PTR(&shapes_star_obj));
-
-  static MP_DEFINE_CONST_FUN_OBJ_VAR(shapes_line_obj, 5, shapes_line);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(shapes_line_static_obj, MP_ROM_PTR(&shapes_line_obj));
-
-  static const mp_rom_map_elem_t shapes_locals_dict_table[] = {
-    { MP_ROM_QSTR(MP_QSTR_custom), MP_ROM_PTR(&shapes_custom_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_regular_polygon), MP_ROM_PTR(&shapes_regular_polygon_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_squircle), MP_ROM_PTR(&shapes_squircle_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_circle), MP_ROM_PTR(&shapes_circle_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rectangle), MP_ROM_PTR(&shapes_rectangle_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_rounded_rectangle), MP_ROM_PTR(&shapes_rounded_rectangle_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_arc), MP_ROM_PTR(&shapes_arc_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_pie), MP_ROM_PTR(&shapes_pie_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_star), MP_ROM_PTR(&shapes_star_static_obj) },
-    { MP_ROM_QSTR(MP_QSTR_line), MP_ROM_PTR(&shapes_line_static_obj) },
-
-  };
-  static MP_DEFINE_CONST_DICT(shapes_locals_dict, shapes_locals_dict_table);
+  MPY_BIND_LOCALS_DICT(shapes,
+    MPY_BIND_ROM_PTR_STATIC(custom),
+    MPY_BIND_ROM_PTR_STATIC(regular_polygon),
+    MPY_BIND_ROM_PTR_STATIC(squircle),
+    MPY_BIND_ROM_PTR_STATIC(circle),
+    MPY_BIND_ROM_PTR_STATIC(rectangle),
+    MPY_BIND_ROM_PTR_STATIC(rounded_rectangle),
+    MPY_BIND_ROM_PTR_STATIC(arc),
+    MPY_BIND_ROM_PTR_STATIC(pie),
+    MPY_BIND_ROM_PTR_STATIC(star),
+    MPY_BIND_ROM_PTR_STATIC(line),
+  )
 
   MP_DEFINE_CONST_OBJ_TYPE(
       type_Shapes,

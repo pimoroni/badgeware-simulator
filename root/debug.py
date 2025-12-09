@@ -25,7 +25,7 @@ mem_averages = []
 def draw_graph(title, graph, x, y, bar_width=8, bar_height=100, max_value=None):
     debug.text(title, x, y)
     debug.pen = color.rgb(255, 0, 0)
-    shapes.line(0, y, debug.width, y, 2).draw(debug)
+    debug.draw(shapes.line(0, y, debug.width, y, 2))
     debug.pen = color.rgb(255, 255, 255)
     _tw, th = debug.measure_text(title)
     y += th + 5
@@ -34,9 +34,9 @@ def draw_graph(title, graph, x, y, bar_width=8, bar_height=100, max_value=None):
         for avg in graph:
             if avg > 0:
                 avg = int(avg / max_avg * bar_height)
-            shapes.rectangle(x, y + bar_height - avg, bar_width, avg).draw(debug)
+            debug.draw(shapes.rectangle(x, y + bar_height - avg, bar_width, avg))
             x += bar_width + 1
-    shapes.line(0, y + bar_height, debug.width, y + bar_height, 2).draw(debug)
+    debug.draw(shapes.line(0, y + bar_height, debug.width, y + bar_height, 2))
     return th + 5 + bar_height
 
 

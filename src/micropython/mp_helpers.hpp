@@ -7,6 +7,10 @@ extern "C" {
 
 // Binding shortcuts
 
+#define MPY_BIND_STATICMETHOD_ARGS0(fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(void) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_0(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);\
+  static MP_DEFINE_CONST_STATICMETHOD_OBJ(mpy_binding_##fn_name##_static_obj, MP_ROM_PTR(&mpy_binding_##fn_name##_obj));
+
 #define MPY_BIND_STATICMETHOD_ARGS1(fn_name, arg1, fn_body) static mp_obj_t mpy_binding_##fn_name(mp_obj_t arg1) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_1(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);\
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(mpy_binding_##fn_name##_static_obj, MP_ROM_PTR(&mpy_binding_##fn_name##_obj));
@@ -24,7 +28,11 @@ extern "C" {
 #define MPY_BIND_CLASSMETHOD_ARGS0(fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(mp_obj_t self_in) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_1(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);
 
-#define MPY_BIND_ARGS1(fn_name, arg1, fn_body)
+#define MPY_BIND_ARGS0(fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(void) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_0(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);
+
+#define MPY_BIND_ARGS1(fn_name, arg1, fn_body) static mp_obj_t mpy_binding_##fn_name(mp_obj_t arg1) fn_body\
+  static MP_DEFINE_CONST_FUN_OBJ_1(mpy_binding_##fn_name##_obj, mpy_binding_##fn_name);
 
 
 // Var args with lower bounds
@@ -38,7 +46,10 @@ extern "C" {
 #define MPY_BIND_DEL(fn_name, fn_body) static mp_obj_t fn_name##__del__(mp_obj_t self_in) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_1(fn_name##__del___obj, fn_name##__del__);
 
-#define MPY_BIND_ATTR(fn_name, fn_body) static void fn_name##_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) fn_body
+// "attr" used for both class attrs and REGISTER_MODULE_DELEGATION
+// In the latter case it must not be "static" since it needs to be visible
+// to _mp_builtin_module_delegation_table in objmodule.c.o
+#define MPY_BIND_ATTR(fn_name, fn_body) void fn_name##_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) fn_body
 
 #define MPY_BIND_ROM_PTR(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&mpy_binding_##name##_obj) }
 #define MPY_BIND_ROM_PTR_STATIC(name) { MP_ROM_QSTR(MP_QSTR_##name), MP_ROM_PTR(&mpy_binding_##name##_static_obj) }

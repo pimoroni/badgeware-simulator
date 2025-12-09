@@ -62,11 +62,8 @@ extern "C" {
     return seek_s.offset;
   }
 
-
-
   void pngdec_decode_callback(PNGDRAW *pDraw) {
     image_t *target = (image_t *)pDraw->pUser;
-
 
     uint8_t *psrc = (uint8_t *)pDraw->pPixels;
     int w = pDraw->iWidth;

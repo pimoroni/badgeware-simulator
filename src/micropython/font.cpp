@@ -8,7 +8,7 @@ extern "C" {
   #include "py/runtime.h"
   #include "extmod/vfs.h"
 
-  static mp_obj_t font__del__(mp_obj_t self_in) {
+  MPY_BIND_DEL(font, {
     self(self_in, font_obj_t);
 #if MICROPY_MALLOC_USES_ALLOCATED_SIZE
     m_free(self->buffer, self->buffer_size);
@@ -16,10 +16,9 @@ extern "C" {
     m_free(self->buffer);
 #endif
     return mp_const_none;
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_1(font__del___obj, font__del__);
+  })
 
-  static mp_obj_t font_load(mp_obj_t path) {
+  MPY_BIND_STATICMETHOD_ARGS1(load, path, {
     //const char *s = mp_obj_str_get_str(path);
     font_obj_t *result = mp_obj_malloc_with_finaliser(font_obj_t, &type_Font);
 
@@ -36,7 +35,10 @@ extern "C" {
     // mp_int_t size = mp_obj_get_int(tuple->items[6]);
 
     // open the file for binary reading
-    mp_obj_t args[2] = {path, MP_ROM_QSTR(MP_QSTR_r)};
+    //mp_obj_t args[2] = {path, MP_ROM_QSTR(MP_QSTR_r)} // Brace enclosed initialiser lists don't work in the binding macros :(
+    mp_obj_t args[2]; 
+    args[0] = path;
+    args[1] = MP_ROM_QSTR(MP_QSTR_r);;
     mp_obj_t file = mp_vfs_open(MP_ARRAY_SIZE(args), args, (mp_map_t *)&mp_const_empty_map);
 
     int error;
@@ -112,22 +114,18 @@ extern "C" {
     mp_stream_close(file);
 
     return MP_OBJ_FROM_PTR(result);
-  }
-  static MP_DEFINE_CONST_FUN_OBJ_1(font_load_obj, font_load);
-  static MP_DEFINE_CONST_STATICMETHOD_OBJ(font_load_static_obj, MP_ROM_PTR(&font_load_obj));
+  })
 
-  static const mp_rom_map_elem_t font_locals_dict_table[] = {
-      { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&font__del___obj) },
-      { MP_ROM_QSTR(MP_QSTR_load), MP_ROM_PTR(&font_load_static_obj) },
-
-  };
-  static MP_DEFINE_CONST_DICT(font_locals_dict, font_locals_dict_table);
+  MPY_BIND_LOCALS_DICT(font,
+    MPY_BIND_ROM_PTR_DEL(font),
+    MPY_BIND_ROM_PTR_STATIC(load),
+  )
 
   MP_DEFINE_CONST_OBJ_TYPE(
-      type_Font,
-      MP_QSTR_Font,
-      MP_TYPE_FLAG_NONE,
-      locals_dict, &font_locals_dict
+    type_Font,
+    MP_QSTR_Font,
+    MP_TYPE_FLAG_NONE,
+    locals_dict, &font_locals_dict
   );
 
 }
