@@ -38,6 +38,7 @@ extern "C" {
     brush_obj_t *brush;
     font_obj_t *font;
     pixel_font_obj_t *pixel_font;
+    void *parent;
   } image_obj_t;
 
   mp_obj_t image__del__(mp_obj_t self_in) {
@@ -104,6 +105,7 @@ extern "C" {
     int h = mp_obj_get_int(pos_args[4]);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_Image);
     result->image = new(m_malloc(sizeof(image_t))) image_t(self->image, rect_t(x, y, w, h));
+    result->parent = (void*)self;
     return MP_OBJ_FROM_PTR(result);
   }
   static MP_DEFINE_CONST_FUN_OBJ_VAR(image_window_obj, 5, image_window);
