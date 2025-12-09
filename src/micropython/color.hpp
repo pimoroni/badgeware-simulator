@@ -133,7 +133,7 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
-  MPY_BIND_LOCALS_DICT(
+  MPY_BIND_LOCALS_DICT(color,
     MPY_BIND_ROM_PTR_STATIC(rgb),
     MPY_BIND_ROM_PTR_STATIC(hsv),
     MPY_BIND_ROM_PTR_STATIC(oklch),
@@ -147,7 +147,7 @@ extern "C" {
       MP_QSTR_color,
       MP_TYPE_FLAG_NONE,
       attr, (const void *)attr,
-      locals_dict, &locals_dict
+      locals_dict, &color_locals_dict
   );
 
 }
