@@ -409,7 +409,7 @@ int badgeware_screenshot(void *buffer, const char *fn) {
         return -1;
     }
     debug_printf("badgeware_screenshot: Saving to %s\n", filename);
-    return stbi_write_png((const char*)filename, 160, 120, 4, buffer, 0);
+    return stbi_write_png((const char*)filename, screen_width, screen_height, 4, buffer, 0);
 }
 
 void badgeware_trigger_hot_reload(void) {
