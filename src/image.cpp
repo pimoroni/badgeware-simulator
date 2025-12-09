@@ -471,8 +471,9 @@ int clip_line_cs(int *x0, int *y0, int *x1, int *y1,
     int sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;
 
+
     for (;;) {
-        this->pixel(x0, y0);
+        this->put_unsafe(x0, y0);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy) { err += dy; x0 += sx; }
@@ -481,22 +482,30 @@ int clip_line_cs(int *x0, int *y0, int *x1, int *y1,
   }
 
   void image_t::put(const point_t &p) {
-    this->pixel(p.x, p.y);
+    this->put(p.x, p.y);
+  }
+
+  void image_t::put(int x, int y) {
+    x = max(int(_bounds.x), min(x, int(_bounds.x + _bounds.w - 1)));
+    y = max(int(_bounds.y), min(y, int(_bounds.y + _bounds.h - 1)));
+    this->put_unsafe(x, y);
+  }
+
+  void image_t::put_unsafe(int x, int y) {
+    this->_brush->render_span(this, x, y, 1);
   }
 
   uint32_t image_t::get(const point_t &p) {
-    int x = p.x;
-    int y = p.y;
-    if(p.x < _bounds.x | p.x >= _bounds.x + _bounds.w |
-       p.y < _bounds.y | p.y >= _bounds.y + _bounds.h) {
-      return 0;
-    }
-    return *(uint32_t*)this->ptr(p.x, p.y);
+    return this->get(p.x, p.y);
   }
 
+  uint32_t image_t::get(int x, int y) {
+    x = max(int(_bounds.x), min(x, int(_bounds.x + _bounds.w - 1)));
+    y = max(int(_bounds.y), min(y, int(_bounds.y + _bounds.h - 1)));
+    return this->get_unsafe(x, y);
+  }
 
-
-  uint32_t image_t::pixel_unsafe(int x, int y) {
+  uint32_t image_t::get_unsafe(int x, int y) {
     if(this->_has_palette) {
       uint8_t pi = *((uint8_t *)ptr(x, y));
       return this->_palette[pi];
@@ -504,10 +513,6 @@ int clip_line_cs(int *x0, int *y0, int *x1, int *y1,
     return *((uint32_t *)ptr(x, y));
   }
 
-  uint32_t image_t::pixel(int x, int y) {
-    x = max(int(_bounds.x), min(x, int(_bounds.x + _bounds.w - 1)));
-    y = max(int(_bounds.y), min(y, int(_bounds.y + _bounds.h - 1)));
-    return this->pixel_unsafe(x, y);
-  }
+
 
 }

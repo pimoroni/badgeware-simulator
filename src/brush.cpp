@@ -121,7 +121,7 @@ namespace picovector {
       p.y += pd.y;
       int u = (int(p.x) % tw + tw) % tw;
       int v = (int(p.y) % th + th) % th;
-      uint32_t c = src->pixel_unsafe(u, v);
+      uint32_t c = src->get_unsafe(u, v);
       _blend_rgba_rgba(dst, (uint8_t*)&c);
       dst += 4;
       dst += 4;
@@ -150,7 +150,7 @@ namespace picovector {
       p.y += pd.y;
       int u = (int(p.x) % tw + tw) % tw;
       int v = (int(p.y) % th + th) % th;
-      uint32_t c = src->pixel_unsafe(u, v);
+      uint32_t c = src->get_unsafe(u, v);
       _blend_rgba_rgba(dst, (uint8_t*)&c, *sb);
       dst += 4;
       sb++;

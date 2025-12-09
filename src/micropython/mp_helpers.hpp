@@ -55,9 +55,12 @@ extern "C" {
 #define m_new_class(cls, ...) new(m_new(cls, 1)) cls(__VA_ARGS__)
 #define m_del_class(cls, ptr) ptr->~cls(); m_del(cls, ptr, 1)
 
-typedef enum {GET = 0b1 << 31, SET = 0b1 << 30, DELETE = 0b1 << 29} action_t;
+constexpr size_t GET = 0b1 << 31;
+constexpr size_t SET = 0b1 << 30;
+constexpr size_t DELETE = 0b1 << 29;
 
 // m_attr_action, defined in picovector.cpp
+typedef size_t action_t;
 extern action_t m_attr_action(mp_obj_t *dest);
 
 // file reading helpers, defined in picovector.cpp

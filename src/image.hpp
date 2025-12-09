@@ -99,7 +99,11 @@ namespace picovector {
       void ellipse(const point_t &p, const int &rx, const int &ry);
       void line(point_t p1, point_t p2);
       void put(const point_t &p1);
+      void put(int x, int y);
+      void put_unsafe(int x, int y);
       uint32_t get(const point_t &p1);
+      uint32_t get(int x, int y);
+      uint32_t get_unsafe(int x, int y);
 
 // pixel(x, y, col) or set(x, y, col)
 // 	•	line(x0, y0, x1, y1)

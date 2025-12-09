@@ -25,6 +25,8 @@ extern "C" {
   extern const mp_obj_type_t type_PixelFont;
   extern const mp_obj_type_t type_Shape;
   extern const mp_obj_type_t type_Shapes;
+  extern const mp_obj_type_t type_rect;
+  extern const mp_obj_type_t type_point;
 
   typedef struct _brush_obj_t {
     mp_obj_base_t base;
@@ -41,7 +43,7 @@ extern "C" {
     mp_obj_base_t base;
     mat3_t m;
   } matrix_obj_t;
-  
+
   typedef struct _png_handle_t {
     mp_obj_t fhandle;
   } png_handle_t;
@@ -75,6 +77,16 @@ extern "C" {
     pixel_font_obj_t *pixel_font;
     void *parent;
   } image_obj_t;
+
+  typedef struct _rect_obj_t {
+    mp_obj_base_t base;
+    rect_t rect;
+  } rect_obj_t;
+
+  typedef struct _point_obj_t {
+    mp_obj_base_t base;
+    point_t point;
+  } point_obj_t;
 
   // used by image.pen = N and picovector.pen() (global pen)
   extern brush_obj_t *mp_obj_to_brush(size_t n_args, const mp_obj_t *args);

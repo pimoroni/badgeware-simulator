@@ -47,6 +47,7 @@ extern "C" {
     if(n_args == 1 && mp_obj_is_type(args[0], &type_brush)) {
       return (brush_obj_t *)args[0];
     }
+
     if(n_args == 1 && mp_obj_is_type(args[0], &type_color)) {
       color_obj_t *color = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
       brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
@@ -68,12 +69,12 @@ extern "C" {
 
   mp_obj_t modpicovector_pen(size_t n_args, const mp_obj_t *args) {
     brush_obj_t *new_brush = mp_obj_to_brush(n_args, args);
-  
+
     if(!new_brush){
       mp_raise_TypeError(MP_ERROR_TEXT("value must be of type brush or color"));
     }
-  
-    // TODO: This should set a GLOBAL brush along with other state on 
+
+    // TODO: This should set a GLOBAL brush along with other state on
     // picovector, and the default target (an image) should then use the
     // global brush for painting
     if(default_target) {
@@ -208,7 +209,7 @@ extern "C" {
 
 
   void modpicovector_attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
-    action_t action = m_attr_action(dest);
+    size_t action = m_attr_action(dest);
 
     switch(attr) {
       case MP_QSTR_default_target: {

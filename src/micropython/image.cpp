@@ -80,7 +80,7 @@ MPY_BIND_VAR(2, draw, {
   })
 
 
-MPY_BIND_VAR(4, rectangle, {
+MPY_BIND_VAR(5, rectangle, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     int x = mp_obj_get_int(args[1]);
     int y = mp_obj_get_int(args[2]);
@@ -90,6 +90,32 @@ MPY_BIND_VAR(4, rectangle, {
     return mp_const_none;
   })
 
+MPY_BIND_VAR(5, line, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    int x1 = mp_obj_get_int(args[1]);
+    int y1 = mp_obj_get_int(args[2]);
+    int x2 = mp_obj_get_int(args[3]);
+    int y2 = mp_obj_get_int(args[4]);
+    self->image->line(point_t(x1, y1), point_t(x2, y2));
+    return mp_const_none;
+  })
+
+MPY_BIND_VAR(3, get, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    int x = mp_obj_get_int(args[1]);
+    int y = mp_obj_get_int(args[2]);
+    color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
+    color->c = self->image->get(x, y);
+    return MP_OBJ_FROM_PTR(color);
+  })
+
+MPY_BIND_VAR(3, put, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    int x = mp_obj_get_int(args[1]);
+    int y = mp_obj_get_int(args[2]);
+    self->image->put(x, y);
+    return mp_const_none;
+  })
 
 MPY_BIND_VAR(3, text, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
@@ -315,6 +341,9 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR(window),
       MPY_BIND_ROM_PTR(clear),
       MPY_BIND_ROM_PTR(rectangle),
+      MPY_BIND_ROM_PTR(line),
+      MPY_BIND_ROM_PTR(get),
+      MPY_BIND_ROM_PTR(put),
       MPY_BIND_ROM_PTR(text),
       MPY_BIND_ROM_PTR(measure_text),
       MPY_BIND_ROM_PTR(vspan_tex),

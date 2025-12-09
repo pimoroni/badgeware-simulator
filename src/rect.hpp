@@ -94,14 +94,22 @@ namespace picovector {
       return !i.empty();
     }
 
-    void shrink(int a) {
-      x += a;
-      y += a;
-      w -= a + a;
-      h -= a + a;
+    void inflate(float a) {
+      this->inflate(a, a, a, a);
     }
 
-    void shrink(float left, float top, float right, float bottom) {
+    void inflate(float left, float top, float right, float bottom) {
+      x -= left;
+      y -= top;
+      w += left + right;
+      h += top + bottom;
+    }
+
+    void deflate(float a) {
+      this->deflate(a, a, a, a);
+    }
+
+    void deflate(float left, float top, float right, float bottom) {
       x += left;
       y += top;
       w -= left + right;

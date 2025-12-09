@@ -1,2 +1,2 @@
 reset
-make -j8 && ./build/micropython code=./test/main.py
+make -j && ./build/micropython code=./test/main.py

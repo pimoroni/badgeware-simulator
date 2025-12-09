@@ -117,6 +117,15 @@ extern "C" {
         _a(&self->c, (int)mp_obj_get_float(dest[1]));
         dest[0] = MP_OBJ_NULL;
         return;
+
+      case MP_QSTR_raw | GET:
+        dest[0] = mp_obj_new_int(self->c);
+        return;
+
+      case MP_QSTR_raw | SET:
+        self->c = mp_obj_get_int(dest[1]);
+        dest[0] = MP_OBJ_NULL;
+        return;
     };
 
     dest[1] = MP_OBJ_SENTINEL;
