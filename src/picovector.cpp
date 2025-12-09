@@ -12,7 +12,7 @@ using std::sort;
 // memory pool for rasterisation, png decoding, and other memory intensive
 // tasks (sized to fit PNGDEC state) - on pico it *must* be 32bit aligned (i
 // found out the hard way.)
-char __attribute__((aligned(4))) PicoVector_working_buffer[131072];
+char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 
 // This will completely break imgui or sokol or something
 //because these will be called before the MicroPython heap is initialised.

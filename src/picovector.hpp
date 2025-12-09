@@ -27,7 +27,8 @@
 #endif
 
 // TODO: bring back AA support
-extern char __attribute__((aligned(4))) PicoVector_working_buffer[131072];
+const size_t working_buffer_size = 50 * 1025;
+extern char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 
 
 namespace picovector {
