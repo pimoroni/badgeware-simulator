@@ -16,7 +16,7 @@ extern "C" {
   MPY_BIND_VAR(2, rotate, {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(args[0]);
     float a = mp_obj_get_float(args[1]);
-    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
+    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_mat3);
     result->m = self->m.rotate(a);
     return MP_OBJ_FROM_PTR(result);
   })
@@ -24,7 +24,7 @@ extern "C" {
   MPY_BIND_VAR(2, rotate_radians, {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(args[0]);
     float a = mp_obj_get_float(args[1]);
-    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
+    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_mat3);
     result->m = self->m.rotate_radians(a);
     return MP_OBJ_FROM_PTR(result);
   })
@@ -33,7 +33,7 @@ extern "C" {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(args[0]);
     float x = mp_obj_get_float(args[1]);
     float y = mp_obj_get_float(args[2]);
-    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
+    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_mat3);
     result->m = self->m.translate(x, y);
     return MP_OBJ_FROM_PTR(result);
   })
@@ -45,7 +45,7 @@ extern "C" {
     if(n_args > 2) {
       y = mp_obj_get_float(args[2]);
     }
-    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
+    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_mat3);
     result->m = self->m.scale(x, y);
     return MP_OBJ_FROM_PTR(result);
   })
@@ -53,7 +53,7 @@ extern "C" {
   MPY_BIND_VAR(2, multiply, {
     matrix_obj_t *self = (matrix_obj_t *)MP_OBJ_TO_PTR(args[0]);
     matrix_obj_t *other = (matrix_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_Matrix);
+    matrix_obj_t *result = mp_obj_malloc(matrix_obj_t, &type_mat3);
     result->m = self->m.multiply(other->m);
     return MP_OBJ_FROM_PTR(result);
   })
@@ -67,8 +67,8 @@ extern "C" {
   )
 
   MP_DEFINE_CONST_OBJ_TYPE(
-      type_Matrix,
-      MP_QSTR_Matrix,
+      type_mat3,
+      MP_QSTR_mat3,
       MP_TYPE_FLAG_NONE,
       make_new, (const void *)matrix_new,
       locals_dict, &matrix_locals_dict

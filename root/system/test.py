@@ -8,7 +8,7 @@ import math
 
 def magic_sprite(src, pos, scale=1, angle=0):
   w, h = src.width, src.height
-  t = Matrix().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h / 2)
+  t = mat3().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h / 2)
   imgbrush = brush.image(src, t)
   pen(imgbrush)
   rect = shape.rectangle(0, 0, w, h)
@@ -118,7 +118,7 @@ def update():
   screen.rectangle(r3)
 
   s = shape.custom([point(10, 10), point(20, 10), point(20, 20), point(10, 20)], [point(15, 15), point(25, 15), point(25, 25), point(15, 25)])
-  s.transform = Matrix().translate(160, 120).scale(5).rotate(io.ticks / 50)
+  s.transform = mat3().translate(160, 120).scale(5).rotate(io.ticks / 50)
   screen.shape(s)
 
   # for y in range(-80, 240, 60):

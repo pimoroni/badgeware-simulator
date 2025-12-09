@@ -5,7 +5,7 @@ extern const mp_obj_type_t type_image;
 extern const mp_obj_type_t type_color;
 extern const mp_obj_type_t type_Font;
 extern const mp_obj_type_t type_Input;
-extern const mp_obj_type_t type_Matrix;
+extern const mp_obj_type_t type_mat3;
 extern const mp_obj_type_t type_PixelFont;
 extern const mp_obj_type_t type_shape;
 extern const mp_obj_type_t type_rect;
