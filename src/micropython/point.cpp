@@ -20,6 +20,13 @@ extern "C" {
     return MP_OBJ_FROM_PTR(self);
   })
 
+  MPY_BIND_VAR(2, transform, {
+    point_obj_t *self = (point_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    mat3_obj_t *t = (mat3_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    self->point = self->point.transform(t->m);
+    return mp_const_none;
+  })
+
   static void attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
     self(self_in, point_obj_t);
 
@@ -49,6 +56,7 @@ extern "C" {
   }
 
   MPY_BIND_LOCALS_DICT(point,
+    MPY_BIND_ROM_PTR(transform),
   )
 
   MP_DEFINE_CONST_OBJ_TYPE(

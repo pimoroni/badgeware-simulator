@@ -163,7 +163,7 @@ extern "C" {
     switch(attr) {
       case MP_QSTR_transform: {
         if(action == GET) {
-          matrix_obj_t *out = mp_obj_malloc_with_finaliser(matrix_obj_t, &type_mat3);
+          mat3_obj_t *out = mp_obj_malloc_with_finaliser(mat3_obj_t, &type_mat3);
           out->m = self->shape->transform;
           dest[0] = MP_OBJ_FROM_PTR(out);
           return;
@@ -173,7 +173,7 @@ extern "C" {
           if(!mp_obj_is_type(dest[1], &type_mat3)) {
             mp_raise_TypeError(MP_ERROR_TEXT("expected mat3"));
           }
-          matrix_obj_t *in = (matrix_obj_t *)MP_OBJ_TO_PTR(dest[1]);
+          mat3_obj_t *in = (mat3_obj_t *)MP_OBJ_TO_PTR(dest[1]);
           self->shape->transform = in->m;
           dest[0] = MP_OBJ_NULL;
           return;

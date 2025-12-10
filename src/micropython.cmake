@@ -19,7 +19,7 @@ target_sources(usermod_picovector INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image_png.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/micropython/matrix.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/mat3.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/pixel_font.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/shape.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/rect.cpp
@@ -48,7 +48,7 @@ set_source_files_properties(
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image_png.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/micropython/matrix.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/micropython/mat3.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/pixel_font.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/shape.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/rect.cpp
