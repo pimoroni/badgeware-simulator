@@ -2,17 +2,204 @@ from picovector import algorithm
 
 mode(HIRES)
 
-screen.font = pixel_font.load("/system/assets/fonts/sins.ppf")
+screen.font = pixel_font.load("/system/assets/fonts/nope.ppf")
 
 image = image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24, 24)
-
+sprites = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1)
 import math
 
 def update():
+  global i
   pen(20, 40, 60)
   screen.clear()
 
-  dda()
+  i = round(io.ticks / 200)
+  i %= 10
+
+  text = f"""Lorem ipsum [circle:] dolor sit[custom:{i}]amet, [circle:] consectetur adipiscing elit, [pen:0,0,255]sed do eiusmod [circle:] tempor incididunt ut labore et dolore magna aliqua.
+
+Ut [circle:] enim [custom:{i}][custom:{i}][custom:{i}][custom:{i}] ad minim veniam, [pen:255,0,0]quis nostrud exercitation [custom:{i}] ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+[custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}]
+
+Duis aute irure dolor [circle:] in reprehenderit in [custom:{i}] voluptate velit esse [pen:0,255,0]cillum dolore eu fugiat nulla pariatur.
+
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
+
+  pen(0, 255, 0)
+  tokens = tokenise(screen, text)
+  wrap = math.sin(io.ticks / 2000) * 100 + 220
+  bounds = measure(screen, tokens, wrap)
+  import time
+
+  pen(60, 80, 100)
+  screen.line(wrap, 0, wrap, 240)
+
+  #result = wrap_and_measure(screen, text, 280)
+  #print(result)
+  # c = point(0, 0)
+  # for r in result:
+  #   text, width = r
+  #   screen.text(text, c.x, c.y)
+
+  #   c.y += screen.font.height
+
+  #dda()
+
+
+WORD = 1
+SPACE = 2
+LINE_BREAK = 3
+
+
+def pen_command(parameters, cursor, measure):
+  if measure:
+    return 0
+
+  r = int(parameters[0])
+  g = int(parameters[1])
+  b = int(parameters[2])
+  pen(r, g, b)
+
+def custom_command(parameters, cursor, measure):
+  if measure:
+    return 24
+  idx = int(parameters[0])
+  screen.blit(sprites.sprite(idx, 0), cursor.x, cursor.y - 10)
+
+
+def circle_command(parameters, cursor, measure):
+  if measure:
+    return 12
+
+  screen.shape(shape.circle(cursor.x + 6, cursor.y + 7, 6))
+
+
+command_map = {
+  "pen": pen_command,
+  "custom": custom_command,
+  "circle": circle_command,
+}
+
+
+
+def tokenise(image, text):
+  tokens = []
+
+  for line in text.splitlines():
+    start, end = 0, 0
+    i = 0
+    while end < len(line):
+      # check for a command
+      if line.find("[", start) == start:
+        end = line.find("]", start)
+        # look ahead to see if this is an escape code
+        command = line[start + 1:end]
+        code, parameters = command.split(":")
+        parameters = parameters.split(",")
+
+        if code in command_map:
+          w = command_map[code](parameters, None, True)
+          tokens.append((command_map[code], w, tuple(parameters)))
+
+        start = end + 1
+        continue
+
+      i += 1
+
+      # search for the next space
+      end = line.find(" ", start)
+      if end == -1: end = len(line)
+
+      command_start = line.find("[", start)
+      if command_start != -1 and command_start < end:
+        end = command_start
+
+      # measure the text up to the space
+      if end > start:
+        width, _ = image.measure_text(line[start:end])
+        tokens.append((WORD, width, line[start:end]))
+
+      start = end
+      if end < len(line) and line[end] == " ":
+        tokens.append((SPACE,))
+        start += 1
+
+
+    tokens.append((LINE_BREAK,))
+
+  return tokens
+
+def measure(image, tokens, wrap):
+  c = point()
+  b = rect()
+  for token in tokens:
+    if token[0] == WORD:
+      if c.x + token[1] > wrap:
+        c.x = 0
+        c.y += image.font.height * 1.2
+      image.text(token[2], c.x, c.y)
+      c.x += token[1]
+    elif token[0] == SPACE:
+      c.x += 5
+    elif token[0] == LINE_BREAK:
+      c.x = 0
+      c.y += image.font.height * 1.2
+    else:
+      if c.x + token[1] > wrap:
+        c.x = 0
+        c.y += image.font.height * 1.2
+
+      token[0](token[2], c, False)
+      c.x += token[1]
+
+    b.w = max(b.w, c.x)
+    b.h = max(b.h, c.y)
+
+  return b
+
+  result = 0
+  # result = []
+  # for line in text.splitlines():
+  #   # if max_width is specified then perform word wrapping
+  #   if max_width:
+  #     # setup a start and end cursor to traverse the text
+  #     start, end = 0, 0
+  #     last_width = 0
+  #     i = 0
+  #     while True:
+  #       i += 1
+  #       # search for the next space
+  #       end = line.find(" ", end)
+  #       if end == -1:
+  #         end = len(line)
+
+  #       # measure the text up to the space
+  #       width, _ = image.measure_text(line[start:end])
+  #       if width >= max_width:
+  #         # line exceeded max length
+  #         new_end = line.rfind(" ", start, end)
+  #         if new_end == -1:
+  #           result.append((line[start:end], last_width))
+  #           start = end + 1
+  #         else:
+  #           result.append((line[start:new_end], last_width))
+  #           start = new_end + 1
+  #       elif end == len(line):
+  #         # reached the end of the string
+  #         result.append((line[start:end], width))
+  #         break
+
+  #       # step past the last space
+  #       end += 1
+  #       last_width = width
+  #   else:
+  #     # no wrapping needed, just return the original line with its width
+  #     width, _ = image.measure_text(line)
+  #     result.append((line, width))
+
+  return result
+
 
 
 def dda():

@@ -12,13 +12,17 @@ extern "C" {
 
   MPY_BIND_NEW(rect, {
     rect_obj_t *self = mp_obj_malloc_with_finaliser(rect_obj_t, type);
-    if(n_args != 4) {
-      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected rect(x, y, w, h)"));
+
+    if(n_args != 4 && n_args != 0) {
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected rect() or rect(x, y, w, h)"));
     }
-    self->rect.x = mp_obj_get_float(args[0]);
-    self->rect.y = mp_obj_get_float(args[1]);
-    self->rect.w = mp_obj_get_float(args[2]);
-    self->rect.h = mp_obj_get_float(args[3]);
+
+    if(n_args == 4) {
+      self->rect.x = mp_obj_get_float(args[0]);
+      self->rect.y = mp_obj_get_float(args[1]);
+      self->rect.w = mp_obj_get_float(args[2]);
+      self->rect.h = mp_obj_get_float(args[3]);
+    }
     return MP_OBJ_FROM_PTR(self);
   })
 

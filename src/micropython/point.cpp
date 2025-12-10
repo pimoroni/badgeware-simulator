@@ -12,11 +12,13 @@ extern "C" {
 
   MPY_BIND_NEW(point, {
     point_obj_t *self = mp_obj_malloc_with_finaliser(point_obj_t, type);
-    if(n_args != 2) {
-      mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("point constructor takes two values: x, y"));
+    if(n_args != 2 && n_args != 0) {
+      mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("invalid parameters, expected point() or point(x, y)"));
     }
-    self->point.x = mp_obj_get_float(args[0]);
-    self->point.y = mp_obj_get_float(args[1]);
+    if(n_args == 2) {
+      self->point.x = mp_obj_get_float(args[0]);
+      self->point.y = mp_obj_get_float(args[1]);
+    }
     return MP_OBJ_FROM_PTR(self);
   })
 
