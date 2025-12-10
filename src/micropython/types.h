@@ -10,4 +10,5 @@ extern const mp_obj_type_t type_pixel_font;
 extern const mp_obj_type_t type_shape;
 extern const mp_obj_type_t type_rect;
 extern const mp_obj_type_t type_point;
+extern const mp_obj_type_t type_algorithm; // should be a module instead perhaps?
 extern const mp_obj_module_t mod_input;

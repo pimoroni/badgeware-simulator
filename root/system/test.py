@@ -8,7 +8,7 @@ import math
 
 def magic_sprite(src, pos, scale=1, angle=0):
   w, h = src.width, src.height
-  t = mat3().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h / 2)
+  t = mat3().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h)
   imgbrush = brush.image(src, t)
   pen(imgbrush)
   rect = shape.rectangle(0, 0, w, h)
@@ -67,6 +67,8 @@ def update():
 
   p = point(12, 12)
 
+  w = screen.window(20, 20, 80, 80)
+  screen.blit(w, 180, 100)
 
   # screen.rectangle(rect(10, 20, 30, 40))
   # screen.rectangle(10, 20, 30, 40)
@@ -82,17 +84,38 @@ def update():
 
   pen(255, 255, 255)
 
+  # test line clipping to window
   x1 = int(math.sin(io.ticks / 500) * 20 + 0)
   y1 = int(math.sin(io.ticks / 400) * 30 + 0)
   x2 = int(math.sin(io.ticks / 300) * 20 + 150)
   y2 = int(math.sin(io.ticks / 200) * 30 + 120)
-  screen.line(x1, y1, x2, y2)
+  w2 = screen.window(30, 30, 80, 80)
+  w2.line(x1, y1, x2, y2)
+
+
+
+  # test line clipping to window
+  p1 = point(
+    int(math.sin(io.ticks / 500) * 20 + 0) + 100,
+    int(math.sin(io.ticks / 400) * 30 + 0)
+  )
+
+  p2 = point(
+    int(math.sin(io.ticks / 300) * 20 + 150) + 100,
+    int(math.sin(io.ticks / 200) * 30 + 120)
+  )
+
+  #  w2 = screen.window(30, 30, 80, 80)
+  from picovector import algorithm
+  algorithm.clip_line(p1, p2, rect(130, 30, 80, 80))
+  screen.line(p1, p2)
+
 
 
   for y in range(0, 30):
     for x in range(0, 30):
       c = screen.get(x, y)
-      c.lighten(200)
+      c.lighten(250)
       pen(c.r, c.g, c.b)
       screen.put(x + 100, y + 100)
 

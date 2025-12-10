@@ -23,6 +23,7 @@ static const mp_rom_map_elem_t modpicovector_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_shape),  MP_ROM_PTR(&type_shape) },
     { MP_ROM_QSTR(MP_QSTR_image),  MP_ROM_PTR(&type_image) },
     { MP_ROM_QSTR(MP_QSTR_font),  MP_ROM_PTR(&type_font) },
+    { MP_ROM_QSTR(MP_QSTR_algorithm),  MP_ROM_PTR(&type_algorithm) },
     { MP_ROM_QSTR(MP_QSTR_pixel_font),  MP_ROM_PTR(&type_pixel_font) },
     { MP_ROM_QSTR(MP_QSTR_mat3),  MP_ROM_PTR(&type_mat3) },
     { MP_ROM_QSTR(MP_QSTR_io),  MP_ROM_PTR(&mod_input) },
