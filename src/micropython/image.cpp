@@ -59,12 +59,27 @@ MPY_BIND_CLASSMETHOD_ARGS1(load_into, path, {
   })
 
 
-MPY_BIND_VAR(5, window, {
+MPY_BIND_VAR(2, window, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int x = mp_obj_get_int(args[1]);
-    int y = mp_obj_get_int(args[2]);
-    int w = mp_obj_get_int(args[3]);
-    int h = mp_obj_get_int(args[4]);
+
+    int x;
+    int y;
+    int w;
+    int h;
+
+    if (mp_obj_is_type(args[1], &type_rect)) {
+      const rect_obj_t *rect = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
+      x = rect->rect.x;
+      y = rect->rect.y;
+      w = rect->rect.w;
+      h = rect->rect.h;
+    }else{
+      x = mp_obj_get_float(args[1]);
+      y = mp_obj_get_float(args[2]);
+      w = mp_obj_get_float(args[3]);
+      h = mp_obj_get_float(args[4]);
+    }
+
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_image);
     result->image = new(m_malloc(sizeof(image_t))) image_t(self->image, rect_t(x, y, w, h));
     result->parent = (void*)self;

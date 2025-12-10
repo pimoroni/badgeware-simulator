@@ -2,8 +2,8 @@ from picovector import algorithm
 
 mode(HIRES)
 
-screen.font = pixel_font.load("/system/assets/fonts/nope.ppf")
-
+screen.font = pixel_font.load("/system/assets/fonts/ark.ppf")
+screen.antialias = screen.X2
 image = image.load("/system/assets/mona-sprites/mona-heart.png").window(0, 0, 24, 24)
 sprites = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1)
 import math
@@ -16,7 +16,7 @@ def update():
   i = round(io.ticks / 200)
   i %= 10
 
-  text = f"""Lorem ipsum [circle:] dolor sit[custom:{i}]amet, [circle:] consectetur adipiscing elit, [pen:0,0,255]sed do eiusmod [circle:] tempor incididunt ut labore et dolore magna aliqua.
+  message = f"""[pen:255,0,0]Lorem [pen:255,255,0]ipsum [circle:] [pen:0,255,0]dolor [pen:0,255,255]sit[custom:{i}][pen:0,0,255]amet, [circle:] consectetur adipiscing elit, [pen:0,0,255]sed do eiusmod [circle:] tempor incididunt ut labore et dolore magna aliqua.
 
 Ut [circle:] enim [custom:{i}][custom:{i}][custom:{i}][custom:{i}] ad minim veniam, [pen:255,0,0]quis nostrud exercitation [custom:{i}] ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
@@ -27,13 +27,21 @@ Duis aute irure dolor [circle:] in reprehenderit in [custom:{i}] voluptate velit
 Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
 
   pen(0, 255, 0)
-  tokens = tokenise(screen, text)
-  wrap = math.sin(io.ticks / 2000) * 100 + 220
-  bounds = measure(screen, tokens, wrap)
+
+  x = math.sin(io.ticks / 400) * 40 + 50
+  y = math.sin(io.ticks / 600) * 40 + 50
+  width = 320 - x + math.sin(io.ticks / 800) * 40 - 50
+  height = 240 - y + math.sin(io.ticks / 1000) * 40 - 50
+  tokens = tokenise(screen, message)
+  bounds = rect(x, y, width, height)
+  measure(screen, tokens, bounds, line_spacing=1.2, word_spacing=1)
   import time
 
-  pen(60, 80, 100)
-  screen.line(wrap, 0, wrap, 240)
+  pen(60, 80, 100, 100)
+  screen.line(bounds.x, bounds.y, bounds.x + bounds.w, bounds.y)
+  screen.line(bounds.x, bounds.y, bounds.x, bounds.y + bounds.h)
+  screen.line(bounds.x, bounds.y + bounds.h, bounds.x + bounds.w, bounds.y + bounds.h)
+  screen.line(bounds.x + bounds.w, bounds.y, bounds.x + bounds.w, bounds.y + bounds.h)
 
   #result = wrap_and_measure(screen, text, 280)
   #print(result)
@@ -52,7 +60,7 @@ SPACE = 2
 LINE_BREAK = 3
 
 
-def pen_command(parameters, cursor, measure):
+def pen_command(image, parameters, cursor, measure):
   if measure:
     return 0
 
@@ -61,18 +69,18 @@ def pen_command(parameters, cursor, measure):
   b = int(parameters[2])
   pen(r, g, b)
 
-def custom_command(parameters, cursor, measure):
+def custom_command(image, parameters, cursor, measure):
   if measure:
     return 24
   idx = int(parameters[0])
-  screen.blit(sprites.sprite(idx, 0), cursor.x, cursor.y - 10)
+  image.blit(sprites.sprite(idx, 0), cursor.x, cursor.y - 10)
 
 
-def circle_command(parameters, cursor, measure):
+def circle_command(image, parameters, cursor, measure):
   if measure:
     return 12
 
-  screen.shape(shape.circle(cursor.x + 6, cursor.y + 7, 6))
+  image.shape(shape.circle(cursor.x + 6, cursor.y + 7, 6))
 
 
 command_map = {
@@ -99,7 +107,7 @@ def tokenise(image, text):
         parameters = parameters.split(",")
 
         if code in command_map:
-          w = command_map[code](parameters, None, True)
+          w = command_map[code](None, parameters, None, True)
           tokens.append((command_map[code], w, tuple(parameters)))
 
         start = end + 1
@@ -130,27 +138,36 @@ def tokenise(image, text):
 
   return tokens
 
-def measure(image, tokens, wrap):
+def measure(image, text, bounds, line_spacing=1, word_spacing=1):
+
+  if isinstance(text, list):
+    tokens = text
+  else:
+    tokens = tokenise(image, text)
+
+  window = image.window(bounds)
+  window.font = image.font
   c = point()
   b = rect()
   for token in tokens:
     if token[0] == WORD:
-      if c.x + token[1] > wrap:
+      if c.x + token[1] > bounds.w:
         c.x = 0
-        c.y += image.font.height * 1.2
-      image.text(token[2], c.x, c.y)
+        c.y += window.font.height * line_spacing
+      window.pen = image.pen # nasty hack while global brush isn't set properly
+      window.text(token[2], c.x, c.y)
       c.x += token[1]
     elif token[0] == SPACE:
-      c.x += 5
+      c.x += (window.font.height / 3) * word_spacing
     elif token[0] == LINE_BREAK:
       c.x = 0
-      c.y += image.font.height * 1.2
+      c.y += window.font.height * line_spacing
     else:
-      if c.x + token[1] > wrap:
+      if c.x + token[1] > bounds.w:
         c.x = 0
-        c.y += image.font.height * 1.2
+        c.y += window.font.height * line_spacing
 
-      token[0](token[2], c, False)
+      token[0](window, token[2], c, False)
       c.x += token[1]
 
     b.w = max(b.w, c.x)
