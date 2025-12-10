@@ -383,8 +383,12 @@ namespace picovector {
 
 
   void image_t::line(point_t p1, point_t p2) {
-    if(!clip_line(p1, p2, this->_bounds)) {
-      return; // fully outside bounds, nothing to drawy
+    rect_t b = this->_bounds;
+    b.w -= 1;
+    b.h -= 1; // TODO: this is hacky... fix it properly
+
+    if(!clip_line(p1, p2, b)) {
+      return; // fully outside bounds, nothing to draw
     }
 
     int x0 = p1.x;
@@ -401,7 +405,6 @@ namespace picovector {
     int dy = -abs(y1 - y0);
     int sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;
-
 
     while(true) {
         this->put_unsafe(x0, y0);

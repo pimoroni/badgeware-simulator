@@ -52,10 +52,21 @@ extern "C" {
     return MP_OBJ_FROM_PTR(shape);
   })
 
-  MPY_BIND_STATICMETHOD_VAR(3, circle, {
-    float x = mp_obj_get_float(args[0]);
-    float y = mp_obj_get_float(args[1]);
-    float r = mp_obj_get_float(args[2]);
+  MPY_BIND_STATICMETHOD_VAR(2, circle, {
+    float x;
+    float y;
+    float r;
+    if(mp_obj_is_type(args[0], &type_point)) {
+      const point_obj_t *point = (point_obj_t *)MP_OBJ_TO_PTR(args[0]);
+      x = point->point.x;
+      y = point->point.y;
+      r = mp_obj_get_float(args[1]);
+    }else{
+      x = mp_obj_get_float(args[0]);
+      y = mp_obj_get_float(args[1]);
+      r = mp_obj_get_float(args[2]);
+    }
+
     shape_obj_t *shape = mp_obj_malloc_with_finaliser(shape_obj_t, &type_shape);
     shape->shape = circle(x, y, r);
     return MP_OBJ_FROM_PTR(shape);

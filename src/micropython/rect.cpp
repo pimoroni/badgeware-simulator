@@ -101,59 +101,59 @@ extern "C" {
     switch(attr | action) {
       case MP_QSTR_l | GET:
       case MP_QSTR_x | GET:
-        dest[0] = mp_obj_new_int(self->rect.x);
+        dest[0] = mp_obj_new_float(self->rect.x);
         return;
 
       case MP_QSTR_l | SET:
       case MP_QSTR_x | SET:
-        self->rect.x = mp_obj_get_int(dest[1]);
+        self->rect.x = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_t | GET:
       case MP_QSTR_y | GET:
-        dest[0] = mp_obj_new_int(self->rect.y);
+        dest[0] = mp_obj_new_float(self->rect.y);
         return;
 
       case MP_QSTR_t | SET:
       case MP_QSTR_y | SET:
-        self->rect.y = mp_obj_get_int(dest[1]);
+        self->rect.y = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_w | GET:
-        dest[0] = mp_obj_new_int(self->rect.w);
+        dest[0] = mp_obj_new_float(self->rect.w);
         return;
 
       case MP_QSTR_w | SET:
-        self->rect.w = mp_obj_get_int(dest[1]);
+        self->rect.w = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_h | GET:
-        dest[0] = mp_obj_new_int(self->rect.h);
+        dest[0] = mp_obj_new_float(self->rect.h);
         return;
 
       case MP_QSTR_h | SET:
-        self->rect.h = mp_obj_get_int(dest[1]);
+        self->rect.h = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_r | GET:
-        dest[0] = mp_obj_new_int(self->rect.w + self->rect.x);
+        dest[0] = mp_obj_new_float(self->rect.w + self->rect.x);
         return;
 
       case MP_QSTR_r | SET:
-        self->rect.w = mp_obj_get_int(dest[1]) - self->rect.x;
+        self->rect.w = mp_obj_get_float(dest[1]) - self->rect.x;
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_b | GET:
-        dest[0] = mp_obj_new_int(self->rect.h + self->rect.y);
+        dest[0] = mp_obj_new_float(self->rect.h + self->rect.y);
         return;
 
       case MP_QSTR_b | SET:
-        self->rect.h = mp_obj_get_int(dest[1]) - self->rect.y;
+        self->rect.h = mp_obj_get_float(dest[1]) - self->rect.y;
         dest[0] = MP_OBJ_NULL;
         return;
     };

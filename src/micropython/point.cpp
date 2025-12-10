@@ -34,20 +34,20 @@ extern "C" {
 
     switch(attr | action) {
       case MP_QSTR_x | GET:
-        dest[0] = mp_obj_new_int(self->point.x);
+        dest[0] = mp_obj_new_float(self->point.x);
         return;
 
       case MP_QSTR_x | SET:
-        self->point.x = mp_obj_get_int(dest[1]);
+        self->point.x = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
 
       case MP_QSTR_y | GET:
-        dest[0] = mp_obj_new_int(self->point.y);
+        dest[0] = mp_obj_new_float(self->point.y);
         return;
 
       case MP_QSTR_y | SET:
-        self->point.y = mp_obj_get_int(dest[1]);
+        self->point.y = mp_obj_get_float(dest[1]);
         dest[0] = MP_OBJ_NULL;
         return;
     };
