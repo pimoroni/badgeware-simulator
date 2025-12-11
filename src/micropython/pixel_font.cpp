@@ -34,7 +34,7 @@ extern "C" {
 
     int error;
 
-    debug_printf("load pixel font\n");
+    //debug_printf("load pixel font\n");
 
     // check for ppf file header
     char marker[4];
@@ -42,22 +42,22 @@ extern "C" {
     if(memcmp(marker, "ppf!", 4) != 0) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("failed to load font, missing PPF header"));
     }
-    debug_printf("- valid header\n");
+    //debug_printf("- valid header\n");
 
     uint16_t flags        = ru16(file);
     uint32_t glyph_count  = ru32(file);
     uint16_t glyph_width  = ru16(file);
     uint16_t glyph_height = ru16(file);
-    debug_printf("- glyph width = %d, height = %d, count = %" PRIu32 "\n", glyph_width, glyph_height, glyph_count);
+    //debug_printf("- glyph width = %d, height = %d, count = %" PRIu32 "\n", glyph_width, glyph_height, glyph_count);
 
     char name[32];
     mp_stream_read_exactly(file, name, sizeof(name), &error);
-    debug_printf("- font name '%s'\n", name);
+    //debug_printf("- font name '%s'\n", name);
 
     // calculate how much data needed to store each glyphs pixel data
     uint32_t bpr = floor((glyph_width + 7) / 8);
     uint32_t glyph_data_size = bpr * glyph_height;
-    debug_printf("- glyph data size = %" PRIu32 " (%" PRIu32 " byes per row)\n", glyph_data_size, bpr);
+    //debug_printf("- glyph data size = %" PRIu32 " (%" PRIu32 " byes per row)\n", glyph_data_size, bpr);
 
     // allocate buffers to store glyph and pixel data
     result->glyph_buffer_size = sizeof(pixel_font_glyph_t) * glyph_count;
@@ -66,8 +66,8 @@ extern "C" {
     result->glyph_data_buffer_size = glyph_data_size * glyph_count;
     result->glyph_data_buffer = (uint8_t*)m_malloc(result->glyph_data_buffer_size);
 
-    debug_printf("- glyph buffer at %p (%" PRIu32 " bytes)\n", result->glyph_buffer, result->glyph_buffer_size);
-    debug_printf("- glyph data buffer at %p (%" PRIu32 " bytes)\n", result->glyph_data_buffer, result->glyph_data_buffer_size);
+    //debug_printf("- glyph buffer at %p (%" PRIu32 " bytes)\n", result->glyph_buffer, result->glyph_buffer_size);
+    //debug_printf("- glyph data buffer at %p (%" PRIu32 " bytes)\n", result->glyph_data_buffer, result->glyph_data_buffer_size);
 
     if(!result->glyph_buffer || !result->glyph_data_buffer) {
       mp_raise_msg_varg(&mp_type_OSError, MP_ERROR_TEXT("couldn't allocate buffer for font data"));
@@ -79,12 +79,12 @@ extern "C" {
       glyphs[i].codepoint = ru32(file);
       glyphs[i].width = ru16(file);
     }
-    debug_printf("- read codepoint list\n");
+    //debug_printf("- read codepoint list\n");
 
     // read glyph data into buffer
-    debug_printf("- writing into glyph data buffer\n");
+    //debug_printf("- writing into glyph data buffer\n");
     mp_stream_read_exactly(file, result->glyph_data_buffer, result->glyph_data_buffer_size, &error);
-    debug_printf("- read pixel data\n");
+    //debug_printf("- read pixel data\n");
 
     result->font = m_new_class(pixel_font_t);
     result->font->glyph_count     = glyph_count;

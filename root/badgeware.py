@@ -4,6 +4,7 @@ import os
 import io as stream
 import sys
 import time
+import random
 from math import sin
 import pcf85063a
 
@@ -105,6 +106,17 @@ def wrap_and_measure(image, text, size, max_width):
 def clamp(v, vmin, vmax):
     return max(vmin, min(v, vmax))
 
+def rnd(v1, v2=None):
+    if v2:
+      return random.randint(v1, v2)
+    else:
+      return random.randint(0, v1)
+
+def frnd(v1, v2=None):
+    if v2:
+      return random.uniform(v1, v2)
+    else:
+      return random.uniform(0, v1)
 
 def file_exists(path):
     try:

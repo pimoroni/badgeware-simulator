@@ -11,7 +11,9 @@ SKIP_CINEMATIC = True # simulator.hot_reload
 APP_STARTUP = "/system/apps/startup"
 APP_MENU = "/system/apps/menu"
 app = None
- 
+
+
+
 
 simulator.show_alloc_count = False        # Show number of MPAllocator allocs per frame
 simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and location
