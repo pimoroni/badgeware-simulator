@@ -29,7 +29,7 @@ extern "C" {
     return mp_const_none;
   })
 
-  static void attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+  MPY_BIND_ATTR(point, {
     self(self_in, point_obj_t);
 
     action_t action = m_attr_action(dest);
@@ -55,7 +55,7 @@ extern "C" {
     };
 
     dest[1] = MP_OBJ_SENTINEL;
-  }
+  })
 
   MPY_BIND_LOCALS_DICT(point,
     MPY_BIND_ROM_PTR(transform),
@@ -65,8 +65,8 @@ extern "C" {
       type_point,
       MP_QSTR_point,
       MP_TYPE_FLAG_NONE,
-      attr, (const void *)attr,
       make_new, (const void *)point_new,
+      attr, (const void *)point_attr,
       locals_dict, &point_locals_dict
   );
 

@@ -42,33 +42,35 @@ extern "C" {
     return mp_const_none;
   })
 
-  MPY_BIND_VAR(2, intersection, {
-    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
+  MPY_BIND_CLASSMETHOD_ARGS1(intersection, rect_in, {
+    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(self_in);
+    rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(rect_in);
     rect_obj_t *result = mp_obj_malloc(rect_obj_t, &type_rect);
     result->rect = self->rect.intersection(other->rect);
     return MP_OBJ_FROM_PTR(result);
   })
 
-  MPY_BIND_VAR(2, intersects, {
-    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
+  MPY_BIND_CLASSMETHOD_ARGS1(intersects, rect_in, {
+    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(self_in);
+    rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(rect_in);
     rect_obj_t *result = mp_obj_malloc(rect_obj_t, &type_rect);
     return mp_obj_new_bool(self->rect.intersects(other->rect));
   })
 
-  MPY_BIND_VAR(2, contains, {
-    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(args[0]);
+  MPY_BIND_CLASSMETHOD_ARGS1(contains, obj_in, {
+    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(self_in);
 
-    if(mp_obj_is_type(args[1], &type_rect)) {
-      rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    if(mp_obj_is_type(obj_in, &type_rect)) {
+      rect_obj_t *other = (rect_obj_t *)MP_OBJ_TO_PTR(obj_in);
       return mp_obj_new_bool(self->rect.contains(other->rect));
     }
 
-    if(mp_obj_is_type(args[1], &type_point)) {
-      point_obj_t *point = (point_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    if(mp_obj_is_type(obj_in, &type_point)) {
+      point_obj_t *point = (point_obj_t *)MP_OBJ_TO_PTR(obj_in);
       return mp_obj_new_bool(self->rect.contains(point->point));
     }
+    
+    mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either rect(x, y, w, h) or point(x, y)"));
 
     return mp_const_none;
   })
@@ -92,12 +94,12 @@ extern "C" {
     mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either offset(p) or offset(x, y)"));
   })
 
-  MPY_BIND_VAR(1, empty, {
-    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(args[0]);
+  MPY_BIND_CLASSMETHOD_ARGS0(empty, {
+    rect_obj_t *self = (rect_obj_t *)MP_OBJ_TO_PTR(self_in);
     return mp_obj_new_bool(self->rect.empty());
   })
 
-  static void attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
+  MPY_BIND_ATTR(rect, {
     self(self_in, rect_obj_t);
 
     action_t action = m_attr_action(dest);
@@ -163,7 +165,7 @@ extern "C" {
     };
 
     dest[1] = MP_OBJ_SENTINEL;
-  }
+  })
 
   MPY_BIND_LOCALS_DICT(rect,
     MPY_BIND_ROM_PTR(deflate),
@@ -179,8 +181,8 @@ extern "C" {
       type_rect,
       MP_QSTR_rect,
       MP_TYPE_FLAG_NONE,
-      attr, (const void *)attr,
       make_new, (const void *)rect_new,
+      attr, (const void *)rect_attr,
       locals_dict, &rect_locals_dict
   );
 

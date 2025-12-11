@@ -10,7 +10,7 @@
 #include "../font.hpp"
 #include "../pixel_font.hpp"
 #include "../blend.hpp"
-#include "pngdec/PNGdec.h"
+#include "PNGdec.h"
 #endif
 
 using namespace picovector;
