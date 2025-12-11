@@ -1,0 +1,21 @@
+import math
+
+sprites = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1)
+
+def magic_sprite(src, pos, scale=1, angle=0):
+  w, h = src.width, src.height
+  t = mat3().translate(*pos).scale(scale, scale).rotate(angle).translate(-w / 2, -h)
+  imgbrush = brush.image(src, t)
+  pen(imgbrush)
+  rect = shape.rectangle(0, 0, w, h)
+  rect.transform = t
+  screen.shape(rect)
+
+def update():
+  pen(20, 40, 60)
+  screen.clear()
+
+  scale = (math.sin(io.ticks / 1000) + 1.0) * 4 + 1
+  angle = math.cos(io.ticks / 500) * 100
+  idx = int((io.ticks / 200) % 14)
+  magic_sprite(sprites.sprite(idx, 0), (160, 120), scale, angle)
