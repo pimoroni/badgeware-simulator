@@ -9,7 +9,7 @@ def update():
   r1y = (math.cos(io.ticks / 100) * 20) + 120 - r1s / 2
   r1 = rect(r1x, r1y, r1s, r1s)
 
-  pen(255, 0, 0)
+  pen(255, 100, 100)
   screen.rectangle(r1)
 
   r2s = 80
@@ -17,9 +17,9 @@ def update():
   r2y = (math.cos(io.ticks / 200) * 40) + 120 - r1s / 2
   r2 = rect(r2x, r2y, r2s, r2s)
 
-  pen(0, 0, 255)
+  pen(100, 100, 255)
   screen.rectangle(r2)
 
   r3 = r1.intersection(r2)
-  pen(0, 255, 0)
+  pen(100, 255, 100)
   screen.rectangle(r3)

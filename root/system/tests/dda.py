@@ -2,6 +2,9 @@ from picovector import algorithm
 import math
 
 def update():
+  pen(20, 40, 60)
+  screen.clear()
+
   grid = 20
 
   p = point(

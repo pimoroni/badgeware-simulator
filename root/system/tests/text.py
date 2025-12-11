@@ -1,6 +1,7 @@
 import math
 
-sprites = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1)
+skull = image.load("/system/assets/skull.png")
+screen.font = pixel_font.load("/system/assets/fonts/compass.ppf")
 
 def update():
   pen(20, 40, 60)
@@ -9,25 +10,28 @@ def update():
   i = round(io.ticks / 200)
   i %= 10
 
-  message = f"""[pen:255,0,0]Lorem [pen:255,255,0]ipsum [circle:] [pen:0,255,0]dolor [pen:0,255,255]sit[custom:{i}][pen:0,0,255]amet, [circle:] consectetur adipiscing elit, [pen:0,0,255]sed do eiusmod [circle:] tempor incididunt ut labore et dolore magna aliqua.
+  message = f"""[pen:180,150,120]Upon the mast I gleam and grin,
+A sentinel of bone and sin.
+Wind and thunder, night and hull—
+None fear the sea like a [pen:230,220,200]pirate skull[pen:180,150,120].
 
-Ut [circle:] [font:nope]enim [custom:{i}][custom:{i}][custom:{i}][custom:{i}] ad minim veniam, [pen:255,0,0]quis nostrud exercitation [custom:{i}] ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Once I roared with breath and [pen:255,100,80]flame[pen:180,150,120],
+Now legend is my only name.
+But still I guard the [pen:255,200,80]plundered gold[pen:180,150,120],
+Grinning wide, forever bold.
 
-[custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}][custom:{i}]
+[skull:]
+"""
 
-Duis aute irure dolor [circle:] in reprehenderit in [custom:{i}] voluptate velit esse [pen:0,255,0]cillum dolore eu fugiat nulla pariatur.
+  pen(100, 255, 100, 150)
 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
-
-  pen(0, 255, 0)
-
-  x = math.sin(io.ticks / 400) * 60 + 30
-  y = math.sin(io.ticks / 600) * 60 + 30
-  width = 320 - x + math.sin(io.ticks / 800) * 60 - 30
-  height = 240 - y + math.sin(io.ticks / 1000) * 60 - 30
+  x = 100
+  y = 5
+  width = math.sin(io.ticks / 500) * 40 + 175
+  height = 230
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)
-  measure(screen, tokens, bounds, line_spacing=1.2, word_spacing=1)
+  measure(screen, tokens, bounds, line_spacing=1, word_spacing=1.1)
   import time
 
   pen(60, 80, 100, 100)
@@ -48,11 +52,11 @@ def pen_glyph_renderer(image, parameters, cursor, measure):
   b = int(parameters[2])
   pen(r, g, b)
 
-def custom_glyph_renderer(image, parameters, cursor, measure):
+def skull_glyph_renderer(image, parameters, cursor, measure):
   if measure:
     return 24
-  idx = int(parameters[0])
-  image.blit(sprites.sprite(idx, 0), cursor.x, cursor.y - 10)
+  image.blit(skull, cursor.x, cursor.y)
+
 
 
 def circle_glyph_renderer(image, parameters, cursor, measure):
@@ -66,8 +70,8 @@ nope = pixel_font.load(f"/system/assets/fonts/nope.ppf")
 
 
 glyph_renderers = {
+  "skull": skull_glyph_renderer,
   "pen": pen_glyph_renderer,
-  "custom": custom_glyph_renderer,
   "circle": circle_glyph_renderer
 }
 

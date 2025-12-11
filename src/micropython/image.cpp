@@ -142,10 +142,10 @@ MPY_BIND_VAR(2, window, {
     }
 
     if(n_args == 5) {
-      int x = mp_obj_get_int(args[1]);
-      int y = mp_obj_get_int(args[2]);
-      int w = mp_obj_get_int(args[3]);
-      int h = mp_obj_get_int(args[4]);
+      int x = mp_obj_get_float(args[1]);
+      int y = mp_obj_get_float(args[2]);
+      int w = mp_obj_get_float(args[3]);
+      int h = mp_obj_get_float(args[4]);
       self->image->rectangle(rect_t(x, y, w, h));
       return mp_const_none;
     }

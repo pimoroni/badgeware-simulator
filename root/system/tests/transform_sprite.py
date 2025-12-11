@@ -1,6 +1,6 @@
 import math
 
-sprites = SpriteSheet("/system/assets/mona-sprites/mona-heart.png", 14, 1)
+skull = image.load("/system/assets/skull.png")
 
 def magic_sprite(src, pos, scale=1, angle=0):
   w, h = src.width, src.height
@@ -17,5 +17,4 @@ def update():
 
   scale = (math.sin(io.ticks / 1000) + 1.0) * 4 + 1
   angle = math.cos(io.ticks / 500) * 100
-  idx = int((io.ticks / 200) % 14)
-  magic_sprite(sprites.sprite(idx, 0), (160, 120), scale, angle)
+  magic_sprite(skull, (160, 120), scale, angle)
