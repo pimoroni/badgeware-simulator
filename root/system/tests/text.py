@@ -10,15 +10,9 @@ def update():
   i = round(io.ticks / 200)
   i %= 10
 
-  message = f"""[pen:180,150,120]Upon the mast I gleam and grin,
-A sentinel of bone and sin.
-Wind and thunder, night and hull—
-None fear the sea like a [pen:230,220,200]pirate skull[pen:180,150,120].
+  message = f"""[pen:180,150,120]Upon the mast I gleam and grin, A sentinel of bone and sin. Wind and thunder, night and hull— None fear the sea like a [pen:230,220,200]pirate skull[pen:180,150,120].
 
-Once I roared with breath and [pen:255,100,80]flame[pen:180,150,120],
-Now legend is my only name.
-But still I guard the [pen:255,200,80]plundered gold[pen:180,150,120],
-Grinning wide, forever bold.
+Once I roared with breath and [pen:255,100,80]flame[pen:180,150,120], Now legend is my only name. But still I guard the [pen:255,200,80]plundered gold[pen:180,150,120], Grinning wide, forever bold.
 
 [skull:]
 """
@@ -31,7 +25,7 @@ Grinning wide, forever bold.
   height = 230
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)
-  measure(screen, tokens, bounds, line_spacing=1, word_spacing=1.1)
+  measure(screen, tokens, bounds, line_spacing=1, word_spacing=1.05)
   import time
 
   pen(60, 80, 100, 100)
