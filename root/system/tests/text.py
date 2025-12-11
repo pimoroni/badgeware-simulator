@@ -21,10 +21,10 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
   pen(0, 255, 0)
 
-  x = math.sin(io.ticks / 400) * 50 + 30
-  y = math.sin(io.ticks / 600) * 50 + 30
-  width = 320 - x + math.sin(io.ticks / 800) * 50 - 30
-  height = 240 - y + math.sin(io.ticks / 1000) * 50 - 30
+  x = math.sin(io.ticks / 4000) * 50
+  y = math.sin(io.ticks / 6000) * 50
+  width = 320 - x + math.sin(io.ticks / 8000) * 50
+  height = 240 - y + math.sin(io.ticks / 10000) * 50
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)
   measure(screen, tokens, bounds, line_spacing=1.2, word_spacing=1)
@@ -125,6 +125,10 @@ def tokenise(image, text):
   return tokens
 
 def measure(image, text, bounds, line_spacing=1, word_spacing=1):
+  bounds.x = int(bounds.x)
+  bounds.y = int(bounds.y)
+  bounds.w = int(bounds.w)
+  bounds.h = int(bounds.h)
 
   if isinstance(text, list):
     tokens = text

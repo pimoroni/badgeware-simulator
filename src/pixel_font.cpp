@@ -80,6 +80,7 @@ namespace picovector {
     //uint32_t *dst = (uint32_t *)target->ptr(0, yf);
     uint32_t row_stride = target->row_stride() / 4;
 
+    data += yoff * bytes_per_row;
     for(int yo = yf; yo < yf + yc; yo++) {
       for(int xo = xf; xo < xf + xc; xo++) {
         int bit = xo - x;
