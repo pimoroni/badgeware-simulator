@@ -21,10 +21,10 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 
   pen(0, 255, 0)
 
-  x = math.sin(io.ticks / 4000) * 50
-  y = math.sin(io.ticks / 6000) * 50
-  width = 320 - x + math.sin(io.ticks / 8000) * 50
-  height = 240 - y + math.sin(io.ticks / 10000) * 50
+  x = math.sin(io.ticks / 400) * 60 + 30
+  y = math.sin(io.ticks / 600) * 60 + 30
+  width = 320 - x + math.sin(io.ticks / 800) * 60 - 30
+  height = 240 - y + math.sin(io.ticks / 1000) * 60 - 30
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)
   measure(screen, tokens, bounds, line_spacing=1.2, word_spacing=1)

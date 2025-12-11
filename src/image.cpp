@@ -306,6 +306,11 @@ namespace picovector {
     tr.w = abs(tr.w);
     tr.h = abs(tr.h);
 
+    int yoff = 0;
+    if(tr.y < target->_clip.y) {
+      yoff = target->_clip.y - tr.y;
+    }
+
     // clip the target rect to the target bounds
     rect_t ctr = tr.intersection(target->_clip);
     if(ctr.empty()) {return;}
@@ -318,7 +323,7 @@ namespace picovector {
     float srcx = invert_x ? this->_bounds.w - 1 : 0;
     float srcy = invert_y ? this->_bounds.h - 1 : 0;
     srcx += (ctr.x - tr.x) * srcstepx;
-    srcy += (ctr.y - tr.y) * srcstepy;
+    srcy += (yoff) * srcstepy;
 
     int sy = ctr.y;// min(ctr.y, ctr.y + ctr.h);
     int ey = ctr.y + ctr.h;//max(ctr.y, ctr.y + ctr.h);
