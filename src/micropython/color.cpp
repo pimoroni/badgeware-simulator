@@ -132,12 +132,25 @@ extern "C" {
   }
 
   MPY_BIND_LOCALS_DICT(color,
+    // static color generators
     MPY_BIND_ROM_PTR_STATIC(rgb),
     MPY_BIND_ROM_PTR_STATIC(hsv),
     MPY_BIND_ROM_PTR_STATIC(oklch),
+  
+    // color modifiers
     MPY_BIND_ROM_PTR(darken),
     MPY_BIND_ROM_PTR(lighten),
     MPY_BIND_ROM_PTR(blend),
+
+    // color constants
+    MPY_BIND_ROM_INT(black,  0xff000000),
+    MPY_BIND_ROM_INT(white,  0xffffffff),
+    MPY_BIND_ROM_INT(red,    0xff0000ff),
+    MPY_BIND_ROM_INT(yellow, 0xff00ffff),
+    MPY_BIND_ROM_INT(green,  0xff00ff00),
+    MPY_BIND_ROM_INT(teal,   0xffffff00),
+    MPY_BIND_ROM_INT(blue,   0xffff0000),
+    MPY_BIND_ROM_INT(purple, 0xffff00ff),
   )
 
   MP_DEFINE_CONST_OBJ_TYPE(

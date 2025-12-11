@@ -463,6 +463,11 @@ def update_backlight():
     display.backlight(sum(backlight_smoothing) / MAX_BACKLIGHT_SAMPLES)
 
 
+def update_screen_builtins():
+    for key in ("clear", "rectangle", "line", "circle", "triangle", "get", "put", "width", "height"):
+        setattr(builtins, key, getattr(screen, key))
+
+
 def mode(mode):
     global _current_mode
 
@@ -480,6 +485,7 @@ def mode(mode):
     #screen.pen = brush if brush is not None else BG
     simulator.resolution(*resolution)
     picovector.default_target = screen
+    update_screen_builtins()
 
     return True
 
@@ -499,6 +505,8 @@ def run(update, init=None, on_exit=None, auto_clear=True):
                     screen.clear()
                     pen(FG)
                 io.poll()
+                for key in ("pressed", "released", "held", "ticks"):
+                    setattr(builtins, key, getattr(io, key))
                 if (result := update()) is not None:
                     return result
                 gc.collect()
@@ -596,6 +604,8 @@ for k, v in picovector.__dict__.items():
 setattr(builtins, "screen", image(160, 120, framebuffer))
 picovector.default_target = screen
 
+update_screen_builtins()
+
 
 ASSETS = "/system/assets"
 LIGHT_SENSOR = DummyADC(0)
@@ -622,20 +632,8 @@ _current_mode = LORES
 simulator.resolution(160, 120)
 
 
-# TODO: Add these to `brush` ?
-class Colors:
-    black = color.rgb(0, 0, 0)
-    white = color.rgb(255, 255, 255)
-    red = color.rgb(255, 0, 0)
-    yellow = color.rgb(255, 255, 0)
-    green = color.rgb(0, 255, 0)
-    teal = color.rgb(0, 255, 255)
-    blue = color.rgb(0, 0, 255)
-    purple = color.rgb(255, 0, 255)
-
-
 # Build in some badgeware helpers, so we don't have to "bw.lores" etc
-for k in ("mode", "HIRES", "LORES", "SpriteSheet", "Colors"):
+for k in ("mode", "HIRES", "LORES", "SpriteSheet"):
     setattr(builtins, k, locals()[k])
 
 
