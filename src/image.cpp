@@ -177,12 +177,16 @@ namespace picovector {
 
   void image_t::blit(image_t *t, const point_t p) {
     rect_t tr(p.x, p.y, _bounds.w, _bounds.h); // target rect
+
+    int yoff = tr.y < t->_clip.y ? t->_clip.y - tr.y : 0;
+    int xoff = tr.x < t->_clip.x ? t->_clip.x - tr.x : 0;
+
     tr = tr.intersection(t->_clip); // clip to target image bounds
 
     if(tr.empty()) {return;}
 
-    int sxo = p.x < 0 ? -p.x : 0;
-    int syo = p.y < 0 ? -p.y : 0;
+    int sxo = xoff;
+    int syo = yoff;// p.y < 0 ? -p.y : 0;
 
     for(int i = 0; i < tr.h; i++) {
       uint8_t *dst = (uint8_t *)t->ptr(tr.x, tr.y + i);
