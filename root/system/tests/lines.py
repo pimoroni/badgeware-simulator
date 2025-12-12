@@ -1,8 +1,8 @@
 import random, math
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  #pen(20, 40, 60)
+  screen.clear(color.rgb(20, 40, 60))
 
   random.seed(0)
 
