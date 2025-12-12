@@ -42,9 +42,9 @@ namespace picovector {
   void xor_brush::render_span(image_t *target, int x, int y, int w) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
     uint8_t *src = (uint8_t*)&color;
+    uint8_t sr = src[0], sg = src[1], sb = src[2], sa = src[3];
     while(w--) {
-      uint32_t xored = _make_col(dst[0] ^ src[0], dst[1] ^ src[1], dst[2] ^ src[2], src[3]);
-      _blend_rgba_rgba(dst, (uint8_t*)&xored);
+      _blend_rgba_rgba(dst, dst[0] ^ sr, dst[1] ^ sg, dst[2] ^ sb, sa);
       dst += 4;
     }
   }
@@ -53,9 +53,9 @@ namespace picovector {
   void xor_brush::render_span_buffer(image_t *target, int x, int y, int w, uint8_t *sb) {
     uint8_t *dst = (uint8_t*)target->ptr(x, y);
     uint8_t *src = (uint8_t*)&color;
+    uint8_t r = src[0], g = src[1], b = src[2], a = src[3];
     while(w--) {
-      uint32_t xored = _make_col(dst[0] ^ src[0], dst[1] ^ src[1], dst[2] ^ src[2], *sb);
-      _blend_rgba_rgba(dst, (uint8_t*)&xored);
+      _blend_rgba_rgba(dst, dst[0] ^ r, dst[1] ^ g, dst[2] ^ b, *sb);
       dst += 4;
       sb++;
     }
@@ -74,7 +74,7 @@ namespace picovector {
       uint8_t v = y & 0b111;
       uint8_t b = p[v];
       uint8_t *src = b & (1 << u) ? src1 : src2;
-      _blend_rgba_rgba(dst, src);
+      _blend_rgba_rgba(dst, src[0], src[1], src[2], src[3]);
       dst += 4;
       x++;
     }
@@ -92,7 +92,7 @@ namespace picovector {
       uint8_t v = y & 0b111;
       uint8_t b = p[v];
       uint8_t *src = b & (1 << u) ? src1 : src2;
-      _blend_rgba_rgba(dst, src, *sb);
+      _blend_rgba_rgba(dst, src[0], src[1], src[2], *sb);
       dst += 4;
       x++;
       sb++;
@@ -122,7 +122,8 @@ namespace picovector {
       int u = (int(p.x) % tw + tw) % tw;
       int v = (int(p.y) % th + th) % th;
       uint32_t c = src->get_unsafe(u, v);
-      _blend_rgba_rgba(dst, (uint8_t*)&c);
+      uint8_t *src = (uint8_t*)&c;
+      _blend_rgba_rgba(dst, src[0], src[1], src[2], src[3]);
       dst += 4;
       dst += 4;
     }
@@ -151,7 +152,12 @@ namespace picovector {
       int u = (int(p.x) % tw + tw) % tw;
       int v = (int(p.y) % th + th) % th;
       uint32_t c = src->get_unsafe(u, v);
-      _blend_rgba_rgba(dst, (uint8_t*)&c, *sb);
+      uint8_t *src = (uint8_t*)&c;
+      uint8_t sa = src[3];
+      uint16_t t = *sb * sa + 128; // combine source alpha with mask alpha
+      uint8_t a = (t + (t >> 8)) >> 8;
+
+      _blend_rgba_rgba(dst, src[0], src[1], src[2], a);
       dst += 4;
       sb++;
     }

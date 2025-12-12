@@ -49,7 +49,7 @@ def pen_glyph_renderer(image, parameters, cursor, measure):
 def skull_glyph_renderer(image, parameters, cursor, measure):
   if measure:
     return 24
-  image.blit(skull, cursor.x, cursor.y)
+  image.blit(skull, cursor)
 
 
 

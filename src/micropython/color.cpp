@@ -40,7 +40,12 @@ extern "C" {
   MPY_BIND_VAR(2, blend, {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const color_obj_t *other = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    _blend_rgba_rgba((uint8_t*)&self->c, (uint8_t*)&other->c);
+    uint8_t *src = (uint8_t*)&other->c;
+    uint8_t r = src[0];
+    uint8_t g = src[1];
+    uint8_t b = src[2];
+    uint8_t a = src[3];
+    _blend_rgba_rgba((uint8_t*)&self->c, r, g, b, a);
     return MP_OBJ_NULL;
   })
 
@@ -136,7 +141,7 @@ extern "C" {
     MPY_BIND_ROM_PTR_STATIC(rgb),
     MPY_BIND_ROM_PTR_STATIC(hsv),
     MPY_BIND_ROM_PTR_STATIC(oklch),
-  
+
     // color modifiers
     MPY_BIND_ROM_PTR(darken),
     MPY_BIND_ROM_PTR(lighten),
