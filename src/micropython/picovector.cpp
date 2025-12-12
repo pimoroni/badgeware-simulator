@@ -55,7 +55,14 @@ extern "C" {
     }
     if(n_args == 1 && mp_obj_is_int(args[0])) {
       brush_obj_t *brush = mp_obj_malloc(brush_obj_t, &type_brush);
-      brush->brush = m_new_class(color_brush, mp_obj_get_int(args[0]));
+      uint32_t color = mp_obj_get_uint(args[0]);
+      // RP2 MicroPython cannot represent a const uint32_t in a static locals dict.
+      // So assume any colour with zero alpha is a const colour that should be opaque.
+      // This also does the sensible thing when a user specifies a 24bit colour.
+      if((color & 0xff000000) == 0) {
+        color |= 0xff000000;
+      }
+      brush->brush = m_new_class(color_brush, color);
       return brush;
     }
     if(n_args >= 3 && mp_obj_is_int(args[0]) && mp_obj_is_int(args[1]) && mp_obj_is_int(args[2])) {

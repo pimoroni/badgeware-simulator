@@ -143,14 +143,15 @@ extern "C" {
     MPY_BIND_ROM_PTR(blend),
 
     // color constants
-    MPY_BIND_ROM_INT(black,  0xff000000),
-    MPY_BIND_ROM_INT(white,  0xffffffff),
-    MPY_BIND_ROM_INT(red,    0xff0000ff),
-    MPY_BIND_ROM_INT(yellow, 0xff00ffff),
-    MPY_BIND_ROM_INT(green,  0xff00ff00),
-    MPY_BIND_ROM_INT(teal,   0xffffff00),
-    MPY_BIND_ROM_INT(blue,   0xffff0000),
-    MPY_BIND_ROM_INT(purple, 0xffff00ff),
+    // note: these do not include alpha, since it overflows RP2s int type
+    MPY_BIND_ROM_INT(black,  0x000000),
+    MPY_BIND_ROM_INT(white,  0xffffff),
+    MPY_BIND_ROM_INT(red,    0x0000ff),
+    MPY_BIND_ROM_INT(yellow, 0x00ffff),
+    MPY_BIND_ROM_INT(green,  0x00ff00),
+    MPY_BIND_ROM_INT(teal,   0xffff00),
+    MPY_BIND_ROM_INT(blue,   0xff0000),
+    MPY_BIND_ROM_INT(purple, 0xff00ff),
   )
 
   MP_DEFINE_CONST_OBJ_TYPE(
