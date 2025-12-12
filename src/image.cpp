@@ -177,16 +177,21 @@ namespace picovector {
     if(_has_palette) {
       memset(_buffer, c, count);
     }else{
-      int dw8 = count >> 3;   // number of blocks of eight pixels
-      int r = count & 0b111;  // remainder
       uint32_t* p = (uint32_t*)_buffer;
-      while(dw8--) { // unrolled blocks of 8 pixels
-        *p++ = c; *p++ = c; *p++ = c; *p++ = c;
-        *p++ = c; *p++ = c; *p++ = c; *p++ = c;
-      }
-      while(r--) { // fill in remainder
+      while(count--) { // unrolled blocks of 8 pixels
         *p++ = c;
       }
+
+      // int dw8 = count >> 3;   // number of blocks of eight pixels
+      // int r = count & 0b111;  // remainder
+      // uint32_t* p = (uint32_t*)_buffer;
+      // while(dw8--) { // unrolled blocks of 8 pixels
+      //   *p++ = c; *p++ = c; *p++ = c; *p++ = c;
+      //   *p++ = c; *p++ = c; *p++ = c; *p++ = c;
+      // }
+      // while(r--) { // fill in remainder
+      //   *p++ = c;
+      // }
     }
   }
 

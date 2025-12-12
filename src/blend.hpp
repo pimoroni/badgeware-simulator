@@ -161,9 +161,12 @@ void _blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t a) {
 // blends one rgba source pixel over a horizontal span of destination pixels
 static inline __attribute__((always_inline))
 void _span_blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint32_t w) {
+  uint32_t *pd = (uint32_t*)dst;
+  uint32_t *ps = (uint32_t*)src;
   while(w--) {
-    _blend_rgba_rgba(dst, src);
-    dst += 4;
+    //_blend_rgba_rgba(dst, src);
+    *pd = *ps;
+    pd += 4;
   }
 }
 
