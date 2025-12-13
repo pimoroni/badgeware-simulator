@@ -1,8 +1,7 @@
 import math
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   r1s = 80
   r1x = (math.sin(io.ticks / 100) * 20) + 160 - r1s / 2

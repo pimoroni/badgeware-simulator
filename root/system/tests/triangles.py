@@ -1,8 +1,10 @@
 import math, random
 
 def update():
+  screen.clear(color.rgb(20, 40, 60))
+
   random.seed(0)
-  for i in range(1000):
+  for i in range(250):
     x = math.sin(i + io.ticks / 100) * 40
     y = math.cos(i + io.ticks / 100) * 40
 

@@ -3,8 +3,7 @@ import math
 screen.antialias = image.X4
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   i = math.sin(io.ticks / 2000) * 0.2 + 0.5
   f = math.sin(io.ticks / 1000) * 150
@@ -31,11 +30,13 @@ def update():
     shape.line(-0.75, -0.75, 0.75, 0.75, 0.5).stroke(stroke),
   ]
 
-  scale = ((math.sin(io.ticks / 1000) + 1) * 10) + 20
+
 
   for y in range(4):
     for x in range(4):
       i = y * 4 + x
+
+      scale = ((math.sin((io.ticks + i * 2000) / 1000) + 1) * 5) + 12
 
       if i < len(shapes):
         pen(color.oklch(220, 128, i * 20, 150))

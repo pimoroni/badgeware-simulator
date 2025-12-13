@@ -1,12 +1,10 @@
 #pragma once
 
 #include <stdint.h>
-#ifndef PICO
-#define __not_in_flash_func(v) v
-#endif
+
 
 // TODO: this function probably doesn't belong here...?
-inline uint32_t __not_in_flash_func(_make_col)(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
+static inline uint32_t _make_col(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
   return __builtin_bswap32((r << 24) | (g << 16) | (b << 8) | a);
 }
 
@@ -103,38 +101,39 @@ inline uint32_t _make_col_oklch(uint l_in, uint c_in, uint h_in, uint8_t a_in = 
   return _make_col(ri, gi, bi, a_in);
 }
 
+static inline __attribute__((always_inline))
+uint32_t get_r(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[0];}
+static inline __attribute__((always_inline))
+uint32_t get_g(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[1];}
+static inline __attribute__((always_inline))
+uint32_t get_b(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[2];}
+static inline __attribute__((always_inline))
+uint32_t get_a(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[3];}
 
-inline uint32_t __not_in_flash_func(_r)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[0];}
-inline uint32_t __not_in_flash_func(_g)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[1];}
-inline uint32_t __not_in_flash_func(_b)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[2];}
-inline uint32_t __not_in_flash_func(_a)(const uint32_t *c) {uint8_t *p = (uint8_t*)c; return p[3];}
-
-inline void __not_in_flash_func(_r)(const uint32_t *c, uint8_t r) {uint8_t *p = (uint8_t*)c; p[0] = r;}
-inline void __not_in_flash_func(_g)(const uint32_t *c, uint8_t g) {uint8_t *p = (uint8_t*)c; p[1] = g;}
-inline void __not_in_flash_func(_b)(const uint32_t *c, uint8_t b) {uint8_t *p = (uint8_t*)c; p[2] = b;}
-inline void __not_in_flash_func(_a)(const uint32_t *c, uint8_t a) {uint8_t *p = (uint8_t*)c; p[3] = a;}
+static inline __attribute__((always_inline))
+void set_r(const uint32_t *c, uint8_t r) {uint8_t *p = (uint8_t*)c; p[0] = r;}
+static inline __attribute__((always_inline))
+void set_g(const uint32_t *c, uint8_t g) {uint8_t *p = (uint8_t*)c; p[1] = g;}
+static inline __attribute__((always_inline))
+void set_b(const uint32_t *c, uint8_t b) {uint8_t *p = (uint8_t*)c; p[2] = b;}
+static inline __attribute__((always_inline))
+void set_a(const uint32_t *c, uint8_t a) {uint8_t *p = (uint8_t*)c; p[3] = a;}
 
 // TODO: consider making all images pre-multiplied alpha
 
-// note: previously we had blend paths using the rp2 interpolators but these
+// NOTE: previously we had blend paths using the rp2 interpolators but these
 // turn out to be slower due to mmio access times, often taking around 40%
 // longer to do the same work
 
-/*
-
-  blending functions
-
-*/
 
 // blends a source rgba pixel over a destination rgba pixel
 // (~30 cycles per pixel)
 static inline __attribute__((always_inline))
 void _blend_rgba_rgba(uint8_t *dst, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-  // blend r, g, b, and a channels
   int dr = dst[0], dg = dst[1], db = dst[2], da = dst[3];
-  dst[0] += (a * (r - dr)) >> 8;
-  dst[1] += (a * (g - dg)) >> 8;
-  dst[2] += (a * (b - db)) >> 8;
+  dst[0] = dr + ((a * (r - dr)) >> 8);
+  dst[1] = dg + ((a * (g - dg)) >> 8);
+  dst[2] = db + ((a * (b - db)) >> 8);
   dst[3] = a + ((da * (255 - a)) >> 8);
 }
 
@@ -154,14 +153,12 @@ static inline __attribute__((always_inline))
 void _span_blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint32_t w) {
   uint8_t sa = src[3];
 
-  if(sa == 0) return;
+  if(sa == 0) return; // source fully transparent; skip
 
-  if(sa == 255) { // source fully opaque: overwrite
-    uint32_t *p = (uint32_t*)dst;         // see note on alignment below
+  if(sa == 255) {     // source fully opaque; overwrite
+    uint32_t *p = (uint32_t*)dst;
     uint32_t c = *(uint32_t*)src;
-    while(w--) {
-      *p++ = c;
-    }
+    while(w--) { *p++ = c; }
     return;
   }
 

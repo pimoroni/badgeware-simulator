@@ -2,8 +2,7 @@ from picovector import algorithm
 import math
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   grid = 20
 

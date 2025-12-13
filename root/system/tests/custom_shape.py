@@ -1,8 +1,7 @@
 import math
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   pen(0, 255, 255, 50)
   s = shape.custom([point(10, 10), point(20, 10), point(20, 20), point(10, 20)], [point(15, 15), point(25, 15), point(25, 25), point(15, 25)])

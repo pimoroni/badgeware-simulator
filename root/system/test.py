@@ -10,6 +10,9 @@ selected = 0
 def update():
   global selected
 
+  pen(20, 40, 60)
+  screen.clear()
+
   names = list(tests.keys())
   name = names[selected]
   tests[name].update()

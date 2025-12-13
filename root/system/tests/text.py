@@ -4,8 +4,7 @@ skull = image.load("/system/assets/skull.png")
 screen.font = pixel_font.load("/system/assets/fonts/compass.ppf")
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   i = round(io.ticks / 200)
   i %= 10

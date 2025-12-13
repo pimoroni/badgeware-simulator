@@ -12,8 +12,7 @@ def magic_sprite(src, pos, scale=1, angle=0):
   screen.shape(rect)
 
 def update():
-  pen(20, 40, 60)
-  screen.clear()
+  screen.clear(color.rgb(20, 40, 60))
 
   scale = (math.sin(io.ticks / 1000) + 1.0) * 4 + 1
   angle = math.cos(io.ticks / 500) * 100
