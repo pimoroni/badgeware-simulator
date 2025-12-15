@@ -329,12 +329,12 @@ MPY_BIND_VAR(3, blit, {
 MPY_BIND_VAR(1, clear, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
-    if(n_args == 2) {
-      const color_obj_t *color = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
-      self->image->clear(color->c);
-    }else{
+    // if(n_args == 2) {
+    //   const color_obj_t *color = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    //   self->image->clear(color->c);
+    // }else{
       self->image->clear();
-    }
+//    }
 
     return mp_const_none;
   })
@@ -423,12 +423,13 @@ MPY_BIND_ATTR(image, {
         }
 
         if(action == SET) {
-          brush_obj_t *brush = mp_obj_to_brush(1, &dest[1]);
+          brush_obj_t *brush = mp_obj_to_brush(self->image, 1, &dest[1]);
           if(!brush){
             mp_raise_TypeError(MP_ERROR_TEXT("value must be of type brush or color"));
           }
           self->brush = brush;
           self->image->brush(self->brush->brush);
+
           dest[0] = MP_OBJ_NULL;
           return;
         }

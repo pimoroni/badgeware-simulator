@@ -232,15 +232,9 @@ namespace picovector {
           int to = nsx + (ny * tw);
           uint8_t *p = tile + to;
 
-          brush->render_span(target, nsx, ny, nex - nsx);
+          brush->span_func(brush, nsx, ny, nex - nsx);
+//          brush->render_span(target, nsx, ny, nex - nsx);
 
-          // int count = nex - nsx;
-          // while(count--) {
-          //   *p++ = 255;
-          // }
-
-          // brush->
-          //printf("node %d -> %d (%d)\n", nsx, nex, ny);
 
         }
 

@@ -13,7 +13,7 @@ extern "C" {
     int b = (int)mp_obj_get_float(args[2]);
     int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
-    color->c = _make_col(r, g, b, a);
+    color->c = rgba(r, g, b, a);
     return MP_OBJ_FROM_PTR(color);
   })
 
@@ -23,7 +23,7 @@ extern "C" {
     int v = (int)mp_obj_get_float(args[2]);
     int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
-    color->c = _make_col_hsv(h, s, v, a);
+    color->c = hsv(h, s, v, a);
     return MP_OBJ_FROM_PTR(color);
   })
 
@@ -33,7 +33,7 @@ extern "C" {
     int h = (int)mp_obj_get_float(args[2]);
     int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
-    color->c = _make_col_oklch(l, c, h, a);
+    color->c = oklch(l, c, h, a);
     return MP_OBJ_FROM_PTR(color);
   })
 
@@ -45,7 +45,7 @@ extern "C" {
     uint8_t g = src[1];
     uint8_t b = src[2];
     uint8_t a = src[3];
-    _blend_rgba_rgba((uint8_t*)&self->c, r, g, b, a);
+    blend_rgba_rgba((uint8_t*)&self->c, r, g, b, a);
     return MP_OBJ_NULL;
   })
 
