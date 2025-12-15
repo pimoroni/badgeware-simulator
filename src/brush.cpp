@@ -135,8 +135,6 @@ namespace picovector {
     }
   }
 
-
-
   // blend the source colour over the destination colour
   void image_pixel_func_rgba_rgba_blend(brush_t *brush, int x, int y) {
     // currently a NOP
@@ -231,10 +229,6 @@ namespace picovector {
       mask_span_func = image_mask_span_func_rgba_rgba_blend;
     }
   }
-
-
-
-
 
 
   // embedded patterns

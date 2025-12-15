@@ -485,28 +485,26 @@ namespace picovector {
     int32_t w1row = orient2d(p3, p1, tl) + bias1;
     int32_t w2row = orient2d(p1, p2, tl) + bias2;
 
+    pixel_func_t pf = this->_brush->pixel_func;
+
     for (int32_t y = 0; y < b.h; y++) {
       int32_t w0 = w0row;
       int32_t w1 = w1row;
       int32_t w2 = w2row;
 
-      point_t dest = point_t(b.x, b.y + y);
+      int xo = b.x;
+      int yo = b.y + y;
       for (int32_t x = 0; x < b.w; x++) {
         if ((w0 | w1 | w2) >= 0) {
-          this->_brush->pixel_func(this->_brush, dest.x, dest.y);
-//          put_unsafe(dest.x, dest.y);
+          pf(this->_brush, xo, yo);
         }
 
-        dest.x++;
-
-        w0 += a12;
-        w1 += a20;
-        w2 += a01;
+        xo++;
+        w0 += a12; w1 += a20; w2 += a01;
       }
 
-      w0row += b12;
-      w1row += b20;
-      w2row += b01;
+      w0row += b12; w1row += b20; w2row += b01;
+
     }
   }
 
@@ -544,9 +542,10 @@ namespace picovector {
     int sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;
 
+    pixel_func_t pf = this->_brush->pixel_func;
+
     while(true) {
-        this->_brush->pixel_func(this->_brush, x0, y0);
-          //this->put_unsafe(x0, y0);
+        pf(this->_brush, x0, y0);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy) {err += dy; x0 += sx;}
