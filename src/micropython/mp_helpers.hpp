@@ -20,7 +20,7 @@ extern "C" {
   static MP_DEFINE_CONST_FUN_OBJ_VAR(mpy_binding_##fn_name##_obj, var_min_args, mpy_binding_##fn_name);\
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(mpy_binding_##fn_name##_static_obj, MP_ROM_PTR(&mpy_binding_##fn_name##_obj));
 
-  #define MPY_BIND_STATICMETHOD_KW(var_min_args, fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) fn_body\
+#define MPY_BIND_STATICMETHOD_KW(var_min_args, fn_name, fn_body) static mp_obj_t mpy_binding_##fn_name(size_t n_args, const mp_obj_t *args, mp_map_t *kw_args) fn_body\
   static MP_DEFINE_CONST_FUN_OBJ_KW(mpy_binding_##fn_name##_obj, var_min_args, mpy_binding_##fn_name);\
   static MP_DEFINE_CONST_STATICMETHOD_OBJ(mpy_binding_##fn_name##_static_obj, MP_ROM_PTR(&mpy_binding_##fn_name##_obj));
 
