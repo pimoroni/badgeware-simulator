@@ -74,7 +74,7 @@ namespace picovector {
     return this->_bytes_per_pixel;
   }
 
-  bool image_t::compatible_buffer(image_t *other) {
+  bool image_t::is_compatible(image_t *other) {
     return this->_palette == other->_palette && this->_pixel_format == other->_pixel_format;
   }
 
@@ -99,11 +99,11 @@ namespace picovector {
   }
 
   // TODO: why?
-  void image_t::delete_palette() {
-    if(this->has_palette()) {
-      this->_palette.clear();
-    }
-  }
+  // void image_t::delete_palette() {
+  //   if(this->has_palette()) {
+  //     this->_palette.clear();
+  //   }
+  // }
 
   void image_t::palette(uint8_t i, uint32_t c) {
     this->_palette[i] = c;
@@ -374,12 +374,6 @@ namespace picovector {
     }
   }
 
-  __attribute__((always_inline))
-  void* image_t::ptr(int x, int y) const {
-    //debug_printf("get ptr at %d, %d (bpp = %d, rs = %d)\n", x, y, (int)this->_bytes_per_pixel, (int)this->_row_stride);
-    return (uint8_t *)(this->_buffer) + (x * this->_bytes_per_pixel) + (y * this->_row_stride);
-  }
-
   void image_t::draw(shape_t *shape) {
     // pvr_reset();
     // for(auto &path : shape->paths) {
@@ -522,7 +516,6 @@ namespace picovector {
     rect_t b = this->_clip;
     b.w -= 1;
     b.h -= 1; // TODO: this is hacky... fix it properly
-
     if(!clip_line(p1, p2, b)) {
       return; // fully outside bounds, nothing to draw
     }
@@ -531,10 +524,6 @@ namespace picovector {
     int x1 = p2.x;
     int y0 = p1.y;
     int y1 = p2.y;
-    int xmin = _clip.x;
-    int ymin = _clip.y;
-    int xmax = _clip.x + _clip.w;
-    int ymax = _clip.y + _clip.h;
 
     int dx = abs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;

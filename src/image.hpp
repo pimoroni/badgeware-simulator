@@ -58,11 +58,12 @@ namespace picovector {
 
       size_t buffer_size();
       size_t bytes_per_pixel();
-      bool compatible_buffer(image_t *other);
+      bool is_compatible(image_t *other);
       void window(image_t *source, rect_t viewport);
       image_t window(rect_t r);
-      __attribute__((always_inline))
-      void* ptr(int x, int y) const;
+      inline void* ptr(int x, int y) const {
+        return (uint8_t *)(this->_buffer) + (x * this->_bytes_per_pixel) + (y * this->_row_stride);
+      }
       uint32_t row_stride();
 
       rect_t bounds();
@@ -70,7 +71,7 @@ namespace picovector {
       void clip(rect_t r);
 
       bool has_palette();
-      void delete_palette();
+      // void delete_palette();
       void palette(uint8_t i, uint32_t c);
       uint32_t palette(uint8_t i);
 
