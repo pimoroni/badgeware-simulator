@@ -3,14 +3,78 @@
 #include <stdint.h>
 #include <algorithm>
 
-#include "point.hpp"
+#include "mat3.hpp"
 
 using std::max;
 using std::min;
 
 namespace picovector {
 
-  class rect_t {
+  typedef int32_t fx16_t; // fixed point 16:16 type
+
+  struct point_t {
+    float x;
+    float y;
+
+    point_t() {}
+    point_t(float x, float y) : x(x), y(y) {}
+
+    bool operator==(const point_t &rhs) const {
+      return x == rhs.x && y == rhs.y;
+    }
+
+    point_t transform(mat3_t *t) {
+      if(!t) {return *this;}
+      return point_t(
+        t->v00 * x + t->v01 * y + t->v02,
+        t->v10 * x + t->v11 * y + t->v12
+      );
+    }
+
+    point_t transform(const mat3_t &t) {
+      return point_t(
+        t.v00 * x + t.v01 * y + t.v02,
+        t.v10 * x + t.v11 * y + t.v12
+      );
+    }
+  };
+
+  static inline fx16_t f_to_fx16(float v) {
+    return fx16_t(v * 65536.0f);
+  }
+
+  struct fx16_point_t {
+    fx16_t x;
+    fx16_t y;
+
+    fx16_point_t(fx16_t x, fx16_t y) : x(x), y(y) {}
+
+    fx16_point_t(float fx, float fy) {
+      x = f_to_fx16(fx);
+      y = f_to_fx16(fy);
+    }
+
+    bool operator==(const point_t &rhs) const {
+      return x == rhs.x && y == rhs.y;
+    }
+
+    fx16_point_t transform(mat3_t *t) {
+      if(!t) {return *this;}
+      return fx16_point_t(
+        t->v00 * x + t->v01 * y + t->v02,
+        t->v10 * x + t->v11 * y + t->v12
+      );
+    }
+
+    fx16_point_t transform(const mat3_t &t) {
+      return fx16_point_t(
+        t.v00 * x + t.v01 * y + t.v02,
+        t.v10 * x + t.v11 * y + t.v12
+      );
+    }
+  };
+
+  struct rect_t {
   public:
     float x;
     float y;

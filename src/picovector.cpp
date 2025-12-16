@@ -4,8 +4,8 @@
 #include "brush.hpp"
 #include "image.hpp"
 #include "shape.hpp"
-#include "point.hpp"
-#include "matrix.hpp"
+#include "types.hpp"
+#include "mat3.hpp"
 #include "blend.hpp"
 
 using std::sort;

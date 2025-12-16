@@ -8,7 +8,7 @@ static inline uint32_t rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
   return __builtin_bswap32((r << 24) | (g << 16) | (b << 8) | a);
 }
 
-inline uint32_t hsv(uint h, uint s, uint v, uint8_t a = 255) {
+inline uint32_t hsv(int h, int s, int v, uint8_t a = 255) {
   int region = h / 60;
   int remainder = (h - (region * 60)) * 255 / 60;
 
@@ -46,7 +46,7 @@ inline uint32_t hsv(uint h, uint s, uint v, uint8_t a = 255) {
       }
   }
 
-inline uint32_t oklch(uint l_in, uint c_in, uint h_in, uint8_t a_in = 255) {
+inline uint32_t oklch(int l_in, int c_in, int h_in, uint8_t a_in = 255) {
   // Normalise to OKLCH ranges
   float L = (float)l_in / 255.0f;   // 0–1
 
@@ -180,7 +180,7 @@ void mask_span_blend_rgba_rgba(uint8_t *dst, uint8_t *src, uint32_t w, uint8_t *
 
 // blends a horizontal run of rgba source pixels onto the corresponding destination pixels
 static inline __attribute__((always_inline))
-void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint w, uint8_t a) {
+void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, int w, uint8_t a) {
   while(w--) {
     uint8_t r = src[0], g = src[1], b = src[2], a = src[3];
     blend_rgba_rgba(dst, r, g, b, a);
@@ -192,7 +192,7 @@ void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint w, uint8_t a) {
 
 // blends a horizontal run of rgba source pixels from a palette onto the corresponding destination pixels
 static inline __attribute__((always_inline))
-void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, uint w, uint8_t a) {
+void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, int w, uint8_t a) {
   while(w--) {
     uint8_t *col = &pal[*src << 2];
     uint8_t r = col[0], g = col[1], b = col[2], a = col[3];
@@ -204,7 +204,7 @@ void _span_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, uint w, uint
 }
 
 static inline __attribute__((always_inline))
-void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint x, int step, uint w, uint8_t a) {
+void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, int x, int step, int w, uint8_t a) {
   while(w--) {
     uint8_t *osrc = src + ((x >> 16) << 2);
     uint8_t r = osrc[0], g = osrc[1], b = osrc[2], a = osrc[3];
@@ -215,7 +215,7 @@ void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint x, int step, ui
 }
 
 static inline __attribute__((always_inline))
-void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, uint x, int step, uint w, uint8_t a) {
+void _span_scale_blit_rgba_rgba(uint8_t *dst, uint8_t *src, uint8_t *pal, int x, int step, int w, uint8_t a) {
   while(w--) {
     uint8_t *osrc = src + ((x >> 16) << 2);
     uint8_t *col = &pal[*osrc << 2];

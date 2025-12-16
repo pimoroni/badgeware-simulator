@@ -4,7 +4,7 @@
 #include "image.hpp"
 #include "picovector.hpp"
 #include "brush.hpp"
-#include "matrix.hpp"
+#include "mat3.hpp"
 
 using std::sort;
 

@@ -1,6 +1,7 @@
-#include "brush.hpp"
-
+#include "types.hpp"
 #include "blend.hpp"
+
+#include "brush.hpp"
 
 namespace picovector {
 
@@ -145,14 +146,14 @@ namespace picovector {
     uint8_t *dst = (uint8_t*)brush->target->ptr(x, y);
     rect_t b = p->src->bounds();
 
-    point_t p1(x, y);
-    point_t p2((x + w), y);
+    fx16_point_t p1(x, y);
+    fx16_point_t p2((x + w), y);
 
     p1 = p1.transform(&p->inverse_transform);
     p2 = p2.transform(&p->inverse_transform);
 
-    point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
-    point_t pt = p1;
+    fx16_point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
+    fx16_point_t pt = p1;
 
     int tw = int(b.w);
     int th = int(b.h);
@@ -160,8 +161,8 @@ namespace picovector {
     for(int i = 0; i < w; i++) {
       pt.x += pd.x;
       pt.y += pd.y;
-      int u = (int(pt.x) % tw + tw) % tw;
-      int v = (int(pt.y) % th + th) % th;
+      int u = ((int(pt.x) >> 16) % tw + tw) % tw;
+      int v = ((int(pt.y) >> 16) % th + th) % th;
       uint32_t c = p->src->get_unsafe(u, v);
       uint8_t *src = (uint8_t*)&c;
       blend_rgba_rgba(dst, src[0], src[1], src[2], src[3]);
@@ -174,14 +175,14 @@ namespace picovector {
     uint8_t *dst = (uint8_t*)brush->target->ptr(x, y);
     rect_t b = p->src->bounds();
 
-    point_t p1(x, y);
-    point_t p2((x + w), y);
+    fx16_point_t p1(x, y);
+    fx16_point_t p2((x + w), y);
 
     p1 = p1.transform(&p->inverse_transform);
     p2 = p2.transform(&p->inverse_transform);
 
-    point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
-    point_t pt = p1;
+    fx16_point_t pd((p2.x - p1.x) / w, (p2.y - p1.y) / w);
+    fx16_point_t pt = p1;
 
     int tw = int(b.w);
     int th = int(b.h);
@@ -189,8 +190,8 @@ namespace picovector {
     for(int i = 0; i < w; i++) {
       pt.x += pd.x;
       pt.y += pd.y;
-      int u = (int(pt.x) % tw + tw) % tw;
-      int v = (int(pt.y) % th + th) % th;
+      int u = ((int(pt.x) >> 16) % tw + tw) % tw;
+      int v = ((int(pt.y) >> 16) % th + th) % th;
       uint32_t c = p->src->get_unsafe(u, v);
       uint8_t *src = (uint8_t*)&c;
       uint16_t t = *mask * src[3] + 128; // combine source alpha with mask alpha

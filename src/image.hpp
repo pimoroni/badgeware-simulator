@@ -4,7 +4,7 @@
 #include <string>
 
 #include "picovector.config.hpp"
-#include "rect.hpp"
+#include "types.hpp"
 
 using std::vector;
 

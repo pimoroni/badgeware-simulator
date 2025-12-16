@@ -1,7 +1,7 @@
 #pragma once
 
 #include "picovector.hpp"
-#include "matrix.hpp"
+#include "mat3.hpp"
 #include "image.hpp"
 
 namespace picovector {
