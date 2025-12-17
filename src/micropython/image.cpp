@@ -345,6 +345,14 @@ MPY_BIND_ATTR(image, {
     action_t action = m_attr_action(dest);
 
     switch(attr) {
+      case MP_QSTR_raw: {
+        if(action == GET) {
+          mp_obj_t raw = mp_obj_new_bytearray_by_ref(self->image->buffer_size(), self->image->ptr(0, 0));
+          dest[0] = raw;
+          return;
+        }
+      };
+
       case MP_QSTR_clip: {
         if(action == GET) {
           rect_obj_t *result = mp_obj_malloc(rect_obj_t, &type_rect);
