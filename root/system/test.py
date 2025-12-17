@@ -25,6 +25,12 @@ def update():
   if io.BUTTON_UP in io.pressed:
     selected -= 1
 
+  screen.font = ark
+  pen(255, 255, 255)
+  title = "Badgeware API examples"
+  w, h = screen.measure_text(title)
+  screen.text(title, 160 - w / 2, 5)
+
   selected %= len(names)
   screen.font = ark
   for name in names:

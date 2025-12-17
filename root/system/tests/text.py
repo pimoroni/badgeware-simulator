@@ -19,9 +19,9 @@ Once I roared with breath and [pen:255,100,80]flame[pen:180,150,120], Now legend
   pen(100, 255, 100, 150)
 
   x = 100
-  y = 5
+  y = 25
   width = math.sin(io.ticks / 500) * 40 + 175
-  height = 230
+  height = 200
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)
   measure(screen, tokens, bounds, line_spacing=1, word_spacing=1.05)
