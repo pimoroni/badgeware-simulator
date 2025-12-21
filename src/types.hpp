@@ -49,11 +49,6 @@ namespace picovector {
 
     fx16_point_t(fx16_t x, fx16_t y) : x(x), y(y) {}
 
-    fx16_point_t(int ix, int iy) {
-      x = ix << 16;
-      y = iy << 16;
-    }
-
     fx16_point_t(float fx, float fy) {
       x = f_to_fx16(fx);
       y = f_to_fx16(fy);
