@@ -41,12 +41,10 @@ extern "C" {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const color_obj_t *other = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
     uint8_t *src = (uint8_t*)&other->c;
-    uint8_t r = src[0];
-    uint8_t g = src[1];
-    uint8_t b = src[2];
-    uint8_t a = src[3];
-    blend_rgba_rgba((uint8_t*)&self->c, r, g, b, a);
-    return MP_OBJ_NULL;
+    color_obj_t *result = mp_obj_malloc(color_obj_t, &type_color);
+    result->c = self->c;
+    blend_rgba_rgba((uint8_t*)&result->c, src[0], src[1], src[2], src[3]);
+    return MP_OBJ_FROM_PTR(result);
   })
 
   static inline uint8_t darken_u8(uint8_t c, uint8_t factor) {
@@ -56,10 +54,12 @@ extern "C" {
   MPY_BIND_VAR(2, darken, {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
     int v = 255 - (int)mp_obj_get_float(args[1]);
-    set_r(&self->c, darken_u8(get_r(&self->c), v));
-    set_g(&self->c, darken_u8(get_g(&self->c), v));
-    set_b(&self->c, darken_u8(get_b(&self->c), v));
-    return MP_OBJ_NULL;
+    color_obj_t *result = mp_obj_malloc(color_obj_t, &type_color);
+    result->c = self->c;
+    set_r(&result->c, darken_u8(get_r(&self->c), v));
+    set_g(&result->c, darken_u8(get_g(&self->c), v));
+    set_b(&result->c, darken_u8(get_b(&self->c), v));
+    return MP_OBJ_FROM_PTR(result);
   })
 
   static inline uint8_t lighten_u8(uint8_t c, uint factor) {
@@ -71,10 +71,12 @@ extern "C" {
   MPY_BIND_VAR(2, lighten, {
     const color_obj_t *self = (color_obj_t *)MP_OBJ_TO_PTR(args[0]);
     int v = 256 + (int)mp_obj_get_float(args[1]);
-    set_r(&self->c, lighten_u8(get_r(&self->c), v));
-    set_g(&self->c, lighten_u8(get_g(&self->c), v));
-    set_b(&self->c, lighten_u8(get_b(&self->c), v));
-    return MP_OBJ_NULL;
+    color_obj_t *result = mp_obj_malloc(color_obj_t, &type_color);
+    result->c = self->c;
+    set_r(&result->c, lighten_u8(get_r(&self->c), v));
+    set_g(&result->c, lighten_u8(get_g(&self->c), v));
+    set_b(&result->c, lighten_u8(get_b(&self->c), v));
+    return MP_OBJ_FROM_PTR(result);
   })
 
   static void attr(mp_obj_t self_in, qstr attr, mp_obj_t *dest) {
@@ -183,7 +185,6 @@ extern "C" {
     { MP_ROM_QSTR(MP_QSTR_white),  MP_ROM_PTR(&color_white_obj) },
   )
 
-
   MP_DEFINE_CONST_OBJ_TYPE(
       type_color,
       MP_QSTR_color,
@@ -191,7 +192,4 @@ extern "C" {
       attr, (const void *)attr,
       locals_dict, &color_locals_dict
   );
-
 }
-
-
