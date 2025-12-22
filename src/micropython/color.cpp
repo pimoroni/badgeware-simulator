@@ -136,6 +136,24 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
+  // default palette based on Dawnbringer 16
+  const color_obj_t color_black_obj  = {.base = {.type = &type_color}, .c = 0xff281e14u};
+  const color_obj_t color_grape_obj  = {.base = {.type = &type_color}, .c = 0xff342444u};
+  const color_obj_t color_navy_obj   = {.base = {.type = &type_color}, .c = 0xff6d3430u};
+  const color_obj_t color_grey_obj   = {.base = {.type = &type_color}, .c = 0xff4e4a4eu};
+  const color_obj_t color_brown_obj  = {.base = {.type = &type_color}, .c = 0xff304c85u};
+  const color_obj_t color_green_obj  = {.base = {.type = &type_color}, .c = 0xff246534u};
+  const color_obj_t color_red_obj    = {.base = {.type = &type_color}, .c = 0xff4846d0u};
+  const color_obj_t color_taupe_obj  = {.base = {.type = &type_color}, .c = 0xff617175u};
+  const color_obj_t color_blue_obj   = {.base = {.type = &type_color}, .c = 0xffce7d59u};
+  const color_obj_t color_orange_obj = {.base = {.type = &type_color}, .c = 0xff2c7dd2u};
+  const color_obj_t color_smoke_obj  = {.base = {.type = &type_color}, .c = 0xffa19585u};
+  const color_obj_t color_lime_obj   = {.base = {.type = &type_color}, .c = 0xff2caa6du};
+  const color_obj_t color_latte_obj  = {.base = {.type = &type_color}, .c = 0xff99aad2u};
+  const color_obj_t color_cyan_obj   = {.base = {.type = &type_color}, .c = 0xffcac26du};
+  const color_obj_t color_yellow_obj = {.base = {.type = &type_color}, .c = 0xff5ed4dau};
+  const color_obj_t color_white_obj  = {.base = {.type = &type_color}, .c = 0xffd6eedeu};
+
   MPY_BIND_LOCALS_DICT(color,
     // static color generators
     MPY_BIND_ROM_PTR_STATIC(rgb),
@@ -147,17 +165,24 @@ extern "C" {
     MPY_BIND_ROM_PTR(lighten),
     MPY_BIND_ROM_PTR(blend),
 
-    // color constants
-    // note: these do not include alpha, since it overflows RP2s int type
-    MPY_BIND_ROM_INT(black,  0x000000),
-    MPY_BIND_ROM_INT(white,  0xffffff),
-    MPY_BIND_ROM_INT(red,    0x0000ff),
-    MPY_BIND_ROM_INT(yellow, 0x00ffff),
-    MPY_BIND_ROM_INT(green,  0x00ff00),
-    MPY_BIND_ROM_INT(teal,   0xffff00),
-    MPY_BIND_ROM_INT(blue,   0xff0000),
-    MPY_BIND_ROM_INT(purple, 0xff00ff),
+    { MP_ROM_QSTR(MP_QSTR_black),  MP_ROM_PTR(&color_black_obj) },
+    { MP_ROM_QSTR(MP_QSTR_grape),  MP_ROM_PTR(&color_grape_obj) },
+    { MP_ROM_QSTR(MP_QSTR_navy),   MP_ROM_PTR(&color_navy_obj) },
+    { MP_ROM_QSTR(MP_QSTR_grey),   MP_ROM_PTR(&color_grey_obj) },
+    { MP_ROM_QSTR(MP_QSTR_brown),  MP_ROM_PTR(&color_brown_obj) },
+    { MP_ROM_QSTR(MP_QSTR_green),  MP_ROM_PTR(&color_green_obj) },
+    { MP_ROM_QSTR(MP_QSTR_red),    MP_ROM_PTR(&color_red_obj) },
+    { MP_ROM_QSTR(MP_QSTR_taupe),  MP_ROM_PTR(&color_taupe_obj) },
+    { MP_ROM_QSTR(MP_QSTR_blue),   MP_ROM_PTR(&color_blue_obj) },
+    { MP_ROM_QSTR(MP_QSTR_orange), MP_ROM_PTR(&color_orange_obj) },
+    { MP_ROM_QSTR(MP_QSTR_smoke),  MP_ROM_PTR(&color_smoke_obj) },
+    { MP_ROM_QSTR(MP_QSTR_lime),   MP_ROM_PTR(&color_lime_obj) },
+    { MP_ROM_QSTR(MP_QSTR_latte),  MP_ROM_PTR(&color_latte_obj) },
+    { MP_ROM_QSTR(MP_QSTR_cyan),   MP_ROM_PTR(&color_cyan_obj) },
+    { MP_ROM_QSTR(MP_QSTR_yellow), MP_ROM_PTR(&color_yellow_obj) },
+    { MP_ROM_QSTR(MP_QSTR_white),  MP_ROM_PTR(&color_white_obj) },
   )
+
 
   MP_DEFINE_CONST_OBJ_TYPE(
       type_color,
