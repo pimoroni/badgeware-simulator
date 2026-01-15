@@ -360,7 +360,7 @@ rect_t render_nodes(rect_t *tb, uint aa) {
 
         //printf("  - tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
 
-        tb = clip.intersection(tb);
+        tb = clip.intersection(tb).intersection(sb);
         if(tb.empty()) { continue; } // if tile empty, skip it
 
         //printf("  - clipped tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
@@ -375,63 +375,21 @@ rect_t render_nodes(rect_t *tb, uint aa) {
         tb.w = int( ceil(tb.w)) * (1 << aa);
         tb.h = int( ceil(tb.h)) * (1 << aa);
 
-//        offset *= (1 << aa);
         //printf("  - clipped and scaled tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
 
         // clear existing tile data and nodes
         memset(node_count_buffer, 0, NODE_COUNT_BUFFER_SIZE);
         memset(tile_buffer, 0, TILE_BUFFER_SIZE);
 
-        //printf("  - build nodes\n");
-        // build the nodes for each pp_path_t
+        // build the nodes for each path
         for(auto &path : shape->paths) {
           // debug("    : build nodes for path (%d points)\n", path->count);
           build_nodes(&path, &tb, transform, aa);
         }
 
-
-        // continue;
-
-        // debug("    : render the tile\n");
-        //printf("  - render nodes\n");
-
         rect_t rb = render_nodes(&tb, aa);
-        // rect_t rb = render_nodes(&tb, aa);
-        // tb.x += rb.x; tb.y += rb.y; tb.w = rb.w; tb.h = rb.h;
 
         if(tb.empty()) { continue; }
-
-        // pp_tile_t tile = {
-        //   .x = tb.x, .y = tb.y, .w = tb.w, .h = tb.h,
-        //   .stride = PP_TILE_BUFFER_SIZE,
-        //   .data = tile_buffer + rb.x + (PP_TILE_BUFFER_SIZE * rb.y)
-        // };
-
-        //brush->
-        // _pp_tile_callback(&tile);
-        //printf("  - render tile\n");
-
-
-
-  // for(int y = tb.y; y < tb.y + tb.h; y++) {
-  //   unsigned char* row_data = &tile_buffer[(y * TILE_SIZE) + int(rb.x)];
-  //   for(int x = rb.x; x < rb.x + rb.w; x++) {
-  //     *row_data = p_alpha_map[*row_data];
-  //     row_data++;
-  //   }
-  // }
-
-        // int c = TILE_WIDTH * TILE_HEIGHT;
-        // uint8_t* p = tile_buffer;
-        // while(c--) {
-        //   *p = p_alpha_map[*p];
-        //   p++;
-        // }
-        //printf("! render tile at %d, %d (%d x %d)\n", sx, sy, sw, sh);
-
-        //p = tile_buffer;
-
-        //printf("%d vs %d\n", int(rb.h), sh);
 
         int rbx = int(floor(rb.x));
         int rby = int(floor(rb.y));
