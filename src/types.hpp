@@ -199,6 +199,30 @@ namespace picovector {
       w -= left + right;
       h -= top + bottom;
     }
+
+    rect_t transform(mat3_t *m) {
+      vec2_t tl = vec2_t(this->x, this->y);
+      vec2_t tr = vec2_t(this->x + this->w, this->y);
+      vec2_t bl = vec2_t(this->x, this->y + this->h);
+      vec2_t br = vec2_t(this->x + this->w, this->y + this->h);
+
+      tl = tl.transform(m);
+      tr = tr.transform(m);
+      bl = bl.transform(m);
+      br = br.transform(m);
+
+      float minx = std::min(tl.x, std::min(tr.x, std::min(bl.x, br.x)));
+      float miny = std::min(tl.y, std::min(tr.y, std::min(bl.y, br.y)));
+      float maxx = std::max(tl.x, std::max(tr.x, std::max(bl.x, br.x)));
+      float maxy = std::max(tl.y, std::max(tr.y, std::max(bl.y, br.y)));
+
+      return rect_t(
+        x = (int32_t)minx,
+        y = (int32_t)miny,
+        w = (int32_t)(maxx - minx),
+        h = (int32_t)(maxy - miny)
+      );
+    }
   };
 
 }

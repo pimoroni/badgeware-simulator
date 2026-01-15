@@ -12,3 +12,4 @@ def update():
     p2 = vec2(x + bw.rnd(-50, 370), y + bw.rnd(-50, 290))
     pen(bw.rnd(255), bw.rnd(255), bw.rnd(255))
     screen.line(p1, p2)
+

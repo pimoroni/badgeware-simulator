@@ -41,16 +41,17 @@ def draw_graph(title, graph, x, y, bar_width=8, bar_height=100, max_value=None):
 
 
 def update():
-    debug.pen = DEBUG_BG
-    debug.clear()
+    pass
+    # debug.pen = DEBUG_BG
+    # debug.clear()
 
-    debug.font = DEBUG_FONT
-    debug.pen = DEBUG_FG
-    debug.text("Hello Debug!", 1, 0)
+    # debug.font = DEBUG_FONT
+    # debug.pen = DEBUG_FG
+    # debug.text("Hello Debug!", 1, 0)
 
-    y = 30
-    y += draw_graph("Frame time (ms)", frame_averages, 1, y, bar_width=BAR_WIDTH)
-    draw_graph("Mem free (%)", mem_averages, 1, y, max_value=1.0, bar_width=BAR_WIDTH)
+    # y = 30
+    # y += draw_graph("Frame time (ms)", frame_averages, 1, y, bar_width=BAR_WIDTH)
+    # draw_graph("Mem free (%)", mem_averages, 1, y, max_value=1.0, bar_width=BAR_WIDTH)
 
 
 def __enter__():

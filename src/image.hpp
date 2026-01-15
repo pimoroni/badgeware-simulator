@@ -11,11 +11,11 @@ using std::vector;
 namespace picovector {
 
   typedef enum antialias_t {
-    OFF   = 1,
-    LOW   = 2,
-    X2    = 2,
-    HIGH  = 4,
-    X4    = 4
+    OFF   = 0,
+    LOW   = 1,
+    X2    = 1,
+    HIGH  = 2,
+    X4    = 2
   } antialias_t;
 
   typedef enum pixel_format_t {
