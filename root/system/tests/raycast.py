@@ -97,7 +97,7 @@ def update():
 
 
   # cast rays for player sight
-  for fova in range(-player.fov / 2, player.fov / 2, 5):
+  for fova in range(-player.fov / 2, player.fov / 2):
     algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
 
   # draw player position
@@ -105,7 +105,7 @@ def update():
   screen.circle(gtos(player.pos), 3)
 
   pen(255, 255, 255)
-  screen.line(gtos(player.pos), gtos(point_add(player.pos, player.vector(length=100))))
+  screen.line(gtos(player.pos), gtos(player.pos + player.vector(length=100)))
 
 
   pen(100, 100, 100, 100)

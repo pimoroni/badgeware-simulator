@@ -23,6 +23,26 @@ namespace picovector {
       return x == rhs.x && y == rhs.y;
     }
 
+
+    point_t& operator+=(const point_t& rhs) {x += rhs.x; y += rhs.y; return *this;}
+    point_t& operator-=(const point_t& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
+    point_t& operator*=(const point_t& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
+    point_t& operator*=(const float rhs) {x *= rhs; y *= rhs; return *this;}
+    point_t& operator/=(const point_t& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
+    point_t& operator/=(const float rhs) {x /= rhs; y /= rhs; return *this;}
+
+    friend point_t operator+(point_t lhs, const point_t& rhs) { lhs += rhs; return lhs; }
+    friend point_t operator-(point_t lhs, const point_t& rhs) { lhs -= rhs; return lhs; }
+    friend point_t operator*(point_t lhs, const point_t& rhs) { lhs *= rhs; return lhs; }
+    friend point_t operator*(point_t lhs, const float rhs) { lhs *= rhs; return lhs; }
+    friend point_t operator/(point_t lhs, const point_t& rhs) { lhs /= rhs; return lhs; }
+    friend point_t operator/(point_t lhs, const float rhs) { lhs /= rhs; return lhs; }
+
+    point_t operator+() const { return *this; }
+    point_t operator-() const { return point_t(-x, -y); }
+
+    friend bool operator!=(const point_t& a, const point_t& b) { return !(a == b); }
+
     point_t transform(mat3_t *t) {
       if(!t) {return *this;}
       return point_t(

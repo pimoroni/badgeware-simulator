@@ -74,6 +74,76 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   })
 
+  mp_obj_t make_point(point_t p) {
+    point_obj_t *result = (point_obj_t*)mp_obj_malloc(point_obj_t, &type_point);
+    result->point = p;
+    return MP_OBJ_FROM_PTR(result);
+  }
+
+  static mp_obj_t point_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+    point_obj_t *lhs = (point_obj_t*)MP_OBJ_TO_PTR(lhs_in);
+
+    switch (op) {
+      case MP_BINARY_OP_ADD: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return make_point(lhs->point + rhs->point);
+        }
+      }break;
+
+      case MP_BINARY_OP_SUBTRACT: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return make_point(lhs->point - rhs->point);
+        }
+      }break;
+
+      case MP_BINARY_OP_MULTIPLY: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return make_point(lhs->point * rhs->point);
+        }
+        if (mp_obj_is_int(rhs_in) || mp_obj_is_float(rhs_in)) {
+          float v = mp_obj_get_float(rhs_in);
+          return make_point(lhs->point * v);
+        }
+      }break;
+
+      case MP_BINARY_OP_TRUE_DIVIDE: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return make_point(lhs->point / rhs->point);
+        }
+        if (mp_obj_is_int(rhs_in) || mp_obj_is_float(rhs_in)) {
+          float v = mp_obj_get_float(rhs_in);
+          return make_point(lhs->point / v);
+        }
+      }break;
+
+      case MP_BINARY_OP_EQUAL: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return mp_obj_new_bool(lhs->point == rhs->point);
+        }
+        return mp_const_false;
+      }
+
+      case MP_BINARY_OP_NOT_EQUAL: {
+        if(mp_obj_is_type(rhs_in, &type_point)) {
+          point_obj_t *rhs = (point_obj_t*)MP_OBJ_TO_PTR(rhs_in);
+          return mp_obj_new_bool(lhs->point != rhs->point);
+        }
+        return mp_const_true;
+      }
+
+      default: {
+        return MP_OBJ_NULL;
+      }
+    }
+
+    return MP_OBJ_NULL;
+  }
+
   MPY_BIND_LOCALS_DICT(point,
     MPY_BIND_ROM_PTR(transform),
   )
@@ -84,6 +154,7 @@ extern "C" {
       MP_TYPE_FLAG_NONE,
       make_new, (const void *)point_new,
       attr, (const void *)point_attr,
+      binary_op, (const void *)point_binary_op,
       locals_dict, &point_locals_dict
   );
 
