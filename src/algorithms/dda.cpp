@@ -4,7 +4,7 @@
 
 namespace picovector {
 
-  void dda(point_t p, point_t v, dda_callback_t cb) {
+  void dda(vec2_t p, vec2_t v, dda_callback_t cb) {
     int ix = floorf(p.x);
     int iy = floorf(p.y);
 

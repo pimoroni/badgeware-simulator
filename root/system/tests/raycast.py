@@ -5,7 +5,7 @@ size = 20
 
 class Player:
   def __init__(self):
-    self.pos = point(8, 8)
+    self.pos = vec2(8, 8)
     self.angle = 0
     self.fov = 110
 
@@ -13,7 +13,7 @@ class Player:
     self.angle = angle
 
   def vector(self, offset=0, length=1):
-    return point(
+    return vec2(
       math.cos((self.angle + offset) * (math.pi / 180)) * length,
       math.sin((self.angle + offset) * (math.pi / 180)) * length
     )
@@ -38,13 +38,13 @@ map = [
 ]
 
 def gtos(p):
-  return point(
+  return vec2(
     160 + math.floor((p.x - player.pos.x) * size),
     120 + math.floor((p.y - player.pos.y) * size),
   )
 
 def point_add(p1, p2):
-  return point(
+  return vec2(
     p1.x + p2.x,
     p1.y + p2.y
   )
@@ -88,7 +88,7 @@ def update():
   global player
   screen.clear(color.rgb(20, 40, 60))
 
-  player.pos = point(
+  player.pos = vec2(
     math.sin(io.ticks / 2000) * 3 + 8,
     math.cos(io.ticks / 2000) * 3 + 8
   )
@@ -111,6 +111,6 @@ def update():
   pen(100, 100, 100, 100)
   for x in range(0, len(map[0])):
     for y in range(0, len(map)):
-      sp = gtos(point(x, y))
+      sp = gtos(vec2(x, y))
       if map_value(x, y) == 1:
         screen.rectangle(sp.x, sp.y, size, size)

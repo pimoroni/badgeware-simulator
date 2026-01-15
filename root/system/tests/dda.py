@@ -6,7 +6,7 @@ def dda_cb(step, ip, ig, edge, offset, distance):
   ip.x = ip.x * grid + 160
   ip.y = ip.y * grid + 120
 
-  op = point()
+  op = vec2()
   if edge ==  0 or edge == 2:
     op.x = int(ip.x) + offset
     op.y = int(ip.y)
@@ -40,11 +40,11 @@ def update():
 
 
 
-  p = point(
+  p = vec2(
     math.sin(io.ticks / 3000) * 2,
     math.cos(io.ticks/ 4000) * 2
   )
-  v = point(
+  v = vec2(
     math.cos(io.ticks / 5000) * 100,
     math.sin(io.ticks/ 6000) * 100
   )
@@ -67,7 +67,7 @@ def update():
   v.x = (v.x * grid)
   v.y = (v.y * grid)
 
-  t = point(
+  t = vec2(
     p.x + v.x,
     p.y + v.y
   )

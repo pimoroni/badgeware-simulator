@@ -8,12 +8,12 @@ def update():
     pen(color.oklch(128, 128, (io.ticks / 100) + i + 150, 100))
 
     # line clipping to rect
-    p1 = point(
+    p1 = vec2(
       int(math.sin(i + io.ticks / 500) * 100 + 0),
       int(math.sin(i + io.ticks / 400) * 100 + 0)
     )
 
-    p2 = point(
+    p2 = vec2(
       int(math.sin(i + io.ticks / 300) * 100 + 320),
       int(math.sin(i + io.ticks / 200) * 100 + 240)
     )

@@ -51,15 +51,15 @@ void operator delete(void * p)// throw()
 
 namespace picovector {
   struct _edgeinterp {
-    point_t s;
-    point_t e;
+    vec2_t s;
+    vec2_t e;
     float step;
 
     _edgeinterp() {
 
     }
 
-    _edgeinterp(point_t p1, point_t p2) {
+    _edgeinterp(vec2_t p1, vec2_t p2) {
       if(p1.y < p2.y) {
         s = p1; e = p2;
       } else {
@@ -94,10 +94,10 @@ namespace picovector {
     auto edge_interpolators = new(PicoVector_working_buffer) _edgeinterp[256];
     int edge_interpolator_count = 0;
     for(path_t &path : shape->paths) {
-      point_t last = path.points.back(); // start with last point to close loop
+      vec2_t last = path.points.back(); // start with last vec2 to close loop
       last = last.transform(transform);
-      //debug_printf("- adding path with %d points\n", int(path.points.size()));
-      for(point_t next : path.points) {
+      //debug_printf("- adding path with %d vec2s\n", int(path.vec2s.size()));
+      for(vec2_t next : path.points) {
         next = next.transform(transform);
         // add new edge interpolator
         edge_interpolators[edge_interpolator_count] = _edgeinterp(last, next);
@@ -176,14 +176,14 @@ namespace picovector {
       //brush->render_span_buffer(target, cb.x, y, cb.w, sb);
     }
 
-    bool _debug_points = false;
-    if(_debug_points) {
+    bool _debug_vec2s = false;
+    if(_debug_vec2s) {
       color_brush_t white(target, rgba(255, 255, 255, 50));
       for(path_t &path : shape->paths) {
-        point_t last = path.points.back(); // start with last point to close loop
+        vec2_t last = path.points.back(); // start with last vec2 to close loop
         last = last.transform(transform);
-        //debug_printf("- adding path with %d points\n", int(path.points.size()));
-        for(point_t next : path.points) {
+        //debug_printf("- adding path with %d vec2s\n", int(path.vec2s.size()));
+        for(vec2_t next : path.points) {
           // _rspan span = {.x = next.x .y = next.y, w = 1, o = 255};
           if(next.x >= 0 && next.x < 160 && next.y >= 0 && next.y < 120) {
             white.pixel_func(&white, next.x, next.y);

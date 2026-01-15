@@ -135,7 +135,7 @@ def measure(image, text, bounds, line_spacing=1, word_spacing=1):
   old_clip = image.clip
   image.clip = bounds
 
-  c = point(bounds.x, bounds.y)
+  c = vec2(bounds.x, bounds.y)
   b = rect()
   for token in tokens:
     if token[0] == WORD:
