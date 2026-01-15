@@ -15,8 +15,8 @@ using std::sort, std::min, std::max;
 // found out the hard way.)
 char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 
-#define TILE_WIDTH 16
-#define TILE_HEIGHT 8
+#define TILE_WIDTH 128
+#define TILE_HEIGHT 32
 #define MAX_NODES_PER_SCANLINE 64
 
 #define TILE_BUFFER_SIZE (TILE_WIDTH * TILE_HEIGHT * sizeof(uint8_t)) // 4kB tile buffer
