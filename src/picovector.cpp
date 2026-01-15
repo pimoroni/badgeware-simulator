@@ -15,13 +15,14 @@ using std::sort, std::min, std::max;
 // found out the hard way.)
 char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 
-#define TILE_SIZE 32
-#define MAX_NODES_PER_SCANLINE 128
+#define TILE_WIDTH 16
+#define TILE_HEIGHT 8
+#define MAX_NODES_PER_SCANLINE 64
 
-#define TILE_BUFFER_SIZE (TILE_SIZE * TILE_SIZE * sizeof(uint8_t)) // 4kB tile buffer
-#define NODE_BUFFER_ROW_SIZE (MAX_NODES_PER_SCANLINE * sizeof(int16_t)) // 32kB node buffer
-#define NODE_BUFFER_SIZE (TILE_SIZE * 4 * NODE_BUFFER_ROW_SIZE) // 32kB node buffer
-#define NODE_COUNT_BUFFER_SIZE (TILE_SIZE * 4 * sizeof(uint8_t)) // 256 byte node count buffer
+#define TILE_BUFFER_SIZE (TILE_WIDTH * TILE_HEIGHT * sizeof(uint8_t)) // 4kB tile buffer
+#define NODE_BUFFER_ROW_SIZE (MAX_NODES_PER_SCANLINE * sizeof(int16_t)) // 16kB node buffer
+#define NODE_BUFFER_SIZE (TILE_HEIGHT * 4 * NODE_BUFFER_ROW_SIZE) // 32kB node buffer
+#define NODE_COUNT_BUFFER_SIZE (TILE_HEIGHT * 4 * sizeof(uint8_t)) // 256 byte node count buffer
 
 // buffer that each tile is rendered into before callback
 uint8_t *tile_buffer = (uint8_t *)&PicoVector_working_buffer[0];
@@ -261,14 +262,22 @@ uint8_t alpha_map_x4[5] = {0, 63, 127, 190, 255};
 uint8_t alpha_map_x16[17] = {0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255};
 
 rect_t render_nodes(rect_t *tb, uint aa) {
+  int minx = ceil(tb->w);
+  int miny = ceil(tb->h);
+  int maxx = 0;
+  int maxy = 0;
+
   for(int y = 0; y < int(tb->h); y++) {
     if(node_count_buffer[y] == 0) continue; // no nodes on this raster line
+
+    miny = min(miny, y);
+    maxy = max(maxy, y);
 
     // sort scanline nodes
     int16_t *nodes = &node_buffer[(y * MAX_NODES_PER_SCANLINE)];
     std::sort(nodes, nodes + node_count_buffer[y]);
 
-    unsigned char* row_data = &tile_buffer[(y >> aa) * TILE_SIZE];
+    unsigned char* row_data = &tile_buffer[(y >> aa) * TILE_WIDTH];
 
     for(uint32_t i = 0; i < node_count_buffer[y]; i += 2) {
       int sx = *nodes++;
@@ -277,6 +286,9 @@ rect_t render_nodes(rect_t *tb, uint aa) {
       if(sx == ex) { // empty span, nothing to do
         continue;
       }
+
+      minx = min(minx, sx);
+      maxx = max(maxx, ex);
 
       // rasterise the span into the tile buffer
       do {
@@ -301,8 +313,11 @@ rect_t render_nodes(rect_t *tb, uint aa) {
   //   rb.h = (maxy >> aa) - int(rb.y);
   // }
 
+  if(minx > maxx || miny > maxy) {
+    return rect_t(0, 0, 0, 0);
+  }
 
-  return rect_t(0, 0, TILE_SIZE, TILE_SIZE);
+  return rect_t(minx >> aa, miny >> aa, (maxx - minx) >> aa, (maxy - miny) >> aa);
 }
 
 
@@ -312,10 +327,16 @@ rect_t render_nodes(rect_t *tb, uint aa) {
 
     if(shape->paths.empty()) return;
 
-    //printf("render shape\n");
-
     // antialias level of target image
     uint aa = (uint)target->antialias();
+
+    uint8_t *p_alpha_map = alpha_map_none;
+    if(aa == 1) p_alpha_map = alpha_map_x4;
+    if(aa == 2) p_alpha_map = alpha_map_x16;
+
+    mask_span_func_t sf = brush->mask_span_func;
+    //printf("render shape\n");
+
     //printf("aa = %d\n", aa);
     // determine bounds of shape to be rendered
     rect_t sb = shape->bounds();
@@ -332,10 +353,10 @@ rect_t render_nodes(rect_t *tb, uint aa) {
 
     // iterate over tiles
     //printf("> processing tiles\n");
-    for(int y = sby; y < sby + sbh; y += TILE_SIZE) {
-      for(int x = sbx; x < sbx + sbw; x += TILE_SIZE) {
+    for(int y = sby; y < sby + sbh; y += TILE_HEIGHT) {
+      for(int x = sbx; x < sbx + sbw; x += TILE_WIDTH) {
         //printf(" > tile %d x %d\n", x, y);
-        rect_t tb = rect_t(x, y, TILE_SIZE, TILE_SIZE);
+        rect_t tb = rect_t(x, y, TILE_WIDTH, TILE_HEIGHT);
 
         //printf("  - tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
 
@@ -374,7 +395,7 @@ rect_t render_nodes(rect_t *tb, uint aa) {
         // debug("    : render the tile\n");
         //printf("  - render nodes\n");
 
-        render_nodes(&tb, aa);
+        rect_t rb = render_nodes(&tb, aa);
         // rect_t rb = render_nodes(&tb, aa);
         // tb.x += rb.x; tb.y += rb.y; tb.w = rb.w; tb.h = rb.h;
 
@@ -391,9 +412,7 @@ rect_t render_nodes(rect_t *tb, uint aa) {
         //printf("  - render tile\n");
 
 
-        uint8_t *p_alpha_map = alpha_map_none;
-        if(aa == 1) p_alpha_map = alpha_map_x4;
-        if(aa == 2) p_alpha_map = alpha_map_x16;
+
   // for(int y = tb.y; y < tb.y + tb.h; y++) {
   //   unsigned char* row_data = &tile_buffer[(y * TILE_SIZE) + int(rb.x)];
   //   for(int x = rb.x; x < rb.x + rb.w; x++) {
@@ -402,19 +421,34 @@ rect_t render_nodes(rect_t *tb, uint aa) {
   //   }
   // }
 
-        int c = TILE_SIZE * TILE_SIZE;
-        uint8_t* p = tile_buffer;
-        while(c--) {
-          *p = p_alpha_map[*p];
-          p++;
-        }
+        // int c = TILE_WIDTH * TILE_HEIGHT;
+        // uint8_t* p = tile_buffer;
+        // while(c--) {
+        //   *p = p_alpha_map[*p];
+        //   p++;
+        // }
         //printf("! render tile at %d, %d (%d x %d)\n", sx, sy, sw, sh);
-        mask_span_func_t sf = brush->mask_span_func;
-        p = tile_buffer;
-        for(int ty = 0; ty < sh; ty++) {
+
+        //p = tile_buffer;
+
+        //printf("%d vs %d\n", int(rb.h), sh);
+
+        int rbx = int(floor(rb.x));
+        int rby = int(floor(rb.y));
+        int rbw = int(ceil(rb.w));
+        int rbh = int(ceil(rb.h));
+
+        for(int ty = rby; ty <= rby + rbh; ty++) {
+          uint8_t* p = &tile_buffer[ty * TILE_WIDTH + rbx];
+          int c = rbw;
+          while(c--) {
+            *p = p_alpha_map[*p];
+            p++;
+          }
           // brush_t *brush, int x, int y, int w, uint8_t *mask
-          sf(brush, sx, sy + ty, sw, p);
-          p += TILE_SIZE;
+          p = &tile_buffer[ty * TILE_WIDTH + rbx];
+          sf(brush, sx + rbx, sy + ty, rbw, p);
+         // p += TILE_WIDTH;
         }
       }
     }
