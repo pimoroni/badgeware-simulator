@@ -440,14 +440,14 @@ rect_t render_nodes(rect_t *tb, uint aa) {
 
         for(int ty = rby; ty <= rby + rbh; ty++) {
           uint8_t* p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          int c = rbw;
+          int c = rbw + 1;
           while(c--) {
             *p = p_alpha_map[*p];
             p++;
           }
           // brush_t *brush, int x, int y, int w, uint8_t *mask
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          sf(brush, sx + rbx, sy + ty, rbw, p);
+          sf(brush, sx + rbx, sy + ty, rbw + 1, p);
          // p += TILE_WIDTH;
         }
       }
