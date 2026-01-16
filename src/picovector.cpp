@@ -115,8 +115,8 @@ namespace picovector {
   uint8_t alpha_map_x16[17] = {0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 255};
 
   rect_t render_nodes(rect_t *tb, uint aa) {
-    int minx = ceil(tb->w);
-    int miny = ceil(tb->h);
+    int minx = tb->w;
+    int miny = tb->h;
     int maxx = 0;
     int maxy = 0;
 
@@ -154,7 +154,7 @@ namespace picovector {
       return rect_t(0, 0, 0, 0);
     }
 
-    return rect_t(minx >> aa, miny >> aa, (maxx - minx) >> aa, (maxy - miny) >> aa);
+    return rect_t(minx >> aa, miny >> aa, (maxx >> aa) - (minx >> aa), (maxy >> aa) - (miny >> aa));
   }
 
   void render(shape_t *shape, image_t *target, mat3_t *transform, brush_t *brush) {
@@ -173,41 +173,43 @@ namespace picovector {
 
     //printf("aa = %d\n", aa);
     // determine bounds of shape to be rendered
-    rect_t sb = shape->bounds();
+    rect_t sb = shape->bounds().round();
+
 
     // clamp bounds to integer values
-    int sbx = int(floor(sb.x));
-    int sby = int(floor(sb.y));
-    int sbw = int( ceil(sb.w));
-    int sbh = int( ceil(sb.h));
+    // sb.x = floor(sb.x);
+    // sb.y = floor(sb.y);
+    // sb.w = ceil(sb.w);
+    // sb.h = ceil(sb.h);
 
     rect_t clip = target->clip();
+
     //printf("- shape bounds %d, %d (%d x %d)\n", sbx, sby, sbw, sbh);
     //printf("- clip bounds %d, %d (%d x %d)\n", int(clip.x), int(clip.y), int(clip.w), int(clip.h));
 
     // iterate over tiles
     //printf("> processing tiles\n");
-    for(int y = sby; y < sby + sbh; y += TILE_HEIGHT) {
-      for(int x = sbx; x < sbx + sbw; x += TILE_WIDTH) {
+    for(int y = sb.y; y < sb.y + sb.h; y += TILE_HEIGHT) {
+      for(int x = sb.x; x < sb.x + sb.w; x += TILE_WIDTH) {
         //printf(" > tile %d x %d\n", x, y);
         rect_t tb = rect_t(x, y, TILE_WIDTH, TILE_HEIGHT);
 
         //printf("  - tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
 
-        tb = clip.intersection(tb).intersection(sb);
+        tb = clip.intersection(tb).intersection(sb).round();
         if(tb.empty()) { continue; } // if tile empty, skip it
 
         //printf("  - clipped tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
         // screen coordinates for clipped tile
-        int sx = int(floor(tb.x));
-        int sy = int(floor(tb.y));
-        int sw = int(ceil(tb.w));
-        int sh = int(ceil(tb.h));
+        int sx = tb.x;//int(floor(tb.x));
+        int sy = tb.y;//int(floor(tb.y));
+        //int sw = tb.w;//int(ceil(tb.w));
+        //int sh = tb.h;//int(ceil(tb.h));
 
-        tb.x = int(floor(tb.x)) * (1 << aa);
-        tb.y = int(floor(tb.y)) * (1 << aa);
-        tb.w = int( ceil(tb.w)) * (1 << aa);
-        tb.h = int( ceil(tb.h)) * (1 << aa);
+        tb.x *= (1 << aa);
+        tb.y *= (1 << aa);
+        tb.w *= (1 << aa);
+        tb.h *= (1 << aa);
 
         //printf("  - clipped and scaled tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
 
@@ -220,25 +222,14 @@ namespace picovector {
           build_nodes(&path, &tb, transform, aa);
         }
 
-        rect_t rb = render_nodes(&tb, aa);
+        rect_t rb = render_nodes(&tb, aa).round();
 
         if(tb.empty()) { continue; }
 
-        int rbx = int(floor(rb.x));
-        int rby = int(floor(rb.y));
-        int rbw = int(ceil(rb.w)) + 1; // TODO: this shouldn't be needed...
-        int rbh = int(ceil(rb.h));
-
-
-
-        // for(int i = 0; i < TILE_WIDTH; i++) {
-        //   tile_buffer[i] = 8;
-        // }
-
-        // for(int i = 0; i < TILE_HEIGHT; i++) {
-        //   tile_buffer[i * TILE_WIDTH] = 8;
-        // }
-
+        int rbx = rb.x;
+        int rby = rb.y;
+        int rbw = rb.w;
+        int rbh = rb.h;
 
         for(int ty = rby; ty <= rby + rbh; ty++) {
           uint8_t* p;
@@ -251,20 +242,9 @@ namespace picovector {
             p++;
           }
 
-          // p = &tile_buffer[ty * TILE_WIDTH];
-          // int c = TILE_WIDTH;
-          // while(c--) {
-          //   *p = p_alpha_map[*p];
-          //   p++;
-          // }
-
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
           sf(brush, sx + rbx, sy + ty, rbw, p);
-
-          // p = &tile_buffer[ty * TILE_WIDTH];
-          // sf(brush, sx, sy + ty, TILE_WIDTH, p);
-
         }
       }
     }
