@@ -16,11 +16,11 @@ using std::sort, std::min, std::max;
 char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 
 #define TILE_WIDTH 128
-#define TILE_HEIGHT 32
+#define TILE_HEIGHT 64
 #define MAX_NODES_PER_SCANLINE 64
 
-#define TILE_BUFFER_SIZE (TILE_WIDTH * TILE_HEIGHT * sizeof(uint8_t)) // 4kB tile buffer
-#define NODE_BUFFER_ROW_SIZE (MAX_NODES_PER_SCANLINE * sizeof(int16_t)) // 16kB node buffer
+#define TILE_BUFFER_SIZE (TILE_WIDTH * TILE_HEIGHT * sizeof(uint8_t)) // 8kB tile buffer
+#define NODE_BUFFER_ROW_SIZE (MAX_NODES_PER_SCANLINE * sizeof(int16_t))
 #define NODE_BUFFER_SIZE (TILE_HEIGHT * 4 * NODE_BUFFER_ROW_SIZE) // 32kB node buffer
 #define NODE_COUNT_BUFFER_SIZE (TILE_HEIGHT * 4 * sizeof(uint8_t)) // 256 byte node count buffer
 
@@ -226,19 +226,45 @@ namespace picovector {
 
         int rbx = int(floor(rb.x));
         int rby = int(floor(rb.y));
-        int rbw = int(ceil(rb.w));
+        int rbw = int(ceil(rb.w)) + 1; // TODO: this shouldn't be needed...
         int rbh = int(ceil(rb.h));
 
+
+
+        // for(int i = 0; i < TILE_WIDTH; i++) {
+        //   tile_buffer[i] = 8;
+        // }
+
+        // for(int i = 0; i < TILE_HEIGHT; i++) {
+        //   tile_buffer[i * TILE_WIDTH] = 8;
+        // }
+
+
         for(int ty = rby; ty <= rby + rbh; ty++) {
-          uint8_t* p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          int c = rbw + 1;
+          uint8_t* p;
+
+          // scale tile buffer values to alpha values
+          p = &tile_buffer[ty * TILE_WIDTH + rbx];
+          int c = rbw;
           while(c--) {
             *p = p_alpha_map[*p];
             p++;
           }
-          // brush_t *brush, int x, int y, int w, uint8_t *mask
+
+          // p = &tile_buffer[ty * TILE_WIDTH];
+          // int c = TILE_WIDTH;
+          // while(c--) {
+          //   *p = p_alpha_map[*p];
+          //   p++;
+          // }
+
+          // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          sf(brush, sx + rbx, sy + ty, rbw + 1, p);
+          sf(brush, sx + rbx, sy + ty, rbw, p);
+
+          // p = &tile_buffer[ty * TILE_WIDTH];
+          // sf(brush, sx, sy + ty, TILE_WIDTH, p);
+
         }
       }
     }
