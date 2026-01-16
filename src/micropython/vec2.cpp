@@ -153,8 +153,8 @@ extern "C" {
       MP_QSTR_vec2,
       MP_TYPE_FLAG_NONE,
       make_new, (const void *)vec2_new,
-      attr, (const void *)vec2_attr,
       binary_op, (const void *)vec2_binary_op,
+      attr, (const void *)vec2_attr,
       locals_dict, &vec2_locals_dict
   );
 
