@@ -145,6 +145,9 @@ namespace picovector {
 
   void image_t::brush(brush_t *brush) {
     this->_brush = brush;
+    this->_pixel_func = brush->get_pixel_func(this);
+    this->_span_func = brush->get_span_func(this);
+    this->_mask_span_func = brush->get_mask_span_func(this);
   }
 
   font_t* image_t::font() {
@@ -384,7 +387,7 @@ namespace picovector {
   void image_t::rectangle(rect_t r) {
     r = r.intersection(_clip);
     for(int y = r.y; y < r.y + r.h; y++) {
-      this->_brush->span_func(this->_brush, r.x, y, r.w);
+      this->_span_func(this, this->_brush, r.x, y, r.w);
       //this->_brush->render_span(this, r.x, y, r.w);
     }
   }
@@ -400,7 +403,7 @@ namespace picovector {
     if(x + w >= _clip.x + _clip.w) {
       w = _clip.x + _clip.w - x;
     }
-    this->_brush->span_func(this->_brush, x, y, w);
+    this->_span_func(this, this->_brush, x, y, w);
     //this->_brush->render_span(this, x, y, w);
   }
 
@@ -476,7 +479,7 @@ namespace picovector {
     int32_t w1row = orient2d(p3, p1, tl) + bias1;
     int32_t w2row = orient2d(p1, p2, tl) + bias2;
 
-    pixel_func_t pf = this->_brush->pixel_func;
+    pixel_func_t pf = this->_pixel_func;
 
     for (int32_t y = 0; y < b.h; y++) {
       int32_t w0 = w0row;
@@ -487,7 +490,7 @@ namespace picovector {
       int yo = b.y + y;
       for (int32_t x = 0; x < b.w; x++) {
         if ((w0 | w1 | w2) >= 0) {
-          pf(this->_brush, xo, yo);
+          pf(this, this->_brush, xo, yo);
         }
 
         xo++;
@@ -528,10 +531,10 @@ namespace picovector {
     int sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;
 
-    pixel_func_t pf = this->_brush->pixel_func;
+    pixel_func_t pf = this->_pixel_func;
 
     while(true) {
-        pf(this->_brush, x0, y0);
+        pf(this, this->_brush, x0, y0);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy) {err += dy; x0 += sx;}
@@ -546,11 +549,11 @@ namespace picovector {
   void image_t::put(int x, int y) {
     x = max(int(_clip.x), min(x, int(_clip.x + _clip.w - 1)));
     y = max(int(_clip.y), min(y, int(_clip.y + _clip.h - 1)));
-    this->_brush->pixel_func(this->_brush, x, y);
+    this->_pixel_func(this, this->_brush, x, y);
   }
 
   void image_t::put_unsafe(int x, int y) {
-    this->_brush->pixel_func(this->_brush, x, y);
+    this->_pixel_func(this, this->_brush, x, y);
     //this->_brush->render_span(this, x, y, 1);
   }
 

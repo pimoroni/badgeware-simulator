@@ -1,8 +1,6 @@
 import math
 
 def update():
-  screen.clear(color.rgb(20, 40, 60))
-
   custom_pattern = brush.pattern(color.rgb(255, 100, 100, 100), color.rgb(0, 0, 0, 0), (
     0b00000000,
     0b01111110,

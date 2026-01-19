@@ -176,7 +176,7 @@ namespace picovector {
     if(aa == 1) p_alpha_map = alpha_map_x4;
     if(aa == 2) p_alpha_map = alpha_map_x16;
 
-    mask_span_func_t sf = brush->mask_span_func;
+    mask_span_func_t sf = target->_mask_span_func;
     //printf("render shape\n");
 
     // determine bounds of shape to be rendered
@@ -248,7 +248,7 @@ namespace picovector {
 
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          sf(brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
+          sf(target, brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
         }
       }
     }
@@ -309,7 +309,7 @@ namespace picovector {
     if(aa == 1) p_alpha_map = alpha_map_x4;
     if(aa == 2) p_alpha_map = alpha_map_x16;
 
-    mask_span_func_t sf = brush->mask_span_func;
+    mask_span_func_t sf = target->_mask_span_func;
     //printf("render shape\n");
 
     // determine bounds of shape to be rendered
@@ -382,7 +382,7 @@ namespace picovector {
 
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          sf(brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
+          sf(target, brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
         }
       }
     }

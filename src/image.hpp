@@ -10,6 +10,15 @@ using std::vector;
 
 namespace picovector {
 
+  // empty implementations for unsupported modes
+  void pixel_func_nop(image_t *target, brush_t *brush, int x, int y);
+  void span_func_nop(image_t *target, brush_t *brush, int x, int y, int w);
+  void mask_span_func_nop(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *m);
+
+  typedef void (*pixel_func_t)(image_t *target, brush_t *brush, int x, int y);
+  typedef void (*span_func_t)(image_t *target, brush_t *brush, int x, int y, int w);
+  typedef void (*mask_span_func_t)(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *mask);
+
   typedef enum antialias_t {
     OFF   = 0,
     LOW   = 1,
@@ -50,6 +59,10 @@ namespace picovector {
       palette_t       _palette;
 
     public:
+      pixel_func_t    _pixel_func = pixel_func_nop;
+      span_func_t     _span_func = span_func_nop;
+      mask_span_func_t _mask_span_func = mask_span_func_nop;
+
       image_t();
       image_t(image_t *source, rect_t r);
       image_t(int w, int h, pixel_format_t pixel_format=RGBA8888, bool has_palette=false);

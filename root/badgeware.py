@@ -484,7 +484,6 @@ def mode(mode):
     screen.font = font if font is not None else DEFAULT_FONT
     #screen.pen = brush if brush is not None else BG
     simulator.resolution(*resolution)
-    picovector.default_target = screen
     update_screen_builtins()
 
     return True
@@ -602,7 +601,12 @@ for k, v in picovector.__dict__.items():
         setattr(builtins, k, v)
 
 setattr(builtins, "screen", image(160, 120, framebuffer))
-picovector.default_target = screen
+def _pen(*args):
+    if len(args) in (3, 4):
+        screen.pen = color.rgb(*args)
+    else:
+        screen.pen = args[0]
+setattr(builtins, "pen", _pen)
 
 update_screen_builtins()
 

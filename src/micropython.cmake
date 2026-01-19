@@ -12,7 +12,6 @@ target_sources(usermod_picovector INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/rasteriser.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/geometry.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/dda.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
@@ -44,7 +43,6 @@ set_source_files_properties(
   ${CMAKE_CURRENT_LIST_DIR}/image.cpp
   ${CMAKE_CURRENT_LIST_DIR}/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/rasteriser.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/geometry.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/dda.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
