@@ -427,7 +427,6 @@ def mode(mode, force=False):
     simulator.resolution(*resolution)
     screen.font = font if font is not None else DEFAULT_FONT
     screen.pen = brush if brush is not None else BG
-    picovector.default_target = screen
 
     return True
 
@@ -619,6 +618,15 @@ for k in ("mode", "HIRES", "LORES", "SpriteSheet", "load_font", "rom_font", "tex
 
 # Finally, build in badgeware as "bw" for less frequently used things
 builtins.bw = sys.modules["badgeware"]
+
+# Temporary shim to keep "pen()" working
+def _pen(*args):
+    if len(args) in (3, 4):
+        screen.pen = color.rgb(*args)
+    else:
+        screen.pen = args[0]
+
+builtins.pen = _pen
 
 
 if __name__ == "__main__":

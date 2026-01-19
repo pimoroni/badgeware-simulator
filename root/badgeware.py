@@ -601,12 +601,14 @@ for k, v in picovector.__dict__.items():
         setattr(builtins, k, v)
 
 setattr(builtins, "screen", image(160, 120, framebuffer))
+
 def _pen(*args):
     if len(args) in (3, 4):
         screen.pen = color.rgb(*args)
     else:
         screen.pen = args[0]
-setattr(builtins, "pen", _pen)
+
+builtins.pen = _pen
 
 update_screen_builtins()
 
