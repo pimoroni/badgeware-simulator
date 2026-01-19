@@ -25,65 +25,58 @@ char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
 #define NODE_COUNT_BUFFER_SIZE (TILE_HEIGHT * 4 * sizeof(uint8_t)) // 256 byte node count buffer
 
 // buffer that each tile is rendered into before callback
-uint8_t *tile_buffer = (uint8_t *)&PicoVector_working_buffer[0];
+int8_t *tile_buffer = (int8_t *)&PicoVector_working_buffer[0];
 int16_t *node_buffer = (int16_t *)&PicoVector_working_buffer[TILE_BUFFER_SIZE];
 uint8_t *node_count_buffer = (uint8_t *)&PicoVector_working_buffer[TILE_BUFFER_SIZE + NODE_BUFFER_SIZE];
 
+static inline void insertion_sort_i16(int16_t* a, int n) {
+  for (int i = 1; i < n; ++i) {
+    int16_t key = a[i];
+    int j = i - 1;
+    while (j >= 0 && a[j] > key) {
+      a[j + 1] = a[j];
+      --j;
+    }
+    a[j + 1] = key;
+  }
+}
 
 namespace picovector {
 
   int sign(int v) {return (v > 0) - (v < 0);}
 
-  void add_line_segment_to_nodes(const vec2_t start, const vec2_t end, rect_t *tb) {
-    int sx = start.x, sy = start.y, ex = end.x, ey = end.y;
-
-    if(ey < sy) {
-      // swap endpoints if line "pointing up", we do this because we
-      // alway skip the last scanline (so that polygons can butt cleanly
-      // up against each other without overlap)
-      int ty = sy; sy = ey; ey = ty;
-      int tx = sx; sx = ex; ex = tx;
+  void add_line_segment_to_nodes(vec2_t start, vec2_t end, rect_t *tb) {
+    if(end.y < start.y) {
+      vec2_t tmp = start; start = end; end = tmp;
     }
 
-    // early out if line is completely outside the tile, or has no gradient
-    if (ey <= 0 || sy >= int(tb->h) || sy == ey) return;
+    if (end.y < 0.0f || start.y > tb->h || end.y == start.y) return;
 
-    // determine how many in-bounds lines to render
-    int y = max(0, sy);
-    int count = min(int(tb->h), ey) - y;
+    float x = start.x;
+    float dx = (end.x - start.x) / (end.y - start.y);
 
-    int minx = 0;//floor(tb->x);
-    int maxx = ceil(tb->w);//ceil(tb->x + tb->w);
-    int x = sx;
-    int e = 0;
-
-    const int xinc = sign(ex - sx);
-    const int einc = abs(ex - sx) + 1;
-    const int dy = ey - sy;
-
-    // if sy < 0 jump to the start
-    if (sy < 0) {
-      e = einc * -sy;
-      int xjump = e / dy;
-      e -= dy * xjump;
-      x += xinc * xjump;
+    if(start.y < 0.0f) {
+      x += fabs(start.y) * dx;
+      start.y = 0.0f;
     }
 
-    // loop over scanlines
-    while(count--) {
-      // consume accumulated error
-      while(e > dy) {e -= dy; x += xinc;}
+    if(end.y >= tb->h) {
+      end.y = tb->h;
+    }
 
-      // clamp node x value to tile bounds
-      int nx = max(min(x, maxx), minx);
-      //printf("      + adding node at %d, %d\n", nx, y);
-      // add node to node list
-      node_buffer[(y * MAX_NODES_PER_SCANLINE) + node_count_buffer[y]] = nx;
-      node_count_buffer[y]++;
+    int minx = 0;
+    int maxx = ceilf(tb->w);
 
-      // step to next scanline and accumulate error
-      y++;
-      e += einc;
+    int sy = int(start.y);
+    int ey = int(end.y);
+
+    for(int iy = sy; iy < ey; iy++) {
+      int ix = max(min(int(x), maxx), minx);
+
+      node_buffer[(iy * MAX_NODES_PER_SCANLINE) + node_count_buffer[iy]] = ix;
+      node_count_buffer[iy]++;
+
+      x += dx;
     }
   }
 
@@ -128,9 +121,9 @@ namespace picovector {
 
       // sort scanline nodes
       int16_t *nodes = &node_buffer[(y * MAX_NODES_PER_SCANLINE)];
-      std::sort(nodes, nodes + node_count_buffer[y]);
+      insertion_sort_i16(nodes, node_count_buffer[y]);
 
-      unsigned char* row_data = &tile_buffer[(y >> aa) * TILE_WIDTH];
+      int8_t *row_data = &tile_buffer[(y >> aa) * TILE_WIDTH];
 
       for(uint32_t i = 0; i < node_count_buffer[y]; i += 2) {
         int sx = *nodes++;
@@ -143,7 +136,6 @@ namespace picovector {
         minx = min(minx, sx);
         maxx = max(maxx, ex);
 
-        // rasterise the span into the tile buffer
         do {
           row_data[sx >> aa]++;
         } while(++sx < ex);
@@ -154,7 +146,14 @@ namespace picovector {
       return rect_t(0, 0, 0, 0);
     }
 
-    return rect_t(minx >> aa, miny >> aa, (maxx >> aa) - (minx >> aa), (maxy >> aa) - (miny >> aa));
+    int out_minx = (minx >> aa);
+    int out_maxx = ((maxx - 1) >> aa);
+    int out_miny = (miny >> aa);
+    int out_maxy = ((maxy - 1) >> aa);
+
+    return rect_t(out_minx, out_miny,
+              (out_maxx - out_minx) + 1,
+              (out_maxy - out_miny) + 1);
   }
 
   void render(shape_t *shape, image_t *target, mat3_t *transform, brush_t *brush) {
@@ -171,16 +170,8 @@ namespace picovector {
     mask_span_func_t sf = brush->mask_span_func;
     //printf("render shape\n");
 
-    //printf("aa = %d\n", aa);
     // determine bounds of shape to be rendered
     rect_t sb = shape->bounds().round();
-
-
-    // clamp bounds to integer values
-    // sb.x = floor(sb.x);
-    // sb.y = floor(sb.y);
-    // sb.w = ceil(sb.w);
-    // sb.h = ceil(sb.h);
 
     rect_t clip = target->clip();
 
@@ -201,10 +192,10 @@ namespace picovector {
 
         //printf("  - clipped tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
         // screen coordinates for clipped tile
-        int sx = tb.x;//int(floor(tb.x));
-        int sy = tb.y;//int(floor(tb.y));
-        //int sw = tb.w;//int(ceil(tb.w));
-        //int sh = tb.h;//int(ceil(tb.h));
+        int sx = tb.x;
+        int sy = tb.y;
+        int sw = tb.w;
+        int sh = tb.h;
 
         tb.x *= (1 << aa);
         tb.y *= (1 << aa);
@@ -215,7 +206,11 @@ namespace picovector {
 
         // clear existing tile data and nodes
         memset(node_count_buffer, 0, NODE_COUNT_BUFFER_SIZE);
-        memset(tile_buffer, 0, TILE_BUFFER_SIZE);
+        for (int row = 0; row < sh; ++row) {
+          memset(&tile_buffer[row * TILE_WIDTH], 0, sw);
+        }
+
+        //memset(tile_buffer, 0, TILE_WIDTH * TILE_HEIGHT);
 
         // build the nodes for each path
         for(auto &path : shape->paths) {
@@ -231,8 +226,8 @@ namespace picovector {
         int rbw = rb.w;
         int rbh = rb.h;
 
-        for(int ty = rby; ty <= rby + rbh; ty++) {
-          uint8_t* p;
+        for(int ty = rby; ty < rby + rbh; ty++) {
+          int8_t* p;
 
           // scale tile buffer values to alpha values
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
@@ -244,7 +239,7 @@ namespace picovector {
 
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          sf(brush, sx + rbx, sy + ty, rbw, p);
+          sf(brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
         }
       }
     }

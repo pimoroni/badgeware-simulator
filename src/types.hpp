@@ -160,10 +160,10 @@ namespace picovector {
 
     rect_t round() {
       rect_t r;
-      r.x = floor(this->x);
-      r.y = floor(this->y);
-      r.w = ceil(this->w + this->x) - r.x;
-      r.h = ceil(this->h + this->y) - r.y;
+      r.x = floorf(this->x);
+      r.y = floorf(this->y);
+      r.w = ceilf(this->w + this->x) - r.x;
+      r.h = ceilf(this->h + this->y) - r.y;
       return r;
     }
 
