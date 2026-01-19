@@ -9,6 +9,9 @@ def update():
   f = math.sin(io.ticks / 1000) * 150
   t = f + (math.sin(io.ticks / 500) + 1.0) * 50 + 100
 
+  screen.pen = color.rgb(50, 90, 130)
+  screen.shape(shape.rounded_rectangle(10, 10, 300, 220, 20))
+
   stroke = ((math.sin(io.ticks / 1000) + 1) * 0.05) + 0.1
 
   shapes = [
