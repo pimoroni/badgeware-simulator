@@ -2,6 +2,7 @@
 
 #include "mp_helpers.hpp"
 #include "picovector.hpp"
+#include "../blend.hpp"
 
 extern "C" {
 
@@ -139,6 +140,16 @@ extern "C" {
     dest[1] = MP_OBJ_SENTINEL;
   }
 
+  static void color_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+    self(self_in, color_obj_t);
+
+    if(get_a(&self->c) == 255) {
+      mp_printf(print, "color(r=%d, g=%d, b=%d)", get_r(&self->c), get_g(&self->c), get_b(&self->c));
+    }else{
+      mp_printf(print, "color(r=%d, g=%d, b=%d, a=%d)", get_r(&self->c), get_g(&self->c), get_b(&self->c), get_a(&self->c));
+    }
+  }
+
   // default palette based on Dawnbringer 16
   const color_obj_t color_black_obj  = {.base = {.type = &type_color}, .c = 0xff281e14u};
   const color_obj_t color_grape_obj  = {.base = {.type = &type_color}, .c = 0xff342444u};
@@ -198,6 +209,7 @@ extern "C" {
       type_color,
       MP_QSTR_color,
       MP_TYPE_FLAG_NONE,
+      print, (const void *)color_print,
       attr, (const void *)attr,
       locals_dict, &color_locals_dict
   );

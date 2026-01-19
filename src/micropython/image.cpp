@@ -490,6 +490,11 @@ MPY_BIND_ATTR(image, {
     dest[1] = MP_OBJ_SENTINEL;
   })
 
+  static void image_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+    self(self_in, image_obj_t);
+    mp_printf(print, "image(%d x %d)", int(self->image->bounds().w), int(self->image->bounds().h));
+  }
+
 MPY_BIND_LOCALS_DICT(image,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
 
@@ -528,6 +533,7 @@ MPY_BIND_LOCALS_DICT(image,
       type_image,
       MP_QSTR_image,
       MP_TYPE_FLAG_NONE,
+      print, (const void *)image_print,
       make_new, (const void *)image_new,
       attr, (const void *)image_attr,
       locals_dict, &image_locals_dict

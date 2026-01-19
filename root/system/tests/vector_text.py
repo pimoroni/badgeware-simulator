@@ -13,6 +13,9 @@ def update():
 
   screen.clear(color.rgb(20, 40, 60))
 
+  a = rect(10.23, 20.453, 60.435, 80.23)
+  print(a)
+
   i = round(io.ticks / 200)
   i %= 10
 
