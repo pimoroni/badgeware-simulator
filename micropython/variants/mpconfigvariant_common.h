@@ -117,11 +117,6 @@
 // Enable the "websocket" module.
 #define MICROPY_PY_WEBSOCKET           (1)
 
-// Enable the "machine" module, mostly for machine.mem*.
-#define MICROPY_PY_MACHINE             (1)
-#define MICROPY_PY_MACHINE_PULSE       (1)
-#define MICROPY_PY_MACHINE_PIN_BASE    (1)
-
 #define MICROPY_VFS_ROM                (1)
 #define MICROPY_VFS_ROM_IOCTL          (0)
 

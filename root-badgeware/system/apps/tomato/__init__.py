@@ -179,6 +179,8 @@ class Tomato(object):
     # Return the remaining time formatted in a string for displaying with vector text.
     def return_string(self):
         minutes, seconds = divmod(self.current_timer - self.time_elapsed, 60)
+        minutes = int(minutes)
+        seconds = int(seconds)
         return f"{minutes:02d}:{seconds:02d}"
 
 

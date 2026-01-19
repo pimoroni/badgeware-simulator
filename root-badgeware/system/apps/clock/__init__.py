@@ -16,6 +16,7 @@ import time
 import ntptime
 from daylightsaving import DaylightSavingPolicy, DaylightSaving
 from usermessage import user_message, center_text, bullet_list, stretch_text
+import machine
 from machine import RTC
 import math
 import network

@@ -17,22 +17,42 @@ import picovector
 import simulator
 
 
-class DummyPin:
-    def __init__(self, value):
-        self._value = value
+_CASE_LIGHTS = [machine.PWM(machine.Pin.board.CL0), machine.PWM(machine.Pin.board.CL1),
+                machine.PWM(machine.Pin.board.CL2), machine.PWM(machine.Pin.board.CL3)]
 
-    def value(self):
-        return self._value
+for led in _CASE_LIGHTS:
+    led.freq(500)
 
-class DummyADC:
-    def __init__(self, value):
-        self._value = value
 
-    def read_u16(self):
-        if callable(self._value):
-            return self._value()
-        return self._value
+def set_case_led(led, value):
+    if not isinstance(led, int):
+        raise TypeError("LED must be a number between 0 and 3")
 
+    if led < 0 or led > len(_CASE_LIGHTS) - 1:
+        raise ValueError("LED out of range!")
+
+    if not isinstance(value, (int, float)):
+        raise TypeError("brightness must be a number between 0.0 and 1.0")
+
+    if value < 0 or value > 1.0:
+        raise ValueError("brightness must be between 0.0 and 1.0")
+
+    value = int(value * 65535)
+    _CASE_LIGHTS[led].duty_u16(value)
+
+
+def get_case_led(led=None):
+
+    if led is None:
+        raise ValueError("LED must be provided!")
+
+    if not isinstance(led, int):
+        raise TypeError("LED must be a number between 0 and 3")
+
+    if led < 0 or led > len(_CASE_LIGHTS) - 1:
+        raise ValueError("LED out of range!")
+
+    return _CASE_LIGHTS[led].duty_u16() / 65535
 
 
 def get_light():
@@ -556,6 +576,9 @@ try:
 except AttributeError:
     rtc = None
 
+
+display = st7789.ST7789()
+
 # Import PicoSystem module constants to builtins,
 # so they are available globally.
 for k, v in picovector.__dict__.items():
@@ -564,17 +587,17 @@ for k, v in picovector.__dict__.items():
 
 
 ASSETS = "/system/assets"
-LIGHT_SENSOR = DummyADC(0)
+LIGHT_SENSOR = machine.ADC(0)
 DEFAULT_FONT = rom_font.sins
 ERROR_FONT = rom_font.desert
 
 FG = color.rgb(255, 255, 255)
 BG = color.rgb(20, 40, 60)
 
-VBUS_DETECT = DummyPin(0)
-CHARGE_STAT = DummyPin(1)
-VBAT_SENSE = DummyADC(lambda: (sin(io.ticks / 1000) + 1) * 32767)
-SENSE_1V1 = DummyADC(32767)
+VBUS_DETECT = machine.Pin(0)
+CHARGE_STAT = machine.Pin(1)
+VBAT_SENSE = machine.ADC(lambda: (sin(io.ticks / 1000) + 1) * 32767)
+SENSE_1V1 = machine.ADC(32767)
 
 BAT_MAX = 4.10
 BAT_MIN = 3.00

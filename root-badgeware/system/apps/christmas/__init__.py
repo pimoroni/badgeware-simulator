@@ -61,7 +61,7 @@ def get_connection_details():
         WIFI_PASSWORD = None
         WIFI_SSID = None
 
-    if len(WIFI_SSID) == 0:
+    if WIFI_SSID is None or len(WIFI_SSID) == 0:
         return False
 
     return True
