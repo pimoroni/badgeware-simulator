@@ -4,6 +4,7 @@
 #include "brush.hpp"
 #include "image.hpp"
 #include "shape.hpp"
+#include "font.hpp"
 #include "types.hpp"
 #include "mat3.hpp"
 #include "blend.hpp"
@@ -215,6 +216,126 @@ namespace picovector {
         // build the nodes for each path
         for(auto &path : shape->paths) {
           build_nodes(&path, &tb, transform, aa);
+        }
+
+        rect_t rb = render_nodes(&tb, aa).round();
+
+        if(tb.empty()) { continue; }
+
+        int rbx = rb.x;
+        int rby = rb.y;
+        int rbw = rb.w;
+        int rbh = rb.h;
+
+        for(int ty = rby; ty < rby + rbh; ty++) {
+          int8_t* p;
+
+          // scale tile buffer values to alpha values
+          p = &tile_buffer[ty * TILE_WIDTH + rbx];
+          int c = rbw;
+          while(c--) {
+            *p = p_alpha_map[*p];
+            p++;
+          }
+
+          // render tile span
+          p = &tile_buffer[ty * TILE_WIDTH + rbx];
+          sf(brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
+        }
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+  void build_glyph_nodes(glyph_path_t *path, rect_t *tb, mat3_t *transform, uint aa) {
+    vec2_t offset = tb->tl();
+    // start with the last point to close the loop, transform it, scale for antialiasing, and offset to tile origin
+    glyph_path_point_t *p = &path->points[path->point_count - 1];
+    vec2_t last = vec2_t(p->x, p->y);
+    if(transform) last = last.transform(transform);
+    last *= (1 << aa);
+    last -= offset;
+
+    for(int i = 0; i < path->point_count; i++) {
+      p = &path->points[i];
+      vec2_t next = vec2_t(p->x, p->y);
+      if(transform) next = next.transform(transform);
+      next *= (1 << aa);
+      next -= offset;
+
+      //printf("   - add line segment %d, %d -> %d, %d\n", int(last.x), int(last.y), int(next.x), int(next.y));
+      add_line_segment_to_nodes(last, next, tb);
+      last = next;
+    }
+  }
+
+  void render_glyph(glyph_t *glyph, image_t *target, mat3_t *transform, brush_t *brush) {
+
+    if(!glyph->path_count) return;
+
+    // antialias level of target image
+    uint aa = (uint)target->antialias();
+
+
+    uint8_t *p_alpha_map = alpha_map_none;
+    if(aa == 1) p_alpha_map = alpha_map_x4;
+    if(aa == 2) p_alpha_map = alpha_map_x16;
+
+    mask_span_func_t sf = brush->mask_span_func;
+    //printf("render shape\n");
+
+    // determine bounds of shape to be rendered
+    rect_t sb = glyph->bounds(transform).round();
+
+    rect_t clip = target->clip();
+
+    //printf("- shape bounds %d, %d (%d x %d)\n", sbx, sby, sbw, sbh);
+    //printf("- clip bounds %d, %d (%d x %d)\n", int(clip.x), int(clip.y), int(clip.w), int(clip.h));
+
+    // iterate over tiles
+    //printf("> processing tiles\n");
+    for(int y = sb.y; y < sb.y + sb.h; y += TILE_HEIGHT) {
+      for(int x = sb.x; x < sb.x + sb.w; x += TILE_WIDTH) {
+        //printf(" > tile %d x %d\n", x, y);
+        rect_t tb = rect_t(x, y, TILE_WIDTH, TILE_HEIGHT);
+
+        //printf("  - tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
+
+        tb = clip.intersection(tb).intersection(sb).round();
+        if(tb.empty()) { continue; } // if tile empty, skip it
+
+        //printf("  - clipped tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
+        // screen coordinates for clipped tile
+        int sx = tb.x;
+        int sy = tb.y;
+        int sw = tb.w;
+        int sh = tb.h;
+
+        tb.x *= (1 << aa);
+        tb.y *= (1 << aa);
+        tb.w *= (1 << aa);
+        tb.h *= (1 << aa);
+
+        //printf("  - clipped and scaled tile bounds %d, %d (%d x %d)\n", int(tb.x), int(tb.y), int(tb.w), int(tb.h));
+
+        // clear existing tile data and nodes
+        memset(node_count_buffer, 0, NODE_COUNT_BUFFER_SIZE);
+        for (int row = 0; row < sh; ++row) {
+          memset(&tile_buffer[row * TILE_WIDTH], 0, sw);
+        }
+
+        //memset(tile_buffer, 0, TILE_WIDTH * TILE_HEIGHT);
+
+        // build the nodes for each path
+        for(int i = 0; i < glyph->path_count; i++) {
+          glyph_path_t *p = &glyph->paths[i];
+          build_glyph_nodes(p, &tb, transform, aa);
         }
 
         rect_t rb = render_nodes(&tb, aa).round();
