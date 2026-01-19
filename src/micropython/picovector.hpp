@@ -79,6 +79,7 @@ extern "C" {
   } vec2_obj_t;
 
   extern image_obj_t *default_target;
+  extern brush_obj_t *pen;
 
   // used by image.pen = N and picovector.pen() (global pen)
   extern brush_obj_t *mp_obj_to_brush(image_t *target, size_t n_args, const mp_obj_t *args);
