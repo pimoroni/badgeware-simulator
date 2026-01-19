@@ -1,0 +1,103 @@
+# This file is copied from /system/main.py to /main.py on first run
+import gc
+import sys
+import os
+import micropython
+import simulator
+from badgeware import fatal_error
+#import debug
+
+HEADLESS = simulator.headless
+SKIP_CINEMATIC = True # simulator.hot_reload
+APP_STARTUP = "/system/apps/startup"
+APP_MENU = "/system/apps/menu"
+app = None
+
+
+
+
+simulator.show_alloc_count = False        # Show number of MPAllocator allocs per frame
+simulator.show_individual_allocs = False  # Show each alloc/dealloc, size and location
+
+if HEADLESS:
+    print("main.py: Headless mode detected!")
+    app_name = sys.argv[1]
+    app = __import__(app_name)
+    video_length_ticks = 0
+    if len(sys.argv) > 2:
+        video_length_ticks = float(sys.argv[2]) * 1000
+
+    BG = color.rgb(20, 30, 40)
+    FG = color.rgb(255, 255, 255)
+    screen.antialias = Image.X2
+    io.poll()
+    t_start = io.ticks
+    ss_frame = 0
+    def update():
+        global ss_frame
+        io.poll()
+        screen.pen = BG
+        screen.clear()
+        screen.pen = FG
+        try:
+            app.update()
+        except Exception as e:
+            print(e)
+            sys.exit(255)
+        fn = f"{app_name}-{ss_frame:06d}"
+        simulator.screenshot(fn)
+        if io.ticks - t_start > video_length_ticks:
+            print(f"main.py: Reached runtime limit, exiting ({video_length_ticks} ticks).")
+            sys.exit(255)
+        ss_frame += 1
+
+    sys.exit(0)
+
+
+
+
+def launch(file):
+    global app
+    if app is not None:
+        print(f"main.py: Tearing down {app.__name__} {sys.modules}")
+        getattr(app, "on_exit", lambda: None)()
+        #old_name = app.__name__
+        del app
+        # Strip out any paths relating to "/system/apps"
+        while sys.path[0].startswith("/system/apps"):
+            sys.path.pop(0)
+        # Hack: If we don't "unimport" modules then an app will used a cached version
+        # eg: Mona Pet's "import ui" will get the menu's "ui"
+        #for module in ["ui", "icon", old_name, "pcf85063a", "powman", "st7789"]:
+        #    if module in sys.modules:
+        #        del sys.modules[module]
+        for module in sys.modules.keys():
+            del sys.modules[module]
+    # Fix up the paths so the app can find its modules and assets
+    sys.path.insert(0, file)
+    os.chdir(file)
+    gc.collect()
+    print(micropython.mem_info())
+    try:
+        app = __import__(file)
+        print(f"main.py: Launched {app.__name__}")
+        getattr(app, "init", lambda: None)()
+    except Exception as e:  # noqa: BLE001
+        fatal_error("Error!", e)
+
+
+if SKIP_CINEMATIC:
+    launch(APP_MENU)
+else:
+    launch(APP_STARTUP)
+
+def update():
+    #with debug:
+    if (result := app.update()) is not None:
+        if app.__name__ == APP_MENU:
+            launch(result)
+        elif app.__name__ == APP_STARTUP:
+            launch(APP_MENU)
+    return True
+
+# """
