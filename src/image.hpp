@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "picovector.config.hpp"
 #include "types.hpp"
