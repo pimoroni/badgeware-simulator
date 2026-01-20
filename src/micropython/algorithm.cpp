@@ -22,8 +22,19 @@ extern "C" {
     int rays = mp_obj_get_int(args[3]);
     int max = mp_obj_get_int(args[4]);
 
-    mp_obj_t *result = new mp_obj_t[rays];
+    mp_obj_t *result = new mp_obj_t[rays + 1];
     //mp_obj_t result = mp_obj_new_list(rays, NULL);
+
+    for(int i = 0; i < rays; i++) {
+      int step = 0;
+      float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
+      vec2_t v = vec2_t(cos((angle + offset) * (M_PI / 180.0f)), sin((angle + offset) * (M_PI / 180.0f)));
+
+      dda(p->v, v, [&step, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
+        step++;
+        return step < max;
+      });
+    }
 
     for(int i = 0; i < rays; i++) {
       float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
