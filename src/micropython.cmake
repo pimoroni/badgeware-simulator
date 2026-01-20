@@ -14,6 +14,7 @@ target_sources(usermod_picovector INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/geometry.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/dda.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/image_filters/blur.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/color.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/font.cpp
@@ -45,6 +46,7 @@ set_source_files_properties(
   ${CMAKE_CURRENT_LIST_DIR}/primitive.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/geometry.cpp
   ${CMAKE_CURRENT_LIST_DIR}/algorithms/dda.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/image_filters/blur.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/brush.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/color.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/font.cpp

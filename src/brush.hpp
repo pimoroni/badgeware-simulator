@@ -11,7 +11,7 @@ namespace picovector {
   void pixel_func_nop(image_t *target, brush_t *brush, int x, int y);
   void span_func_nop(image_t *target, brush_t *brush, int x, int y, int w);
   void mask_span_func_nop(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *m);
-  
+
   struct brush_t {
     //pixel_func_t pixel_func;
     //span_func_t span_func;

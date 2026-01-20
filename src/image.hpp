@@ -10,6 +10,9 @@ using std::vector;
 
 namespace picovector {
 
+  class image_t;
+  struct brush_t;
+
   // empty implementations for unsupported modes
   void pixel_func_nop(image_t *target, brush_t *brush, int x, int y);
   void span_func_nop(image_t *target, brush_t *brush, int x, int y, int w);
@@ -125,7 +128,7 @@ namespace picovector {
       uint32_t get_unsafe(int x, int y);
 
       // image filters
-      void blur(float radius);
+      void blur(int radius, bool blur_alpha);
       void dither();
 // pixel(x, y, col) or set(x, y, col)
 // 	•	line(x0, y0, x1, y1)
