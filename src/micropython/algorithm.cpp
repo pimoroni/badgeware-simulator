@@ -22,61 +22,56 @@ extern "C" {
     int rays = mp_obj_get_int(args[3]);
     int max = mp_obj_get_int(args[4]);
 
+    mp_buffer_info_t map;
+    mp_get_buffer_raise(args[5], &map, MP_BUFFER_RW);
+    uint8_t *data = (uint8_t *)map.buf;
+
+    int width = mp_obj_get_int(args[6]);
+    int height = mp_obj_get_int(args[7]);
+
+
     mp_obj_t *result = new mp_obj_t[rays + 1];
     //mp_obj_t result = mp_obj_new_list(rays, NULL);
 
     for(int i = 0; i < rays; i++) {
-      int step = 0;
-      float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
-      vec2_t v = vec2_t(cos((angle + offset) * (M_PI / 180.0f)), sin((angle + offset) * (M_PI / 180.0f)));
-
-      dda(p->v, v, [&step, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
-        step++;
-        return step < max;
-      });
-    }
-
-    for(int i = 0; i < rays; i++) {
       float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
 
       vec2_t v = vec2_t(cos((angle + offset) * (M_PI / 180.0f)), sin((angle + offset) * (M_PI / 180.0f)));
 
       int step = 0;
 
-      mp_obj_t *ray = new mp_obj_t[max];
-//      mp_obj_t ray = mp_obj_new_list(0, NULL);
+      mp_obj_t ray = mp_obj_new_list(0, NULL);
 
-      dda(p->v, v, [&step, &ray, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
-        // vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
-        // vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
+      dda(p->v, v, [&step, &data, &width, &ray, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
+        vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
+        vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
 
-        // cb_p->v.x = hit_x;
-        // cb_p->v.y = hit_y;
+        cb_p->v.x = hit_x;
+        cb_p->v.y = hit_y;
 
-        // cb_g->v.x = gx;
-        // cb_g->v.y = gy;
+        cb_g->v.x = gx;
+        cb_g->v.y = gy;
 
-        mp_obj_t items[3] = {
-          mp_obj_new_int(gx),
-          mp_obj_new_int(gy),
-          // MP_OBJ_FROM_PTR(cb_p),
-          //MP_OBJ_FROM_PTR(cb_g),
-          // mp_obj_new_int(edge),
-          // mp_obj_new_float(offset),
-          mp_obj_new_float(distance)
-        };
+        if(data[(gy * width) + gx] > 0) {
 
-        ray[step] = mp_obj_new_tuple(3, items);
-        //mp_obj_t tup = mp_obj_new_tuple(6, items);
+          mp_obj_t items[6] = {
+            mp_obj_new_int(step),
+            MP_OBJ_FROM_PTR(cb_p),
+            MP_OBJ_FROM_PTR(cb_g),
+            mp_obj_new_int(edge),
+            mp_obj_new_float(offset),
+            mp_obj_new_float(distance)
+          };
 
-      //  mp_obj_list_append(ray, tup);
+          mp_obj_list_append(ray, mp_obj_new_tuple(6, items));
+        }
 
         step++;
 
         return step < max;
       });
 
-      result[i] = mp_obj_new_tuple(max, ray);
+      result[i] = ray;
       //mp_obj_list_append(result, ray);
     }
 

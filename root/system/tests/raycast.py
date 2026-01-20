@@ -18,7 +18,7 @@ class Player:
       math.sin((self.angle + offset) * (math.pi / 180)) * length
     )
 
-map = [
+world_map = [
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -36,6 +36,13 @@ map = [
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
+MAP_SIZE_X = len(world_map[0])
+MAP_SIZE_Y = len(world_map)
+world_map_flags = bytearray(MAP_SIZE_X * MAP_SIZE_Y)
+
+for y in range(MAP_SIZE_Y):
+    for x in range(MAP_SIZE_X):
+        world_map_flags[y * MAP_SIZE_X + x] = world_map[y][x]
 
 def gtos(p):
   return vec2(
@@ -58,8 +65,8 @@ def point_add(p1, p2):
 def map_value(x, y):
   x = int(x)
   y = int(y)
-  if 0 <= x < len(map[0]) and 0 <= y < len(map):
-    return map[y][x]
+  if 0 <= x < len(world_map[0]) and 0 <= y < len(world_map):
+    return world_map[y][x]
   return 1
 
 intersection = None
@@ -108,8 +115,8 @@ def update():
 
 
   pen(100, 100, 100, 100)
-  for x in range(0, len(map[0])):
-    for y in range(0, len(map)):
+  for x in range(0, len(world_map[0])):
+    for y in range(0, len(world_map)):
       sp = gtom(vec2(x, y))
       if map_value(x, y) == 1:
         screen.rectangle(sp.x, sp.y, size, size)
@@ -119,17 +126,18 @@ def update():
   #   algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
   d_proj = (screen.width / 2) / math.tan(player.fov * (math.pi / 180) / 2)
 
-  result = algorithm.dda(player.pos, player.angle, player.fov, 160, 20)
+  result = algorithm.dda(player.pos, player.angle, player.fov, 160, 20, world_map_flags, MAP_SIZE_X, MAP_SIZE_Y)
 
   for i in range(0, 160):
     ray = result[i]
     for entry in ray:
-      igx = entry[0]
-      igy = entry[1]
-      mv = map_value(igx, igy)
+      step = entry[0]
+      ip = entry[1]
+      gp = entry[2]
+      mv = map_value(gp.x, gp.y)
 
       if mv == 1:
-        distance = entry[2]
+        distance = entry[5]
         height = (2 / distance) * d_proj
 
         b = distance * 10
