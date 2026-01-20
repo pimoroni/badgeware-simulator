@@ -60,9 +60,16 @@ namespace picovector {
         gy = floorf(hit_y + (v.y > 0.0f ? 0.5f : -0.5f));
       }
 
-      if(!cb(hit_x, hit_y, gx, gy, edge, offset, distance)) {
+
+      if(i > 10) {
+        //break;
+        cb(hit_x, hit_y, gx, gy, edge, offset, distance);
         break;
       }
+      i++;
+      // if(!cb(hit_x, hit_y, gx, gy, edge, offset, distance)) {
+      //   break;
+      // }
 
       // step to the next cell: whichever boundary we hit first
       if (t_max_x < t_max_y) {

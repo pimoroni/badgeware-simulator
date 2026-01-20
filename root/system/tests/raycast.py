@@ -128,3 +128,4 @@ def update():
       screen.pen = color.rgb(255 - b, 255 - b, 255 - b)
 
       screen.rectangle(i, 60 - (height / 2), 1, height)
+
