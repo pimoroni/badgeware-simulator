@@ -55,7 +55,7 @@ extern "C" {
           mp_obj_new_float(distance)
         };
 
-        ray[step] = mp_obj_new_tuple(6, items);
+        ray[step] = mp_obj_new_tuple(3, items);
         //mp_obj_t tup = mp_obj_new_tuple(6, items);
 
       //  mp_obj_list_append(ray, tup);
