@@ -2,30 +2,38 @@ import math, json, gc
 
 coastlines = []
 
+path_count, point_count = 0, 0
+
 def load_coastlines():
-  print(gc.mem_free())
+  global path_count, point_count
+
   with open("/system/assets/world.geo.json", "r") as f:
     data = json.loads(f.read())
     for country in data:
       for polygon in country["polygons"]:
         path = [vec2(p[0], -p[1]) for p in polygon]
+        point_count += len(path)
+        path_count += 1
         coastlines.append(shape.custom(path))
-
-    print(gc.mem_free())
 
 load_coastlines()
 
 def update():
   screen.antialias = image.OFF
-  screen.clear(color.rgb(20, 40, 60))
 
   i =  0
-  pen(color.rgb(50, 90,60))
   for coastline in coastlines:
     i = i + 1
-    x = math.sin(io.ticks / 1000) * 80
-    y = math.cos(io.ticks / 700) * 60
-    s = math.sin(io.ticks / 1000) * 1 + 2
+    x = math.sin(io.ticks / 1000) * 100
+    y = math.cos(io.ticks / 700) * 30
+    s = 1 #math.sin(io.ticks / 1000) * 1 + 2
+
+    screen.pen = color.hsv(i * 2, 200, 160)
 
     coastline.transform = mat3().translate(80 + x, 60 + y).scale(s, s)
     screen.shape(coastline)
+
+  screen.pen = color.rgb(255, 255, 255)
+
+  screen.text(f"{path_count} paths", 100, 95)
+  screen.text(f"{point_count} points", 90, 105)

@@ -479,7 +479,7 @@ def mode(mode):
     # TODO: Mutate the existing screen object?
     font = screen.font
     #brush = screen.pen
-    resolution = (320, 240) if HIRES else (160, 120)
+    resolution = (320, 240) if mode == HIRES else (160, 120)
     setattr(builtins, "screen", image(*resolution, framebuffer))
     screen.font = font if font is not None else DEFAULT_FONT
     #screen.pen = brush if brush is not None else BG

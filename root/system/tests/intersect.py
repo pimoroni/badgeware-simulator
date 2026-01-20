@@ -1,19 +1,19 @@
 import math
 
 def update():
-  screen.clear(color.rgb(20, 40, 60))
+  screen.antialias = image.OFF
 
   r1s = 80
-  r1x = (math.sin(io.ticks / 100) * 20) + 80 - r1s / 2
-  r1y = (math.cos(io.ticks / 100) * 20) + 60 - r1s / 2
+  r1x = (math.sin(io.ticks / 250) * 20) + 80 - r1s / 2
+  r1y = (math.cos(io.ticks / 250) * 20) + 60 - r1s / 2
   r1 = rect(r1x, r1y, r1s, r1s)
 
   pen(255, 0, 0, 100)
   screen.rectangle(r1)
 
   r2s = 80
-  r2x = (math.sin(io.ticks / 200) * 40) + 80 - r1s / 2
-  r2y = (math.cos(io.ticks / 200) * 40) + 60 - r1s / 2
+  r2x = (math.sin(io.ticks / 500) * 40) + 80 - r1s / 2
+  r2y = (math.cos(io.ticks / 500) * 40) + 60 - r1s / 2
   r2 = rect(r2x, r2y, r2s, r2s)
 
   pen(0, 0, 255, 100)
