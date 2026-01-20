@@ -1,13 +1,13 @@
 from picovector import algorithm
 import math
 
-size = 20
+size = 2
 
 class Player:
   def __init__(self):
     self.pos = vec2(8, 8)
     self.angle = 0
-    self.fov = 110
+    self.fov = 100
 
   def set_angle(self, angle):
     self.angle = angle
@@ -39,8 +39,14 @@ map = [
 
 def gtos(p):
   return vec2(
-    160 + math.floor((p.x - player.pos.x) * size),
-    120 + math.floor((p.y - player.pos.y) * size),
+    80 + math.floor((p.x - player.pos.x) * size),
+    60 + math.floor((p.y - player.pos.y) * size),
+  )
+
+def gtom(p):
+  return vec2(
+    160 - (size * 22) + math.floor(p.x * size),
+    120 - (size * 16) + math.floor(p.y * size),
   )
 
 def point_add(p1, p2):
@@ -56,61 +62,69 @@ def map_value(x, y):
     return map[y][x]
   return 1
 
+intersection = None
+intersection_distance = None
 def dda_cb(step, ip, ig, edge, offset, distance):
+  global intersection, intersection_distance
   mv = map_value(ig.x, ig.y)
 
   if mv == 1:
-    sip = gtos(ip)
+    sip = gtom(ip)
+    intersection = ip
+    intersection_distance = distance
 
     b = 255 - (int(distance) * 10)
-    pen(0, 0, 255, b)
-    screen.line(gtos(player.pos), sip)
-
-
-    sig = gtos(ig)
-    pen(255, 255, 255)
-    if edge == 0:
-      screen.line(sig.x, sig.y, sig.x + size, sig.y)
-    elif edge == 1:
-      screen.line(sig.x + size, sig.y, sig.x + size, sig.y + size)
-    elif edge == 2:
-      screen.line(sig.x, sig.y + size, sig.x + size, sig.y + size)
-    elif edge == 3:
-      screen.line(sig.x, sig.y, sig.x, sig.y + size)
-
-
+    screen.pen = color.rgb(255, 255, 255, b)
+    screen.put(sip)
 
   return map_value(ig.x, ig.y) == 0
 
 player = Player()
 
 def update():
-  global player
+  global player, intersection_distance
   screen.clear(color.rgb(20, 40, 60))
 
   player.pos = vec2(
-    math.sin(io.ticks / 2000) * 3 + 8,
-    math.cos(io.ticks / 2000) * 3 + 8
+    math.sin(io.ticks / 2000) * 2 + 11,
+    math.cos(io.ticks / 2000) * 2 + 8
   )
   player.set_angle(io.ticks / 30)
 
 
 
-  # cast rays for player sight
-  for fova in range(-player.fov / 2, player.fov / 2):
-    algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
+
+
 
   # draw player position
   pen(255, 255, 255)
-  screen.circle(gtos(player.pos), 3)
+  screen.circle(gtom(player.pos), 2)
 
-  pen(255, 255, 255)
-  screen.line(gtos(player.pos), gtos(player.pos + player.vector(length=100)))
+  pen(255, 255, 255, 100)
+  screen.line(gtom(player.pos), gtom(player.pos + player.vector(offset = -player.fov / 2, length=5)))
+  screen.line(gtom(player.pos), gtom(player.pos + player.vector(offset = player.fov / 2, length=5)))
 
 
   pen(100, 100, 100, 100)
   for x in range(0, len(map[0])):
     for y in range(0, len(map)):
-      sp = gtos(vec2(x, y))
+      sp = gtom(vec2(x, y))
       if map_value(x, y) == 1:
         screen.rectangle(sp.x, sp.y, size, size)
+
+  # cast rays for player sight
+  # for fova in range(-player.fov / 2, player.fov / 2):
+  #   algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
+  d_proj = (screen.width / 2) / math.tan(player.fov * (math.pi / 180) / 2)
+  for i in range(0, 160):
+    fova = ((i - 80) / 80) * player.fov / 2
+    intersection_distance = None
+    algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
+
+    if intersection_distance:
+      height = (2 / intersection_distance) * d_proj
+
+      b = intersection_distance * 10
+      screen.pen = color.rgb(255 - b, 255 - b, 255 - b)
+
+      screen.rectangle(i, 60 - (height / 2), 1, height)
