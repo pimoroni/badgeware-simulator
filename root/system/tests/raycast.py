@@ -124,12 +124,12 @@ def update():
   for i in range(0, 160):
     ray = result[i]
     for entry in ray:
-      ip = entry[1]
-      ig = entry[2]
-      mv = map_value(ig.x, ig.y)
+      igx = entry[0]
+      igy = entry[1]
+      mv = map_value(igx, igy)
 
       if mv == 1:
-        distance = entry[5]
+        distance = entry[2]
         height = (2 / distance) * d_proj
 
         b = distance * 10
@@ -137,10 +137,10 @@ def update():
 
         screen.rectangle(i, 60 - (height / 2), 1, height)
 
-        screen.pen = color.rgb(255, 255, 255)
-        sip = gtom(ip)
-        screen.pen = color.rgb(255, 255, 255, b)
-        screen.put(sip)
+        # screen.pen = color.rgb(255, 255, 255)
+        # sip = gtom(ip)
+        # screen.pen = color.rgb(255, 255, 255, b)
+        # screen.put(sip)
 
         break
 

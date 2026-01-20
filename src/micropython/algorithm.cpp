@@ -36,21 +36,22 @@ extern "C" {
 //      mp_obj_t ray = mp_obj_new_list(0, NULL);
 
       dda(p->v, v, [&step, &ray, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
-        vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
-        vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
+        // vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
+        // vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
 
-        cb_p->v.x = hit_x;
-        cb_p->v.y = hit_y;
+        // cb_p->v.x = hit_x;
+        // cb_p->v.y = hit_y;
 
-        cb_g->v.x = gx;
-        cb_g->v.y = gy;
+        // cb_g->v.x = gx;
+        // cb_g->v.y = gy;
 
-        mp_obj_t items[6] = {
-          mp_obj_new_int(step),
-          MP_OBJ_FROM_PTR(cb_p),
-          MP_OBJ_FROM_PTR(cb_g),
-          mp_obj_new_int(edge),
-          mp_obj_new_float(offset),
+        mp_obj_t items[3] = {
+          mp_obj_new_int(gx),
+          mp_obj_new_int(gy),
+          // MP_OBJ_FROM_PTR(cb_p),
+          //MP_OBJ_FROM_PTR(cb_g),
+          // mp_obj_new_int(edge),
+          // mp_obj_new_float(offset),
           mp_obj_new_float(distance)
         };
 
