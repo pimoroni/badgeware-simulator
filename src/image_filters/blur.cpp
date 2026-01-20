@@ -103,7 +103,7 @@ void image_t::blur(int radius, bool blur_alpha) {
     uint32_t* sumR = (uint32_t*)(PicoVector_working_buffer + 8192);
     uint32_t* sumG = (uint32_t*)(PicoVector_working_buffer + 12288);
     uint32_t* sumB = (uint32_t*)(PicoVector_working_buffer + 16384);
-    uint32_t* sumA = (uint32_t*)(PicoVector_working_buffer + 20480;
+    uint32_t* sumA = (uint32_t*)(PicoVector_working_buffer + 20480);
 
 
     if (!rowScratch || !ring || !sumR || !sumG || !sumB || !sumA) {
