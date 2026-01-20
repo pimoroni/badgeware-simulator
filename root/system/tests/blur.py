@@ -17,4 +17,4 @@ def update():
   b = math.sin(io.ticks / 500) * 2 + 2
   screen.blur(b)
 
-  screen.text(f"blur radius: {b:.2f}", 100, 200)
+  screen.text(f"blur radius: {b:.2f}", 50, 100)

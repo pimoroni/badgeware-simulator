@@ -129,7 +129,7 @@ namespace picovector {
       uint32_t get_unsafe(int x, int y);
 
       // image filters
-      void blur(int radius, bool blur_alpha);
+      void blur(float radius);
       void dither();
 // pixel(x, y, col) or set(x, y, col)
 // 	•	line(x0, y0, x1, y1)

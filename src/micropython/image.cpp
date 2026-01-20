@@ -217,8 +217,8 @@ MPY_BIND_VAR(2, window, {
 
 MPY_BIND_VAR(2, blur, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    int radius = mp_obj_get_float(args[1]);
-    self->image->blur(radius, true);
+    float radius = mp_obj_get_float(args[1]);
+    self->image->blur(radius);
     return mp_const_none;
   })
 
