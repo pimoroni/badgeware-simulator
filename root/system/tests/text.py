@@ -9,18 +9,14 @@ def update():
   i = round(io.ticks / 200)
   i %= 10
 
-  message = f"""[pen:180,150,120]Upon the mast I gleam and grin, A sentinel of bone and sin. Wind and thunder, night and hull— None fear the sea like a [pen:230,220,200]pirate skull[pen:180,150,120].
-
-Once I roared with breath and [pen:255,100,80]flame[pen:180,150,120], Now legend is my only name. But still I guard the [pen:255,200,80]plundered gold[pen:180,150,120], Grinning wide, forever bold.
-
-[skull:]
+  message = f"""[pen:180,150,120]Upon the mast I gleam and grin, A sentinel of bone and sin. Wind and thunder, night and hull— None fear the sea like a [pen:230,220,200]pirate skull[pen:180,150,120][skull:].
 """
 
   pen(100, 255, 100, 150)
 
-  x = 100
-  y = 25
-  width = math.sin(io.ticks / 500) * 40 + 175
+  x = 5
+  y = 5
+  width = math.sin(io.ticks / 500) * 40 + 110
   height = 200
   tokens = tokenise(screen, message)
   bounds = rect(x, y, width, height)

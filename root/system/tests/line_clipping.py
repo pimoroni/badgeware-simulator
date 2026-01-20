@@ -17,7 +17,7 @@ def update():
       int(math.sin(i + io.ticks / 300) * 100 + 320),
       int(math.sin(i + io.ticks / 200) * 100 + 240)
     )
-    clip = rect(50, 20, 220, 200)
+    clip = rect(10, 10, 140, 100)
     algorithm.clip_line(p1, p2, clip)
     screen.line(p1, p2)
 

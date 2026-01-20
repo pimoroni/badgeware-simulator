@@ -23,9 +23,9 @@ def update():
   pen(color.rgb(50, 90,60))
   for coastline in coastlines:
     i = i + 1
-    x = math.sin(io.ticks / 1000) * 160
-    y = math.cos(io.ticks / 700) * 120
-    s = math.sin(io.ticks / 1000) * 2 + 3
+    x = math.sin(io.ticks / 1000) * 80
+    y = math.cos(io.ticks / 700) * 60
+    s = math.sin(io.ticks / 1000) * 1 + 2
 
-    coastline.transform = mat3().translate(160 + x, 120 + y).scale(s, s)
+    coastline.transform = mat3().translate(80 + x, 60 + y).scale(s, s)
     screen.shape(coastline)

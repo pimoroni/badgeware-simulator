@@ -1,11 +1,10 @@
 from picovector import algorithm
 
-mode(HIRES)
-ark = pixel_font.load(f"/system/assets/fonts/sins.ppf")
-
+mode(LORES)
+sins = pixel_font.load(f"/system/assets/fonts/sins.ppf")
 from system.tests import tests
 
-selected = 12
+selected = 0
 
 def update():
   global selected
@@ -14,8 +13,9 @@ def update():
   screen.clear()
 
   names = list(tests.keys())
+  names = sorted(names)
   name = names[selected]
-
+  screen.font = sins
   module = __import__(tests[name])
   module.update()
 
@@ -27,19 +27,27 @@ def update():
   if io.BUTTON_UP in io.pressed:
     selected -= 1
 
-  screen.font = ark
-  pen(255, 255, 255)
-  title = "Badgeware API examples"
-  w, h = screen.measure_text(title)
-  screen.text(title, 160 - w / 2, 5)
-
   selected %= len(names)
-  screen.font = ark
-  for name in names:
-    yoff = 120 - 6 - selected * 12
-    pen(20, 40, 60, 150)
-    w, h = screen.measure_text(name)
-    screen.rectangle(3, i * 12 + 5 + yoff, w + 4, h)
-    pen(255, 255, 255, 255 if i == selected else 150)
-    screen.text(name, 5, i * 12 + 5 + yoff)
-    i += 1
+  screen.font = sins
+
+
+
+
+  # render 5 items above the current item, and 1 below, fade out from current
+  for i in range(-3, 2):
+    item = selected + i
+    item %= len(names)
+    name = names[item]
+
+    y = 102 + (i * 10)
+    alpha = (3 - abs(i)) * 20 + 20
+    if item == selected:
+      pen(20, 40, 60, 200)
+      w, h = screen.measure_text(name)
+      screen.rectangle(3, y + 2, w + 4, h - 2)
+
+      pen(255, 255, 255, 255)
+      screen.text(name, 5, y)
+    else:
+      pen(255, 255, 255, alpha)
+      screen.text(name, 5, y)

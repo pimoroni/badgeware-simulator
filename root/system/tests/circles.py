@@ -9,7 +9,7 @@ def update():
     x = math.sin(i + io.ticks / 100) * 40
     y = math.cos(i + io.ticks / 100) * 40
 
-    p = vec2(x + bw.rnd(220) + 50, y + bw.rnd(140) + 50)
+    p = vec2(x + bw.rnd(160), y + bw.rnd(120))
     r = bw.rnd(5, 20)
     pen(bw.rnd(255), bw.rnd(255), bw.rnd(255))
     screen.circle(p, r)

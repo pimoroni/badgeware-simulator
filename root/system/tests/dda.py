@@ -1,10 +1,10 @@
 from picovector import algorithm
 import math
 
-grid = 20
+grid = 10
 def dda_cb(step, ip, ig, edge, offset, distance):
-  ip.x = ip.x * grid + 160
-  ip.y = ip.y * grid + 120
+  ip.x = ip.x * grid + 80
+  ip.y = ip.y * grid + 60
 
   op = vec2()
   if edge ==  0 or edge == 2:
@@ -17,8 +17,8 @@ def dda_cb(step, ip, ig, edge, offset, distance):
   pen(0, 255, 0)
   screen.circle(ip, 2)
 
-  ig.x = ig.x * grid + 160
-  ig.y = ig.y * grid + 120
+  ig.x = ig.x * grid + 80
+  ig.y = ig.y * grid + 60
   pen(0, 255, 0, 100)
   screen.rectangle(ig.x, ig.y, grid, grid)
 
@@ -54,16 +54,16 @@ def update():
 
 
   pen(40, 60, 80)
-  for y in range(0, 240 / grid):
+  for y in range(0, 120 / grid):
     screen.line(0, y * grid, 319, y * grid)
 
-  for x in range(0, 320 / grid):
+  for x in range(0, 160 / grid):
     screen.line(x * grid, 0, x * grid, 239)
 
   algorithm.dda(p, v, dda_cb)
 
-  p.x = (p.x * grid) + 160
-  p.y = (p.y * grid) + 120
+  p.x = (p.x * grid) + 80
+  p.y = (p.y * grid) + 60
   v.x = (v.x * grid)
   v.y = (v.y * grid)
 

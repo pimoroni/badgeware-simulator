@@ -11,7 +11,7 @@ def update():
     y = random.uniform(-5, 5)
     s = random.uniform(0.5, 2)
     star = shape.star(x, y, 5, s / 2, s)
-    star.transform = mat3().translate(160, 120).scale(30).rotate(io.ticks / 10)
+    star.transform = mat3().translate(80, 60).scale(15).rotate(io.ticks / 10)
     screen.shape(star)
 
   screen.dither()

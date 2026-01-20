@@ -9,10 +9,6 @@ def update():
   f = math.sin(io.ticks / 1000) * 150
   t = f + (math.sin(io.ticks / 500) + 1.0) * 50 + 100
 
-
-  screen.pen = color.rgb(50, 90, 130)
-  screen.shape(shape.rounded_rectangle(10, 10, 300, 220, 20))
-
   stroke = ((math.sin(io.ticks / 1000) + 1) * 0.05) + 0.1
 
   shapes = [
@@ -40,10 +36,10 @@ def update():
     for x in range(4):
       i = y * 4 + x
 
-      scale = ((math.sin((io.ticks + i * 2000) / 1000) + 1) * 5) + 12
+      scale = ((math.sin((io.ticks + i * 2000) / 1000) + 1) * 3) + 5
 
       if i < len(shapes):
         pen(color.oklch(220, 128, i * 20, 150))
 
-        shapes[i].transform = mat3().translate(x * 60 + 100, y * 60 + 30).rotate(io.ticks / 100).scale(scale)
+        shapes[i].transform = mat3().translate(x * 36 + 25, y * 26 + 20).rotate(io.ticks / 100).scale(scale)
         screen.shape(shapes[i])

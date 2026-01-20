@@ -11,12 +11,12 @@ def update():
     0b01111110,
     0b00000000))
   pen(custom_pattern)
-  screen.shape(shape.circle(160 + math.cos(io.ticks / 500) * 30, 120 + math.sin(io.ticks / 1000) * 30, 60))
+  screen.shape(shape.circle(80 + math.cos(io.ticks / 500) * 30, 60 + math.sin(io.ticks / 1000) * 30, 30))
 
   built_in_pattern = brush.pattern(color.rgb(100, 255, 100, 100), color.rgb(0, 0, 0, 0), 11)
   pen(built_in_pattern)
-  screen.shape(shape.circle(160 + math.sin(io.ticks / 250) * 60, 120 + math.cos(io.ticks / 500) * 60, 60))
+  screen.shape(shape.circle(80 + math.sin(io.ticks / 250) * 60, 60 + math.cos(io.ticks / 500) * 60, 30))
 
   built_in_pattern = brush.pattern(color.rgb(100, 100, 255, 100), color.rgb(0, 0, 0, 0), 8)
   pen(built_in_pattern)
-  screen.shape(shape.circle(160 + math.cos(io.ticks / 250) * 60, 120 + math.sin(io.ticks / 500) * 60, 60))
+  screen.shape(shape.circle(80 + math.cos(io.ticks / 250) * 60, 60 + math.sin(io.ticks / 500) * 60, 30))
