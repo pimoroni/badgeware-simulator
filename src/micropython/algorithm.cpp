@@ -20,9 +20,10 @@ extern "C" {
     float angle = mp_obj_get_float(args[1]);
     float fov = mp_obj_get_float(args[2]);
     int rays = mp_obj_get_int(args[3]);
-    int max_distance = mp_obj_get_int(args[4]);
+    int max = mp_obj_get_int(args[4]);
 
-    mp_obj_t result = mp_obj_new_list(0, NULL);
+    mp_obj_t *result = new mp_obj_t[rays];
+    //mp_obj_t result = mp_obj_new_list(rays, NULL);
 
     for(int i = 0; i < rays; i++) {
       float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
@@ -31,9 +32,10 @@ extern "C" {
 
       int step = 0;
 
-      mp_obj_t ray = mp_obj_new_list(0, NULL);
+      mp_obj_t *ray = new mp_obj_t[max];
+//      mp_obj_t ray = mp_obj_new_list(0, NULL);
 
-      dda(p->v, v, [&step, &ray, &max_distance](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
+      dda(p->v, v, [&step, &ray, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
         vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
         vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
 
@@ -52,19 +54,21 @@ extern "C" {
           mp_obj_new_float(distance)
         };
 
-        mp_obj_t tup = mp_obj_new_tuple(6, items);
+        ray[step] = mp_obj_new_tuple(6, items);
+        //mp_obj_t tup = mp_obj_new_tuple(6, items);
 
-        mp_obj_list_append(ray, tup);
+      //  mp_obj_list_append(ray, tup);
 
         step++;
 
-        return distance < max_distance;
+        return step < max;
       });
 
-      mp_obj_list_append(result, ray);
+      result[i] = mp_obj_new_tuple(max, ray);
+      //mp_obj_list_append(result, ray);
     }
 
-    return MP_OBJ_FROM_PTR(result);
+    return mp_obj_new_tuple(rays, result);
   })
 
   MPY_BIND_LOCALS_DICT(algorithm,
