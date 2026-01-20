@@ -70,6 +70,8 @@ def dda_cb(step, ip, ig, edge, offset, distance):
 
   if mv == 1:
     sip = gtom(ip)
+    screen.pen = color.rgb(255, 255, 255, b)
+    screen.put(sip)
     intersection = ip
     intersection_distance = distance
 
@@ -116,16 +118,29 @@ def update():
   # for fova in range(-player.fov / 2, player.fov / 2):
   #   algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
   d_proj = (screen.width / 2) / math.tan(player.fov * (math.pi / 180) / 2)
+
+  result = algorithm.dda(player.pos, player.angle, player.fov, 160, 20)
+
   for i in range(0, 160):
-    fova = ((i - 80) / 80) * player.fov / 2
-    intersection_distance = None
-    algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
+    ray = result[i]
+    for entry in ray:
+      ip = entry[1]
+      ig = entry[2]
+      mv = map_value(ig.x, ig.y)
 
-    if intersection_distance:
-      height = (2 / intersection_distance) * d_proj
+      if mv == 1:
+        distance = entry[5]
+        height = (2 / distance) * d_proj
 
-      b = intersection_distance * 10
-      screen.pen = color.rgb(255 - b, 255 - b, 255 - b)
+        b = distance * 10
+        screen.pen = color.rgb(255 - b, 255 - b, 255 - b)
 
-      screen.rectangle(i, 60 - (height / 2), 1, height)
+        screen.rectangle(i, 60 - (height / 2), 1, height)
+
+        screen.pen = color.rgb(255, 255, 255)
+        sip = gtom(ip)
+        screen.pen = color.rgb(255, 255, 255, b)
+        screen.put(sip)
+
+        break
 
