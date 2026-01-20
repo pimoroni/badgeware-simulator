@@ -98,12 +98,12 @@ void image_t::blur(int radius, bool blur_alpha) {
     const uint32_t invN_q16 = (uint32_t)(( (1u << 16) + (uint32_t)(N/2) ) / (uint32_t)N);
 
     // --- Allocate scratch ---
-    uint32_t* rowScratch = (uint32_t*)PicoVector_working_buffer;
-    uint32_t* ring = (uint32_t*)PicoVector_working_buffer + 4096;
-    uint32_t* sumR = (uint32_t*)PicoVector_working_buffer + 8192;
-    uint32_t* sumG = (uint32_t*)PicoVector_working_buffer + 12288;
-    uint32_t* sumB = (uint32_t*)PicoVector_working_buffer + 16384;
-    uint32_t* sumA = (uint32_t*)PicoVector_working_buffer + 20480;
+    uint32_t* rowScratch = (uint32_t*)(PicoVector_working_buffer);
+    uint32_t* ring = (uint32_t*)(PicoVector_working_buffer + 4096);
+    uint32_t* sumR = (uint32_t*)(PicoVector_working_buffer + 8192);
+    uint32_t* sumG = (uint32_t*)(PicoVector_working_buffer + 12288);
+    uint32_t* sumB = (uint32_t*)(PicoVector_working_buffer + 16384);
+    uint32_t* sumA = (uint32_t*)(PicoVector_working_buffer + 20480;
 
 
     if (!rowScratch || !ring || !sumR || !sumG || !sumB || !sumA) {
