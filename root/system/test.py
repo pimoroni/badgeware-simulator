@@ -5,7 +5,7 @@ ark = pixel_font.load(f"/system/assets/fonts/sins.ppf")
 
 from system.tests import tests
 
-selected = 7
+selected = 12
 
 def update():
   global selected
@@ -15,7 +15,9 @@ def update():
 
   names = list(tests.keys())
   name = names[selected]
-  tests[name].update()
+
+  module = __import__(tests[name])
+  module.update()
 
   i = 0
 

@@ -215,6 +215,13 @@ MPY_BIND_VAR(2, window, {
   })
 
 
+MPY_BIND_VAR(2, blur, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    float radius = mp_obj_get_float(args[1]);
+    self->image->blur(radius);
+    return mp_const_none;
+  })
+
 MPY_BIND_VAR(2, get, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     vec2_t point;
@@ -511,6 +518,8 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR(triangle),
       MPY_BIND_ROM_PTR(get),
       MPY_BIND_ROM_PTR(put),
+
+      MPY_BIND_ROM_PTR(blur),
 
       // vector
       MPY_BIND_ROM_PTR(shape),
