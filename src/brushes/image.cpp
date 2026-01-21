@@ -4,7 +4,7 @@ namespace picovector {
 
   void image_brush_span_func(image_t *target, brush_t *brush, int x, int y, int w) {
     image_brush_t *p = (image_brush_t*)brush;
-    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
     rect_t b = p->src->bounds();
 
     fx16_vec2_t p1(x, y);
@@ -27,13 +27,13 @@ namespace picovector {
       uint32_t c = p->src->get_unsafe(u, v);
       uint8_t *src = (uint8_t*)&c;
       *dst = target->_blend_func(*dst, src[0], src[1], src[2], src[3]);
-      dst += 4;
+      dst++;
     }
   }
 
   void image_brush_masked_span_func(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *mask) {
     image_brush_t *p = (image_brush_t*)brush;
-    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
     rect_t b = p->src->bounds();
 
     fx16_vec2_t p1(x, y);
@@ -62,7 +62,7 @@ namespace picovector {
       uint32_t sa = (src[3] * m + 128) >> 8;
 
       *dst = target->_blend_func(*dst, sr, sg, sb, sa);
-      dst += 4;
+      dst++;
       mask++;
     }
   }

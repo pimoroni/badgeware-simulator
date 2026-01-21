@@ -12,14 +12,14 @@ pattern = (
 )
 
 def update():
-  custom_pattern = brush.pattern(color.rgb(0, 255, 0, 255), color.rgb(0, 0, 255, 255), pattern)
-  pen(custom_pattern)
-  screen.shape(shape.circle(80 + math.cos(io.ticks / 500) * 30, 60 + math.sin(io.ticks / 1000) * 30, 30))
+  screen.pen = brush.pattern(color.lime, color.transparent, pattern)
+  pos = (80 + math.cos(io.ticks / 500) * 30, 60 + math.sin(io.ticks / 1000) * 30)
+  screen.shape(shape.circle(*pos, 30))
 
-  built_in_pattern = brush.pattern(color.cyan, color.black, 11)
-  pen(built_in_pattern)
-  screen.shape(shape.circle(80 + math.sin(io.ticks / 250) * 60, 60 + math.cos(io.ticks / 500) * 60, 30))
+  screen.pen = brush.pattern(color.cyan, color.transparent, 11)
+  pos = (80 + math.sin(io.ticks / 250) * 60, 60 + math.cos(io.ticks / 500) * 60)
+  screen.shape(shape.circle(*pos, 30))
 
-  built_in_pattern = brush.pattern(color.orange, color.black, 8)
-  pen(built_in_pattern)
-  screen.shape(shape.circle(80 + math.cos(io.ticks / 250) * 60, 60 + math.sin(io.ticks / 500) * 60, 30))
+  screen.pen =brush.pattern(color.orange, color.transparent, 8)
+  pos = (80 + math.cos(io.ticks / 250) * 60, 60 + math.sin(io.ticks / 500) * 60)
+  screen.shape(shape.circle(*pos, 30))

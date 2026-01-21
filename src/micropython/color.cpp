@@ -170,6 +170,7 @@ extern "C" {
   rgb_color_t _color_cyan   = rgb_color_t(0x6d, 0xc2, 0xca, 0xff);
   rgb_color_t _color_yellow = rgb_color_t(0xda, 0xd4, 0x5e, 0xff);
   rgb_color_t _color_white  = rgb_color_t(0xde, 0xee, 0xd6, 0xff);
+  rgb_color_t _color_transparent  = rgb_color_t(0x00, 0x00, 0x00, 0x00);
 
   // default palette based on Dawnbringer 16
   const color_obj_t color_black_obj  = {.base = {.type = &type_color}, .c = &_color_black};
@@ -188,6 +189,7 @@ extern "C" {
   const color_obj_t color_cyan_obj   = {.base = {.type = &type_color}, .c = &_color_cyan};
   const color_obj_t color_yellow_obj = {.base = {.type = &type_color}, .c = &_color_yellow};
   const color_obj_t color_white_obj  = {.base = {.type = &type_color}, .c = &_color_white};
+  const color_obj_t color_transparent_obj  = {.base = {.type = &type_color}, .c = &_color_transparent};
 
   // badger E-ink specific greys
   rgb_color_t _color_light_grey = rgb_color_t(0xc0, 0xc0, 0xc0, 0xff);
@@ -223,6 +225,7 @@ extern "C" {
     { MP_ROM_QSTR(MP_QSTR_cyan),   MP_ROM_PTR(&color_cyan_obj) },
     { MP_ROM_QSTR(MP_QSTR_yellow), MP_ROM_PTR(&color_yellow_obj) },
     { MP_ROM_QSTR(MP_QSTR_white),  MP_ROM_PTR(&color_white_obj) },
+    { MP_ROM_QSTR(MP_QSTR_transparent),  MP_ROM_PTR(&color_transparent_obj) },
 
     // badger E-ink specific greys
     { MP_ROM_QSTR(MP_QSTR_light_grey),  MP_ROM_PTR(&color_light_grey_obj) },

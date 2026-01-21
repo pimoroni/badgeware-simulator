@@ -46,41 +46,53 @@ namespace picovector {
 
   void pattern_brush_span_func(image_t *target, brush_t *brush, int x, int y, int w) {
     pattern_brush_t *p = (pattern_brush_t*)brush;
-    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
     blend_func_t fn = target->_blend_func;
+
+    uint32_t c1c[4] = {_r(p->c1._p), _g(p->c1._p), _b(p->c1._p), _a(p->c1._p)};
+    uint32_t c2c[4] = {_r(p->c2._p), _g(p->c2._p), _b(p->c2._p), _a(p->c2._p)};
+
     while(w--) {
       uint8_t u = 7 - (x & 0b111);
       uint8_t v = y & 0b111;
-      uint8_t b = p->p[v];
-      uint8_t *src = b & (1 << u) ? (uint8_t*)&p->c1._p : (uint8_t*)&p->c2._p;
-      *dst = fn(*dst, src[0], src[1], src[2], src[3]);
-      dst += 4;
+      uint8_t bit = p->p[v];
+
+      uint32_t *src = bit & (1 << u) ? c1c : c2c;
+
+      uint32_t r = src[0];
+      uint32_t g = src[1];
+      uint32_t b = src[2];
+      uint32_t a = src[3];
+
+      *dst = fn(*dst, r, g, b, a);
+      dst++;
       x++;
     }
   }
 
   void pattern_brush_masked_span_func(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *mask) {
     pattern_brush_t *p = (pattern_brush_t*)brush;
-    uint8_t *dst = (uint8_t*)target->ptr(x, y);
+    uint32_t *dst = (uint32_t*)target->ptr(x, y);
     blend_func_t fn = target->_blend_func;
+
+    uint32_t c1c[4] = {_r(p->c1._p), _g(p->c1._p), _b(p->c1._p), _a(p->c1._p)};
+    uint32_t c2c[4] = {_r(p->c2._p), _g(p->c2._p), _b(p->c2._p), _a(p->c2._p)};
+
     while(w--) {
       uint8_t u = 7 - (x & 0b111);
       uint8_t v = y & 0b111;
-      uint8_t b = p->p[v];
-      uint32_t src = b & (1 << u) ? p->c1._p : p->c2._p;
-      uint32_t sr = _r(src);
-      uint32_t sg = _g(src);
-      uint32_t sb = _b(src);
-      uint32_t sa = _a(src);
+      uint8_t bit = p->p[v];
 
-      // uint32_t m = *mask;
-      // sr = (_r(src) * m + 128) >> 8;
-      // sg = (_g(src) * m + 128) >> 8;
-      // sb = (_b(src) * m + 128) >> 8;
-      // sa = (_a(src) * m + 128) >> 8;
+      uint32_t *src = bit & (1 << u) ? c1c : c2c;
 
-      *dst = fn(*dst,sr, sg, sb, sa);
-      dst += 4;
+      uint32_t m = *mask;
+      uint32_t r = (src[0] * m + 128) >> 8;
+      uint32_t g = (src[1] * m + 128) >> 8;
+      uint32_t b = (src[2] * m + 128) >> 8;
+      uint32_t a = (src[3] * m + 128) >> 8;
+
+      *dst = fn(*dst, r, g, b, a);
+      dst++;
       x++;
       mask++;
     }

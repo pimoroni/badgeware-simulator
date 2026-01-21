@@ -3,9 +3,9 @@
 namespace picovector {
 
   void color_t::premul(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    uint8_t rp = (r * a + 128) >> 8;
-    uint8_t gp = (g * a + 128) >> 8;
-    uint8_t bp = (b * a + 128) >> 8;
+    uint8_t rp = (r * a) / 255;
+    uint8_t gp = (g * a) / 255;
+    uint8_t bp = (b * a) / 255;
     _p = __builtin_bswap32((rp << 24) | (gp << 16) | (bp << 8) | a);
 
     uint8_t* pp = (uint8_t*)&_p;
