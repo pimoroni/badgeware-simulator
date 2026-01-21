@@ -13,7 +13,7 @@ using std::vector;
 namespace picovector {
 
   class image_t;
-  struct brush_t;
+  class brush_t;
 
   // empty implementations for unsupported modes
   void span_func_nop(image_t *target, brush_t *brush, int x, int y, int w);
@@ -41,9 +41,11 @@ namespace picovector {
   class font_t;
   class pixel_font_t;
   class shape_t;
-  struct brush_t;
+  class brush_t;
 
   class image_t {
+    friend class brush_t;
+
     private:
       void              *_buffer = nullptr;
       bool               _managed_buffer = false;

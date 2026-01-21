@@ -205,8 +205,8 @@ extern "C" {
       type_rect,
       MP_QSTR_rect,
       MP_TYPE_FLAG_NONE,
-      print, (const void *)rect_print,
       make_new, (const void *)rect_new,
+      print, (const void *)rect_print,
       attr, (const void *)rect_attr,
       locals_dict, &rect_locals_dict
   );

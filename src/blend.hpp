@@ -13,6 +13,20 @@ uint32_t _b(const uint32_t c) {return (c >> 16) & 0xffu;}
 static inline __attribute__((always_inline))
 uint32_t _a(const uint32_t c) {return (c >> 24) & 0xffu;}
 
+// takes a premultiplied packed color and applies alpha
+static inline __attribute__((always_inline))
+uint32_t _premul_mul_alpha(uint32_t c, uint32_t a) {
+  uint32_t r = (_r(c) * a + 128) >> 8;
+  uint32_t g = (_g(c) * a + 128) >> 8;
+  uint32_t b = (_b(c) * a + 128) >> 8;
+  a = (_a(c) * a + 128) >> 8;
+  return r | (g << 8) | (b << 16) | (a << 24);
+}
+
+static inline __attribute__((always_inline))
+uint32_t _premul_mul_alpha_channel(uint32_t c, uint32_t a) {
+  return (c * a + 128) >> 8;
+}
 
 typedef uint32_t (*blend_func_t)(uint32_t dst, uint32_t r, uint32_t g, uint32_t b, uint32_t a);
 

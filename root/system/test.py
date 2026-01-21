@@ -25,7 +25,7 @@ def load_test(index):
 
   print(f"loaded example {name} ({round(gc.mem_free() / 1000)}KB free)")
 
-load_test(9)
+load_test(10)
 
 def update():
   global selected, menu_index

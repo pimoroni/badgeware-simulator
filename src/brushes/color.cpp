@@ -7,7 +7,15 @@ namespace picovector {
     color_brush_t *p = (color_brush_t*)brush;
     uint32_t *dst = (uint32_t*)target->ptr(x, y);
     uint32_t src = p->c._p;
-    uint32_t r = _r(src); uint32_t g = _g(src); uint32_t b = _b(src); uint32_t a = _a(src);
+
+    if(target->alpha() != 255) {
+      src = _premul_mul_alpha(src, target->alpha());
+    }
+
+    uint32_t r = _r(src);
+    uint32_t g = _g(src);
+    uint32_t b = _b(src);
+    uint32_t a = _a(src);
 
     blend_func_t fn = target->_blend_func;
     while(w--) {
@@ -20,15 +28,23 @@ namespace picovector {
     color_brush_t *p = (color_brush_t*)brush;
     uint32_t *dst = (uint32_t*)target->ptr(x, y);
     uint32_t src = p->c._p;
-    uint32_t r = _r(src); uint32_t g = _g(src); uint32_t b = _b(src); uint32_t a = _a(src);
+
+    if(target->alpha() != 255) {
+      src = _premul_mul_alpha(src, target->alpha());
+    }
+
+    uint32_t r = _r(src);
+    uint32_t g = _g(src);
+    uint32_t b = _b(src);
+    uint32_t a = _a(src);
 
     blend_func_t fn = target->_blend_func;
     while(w--) {
       uint32_t m = *mask;
-      uint32_t sr = (r * m + 128) >> 8;
-      uint32_t sg = (g * m + 128) >> 8;
-      uint32_t sb = (b * m + 128) >> 8;
-      uint32_t sa = (a * m + 128) >> 8;
+      uint32_t sr = _premul_mul_alpha_channel(r, m);
+      uint32_t sg = _premul_mul_alpha_channel(g, m);
+      uint32_t sb = _premul_mul_alpha_channel(b, m);
+      uint32_t sa = _premul_mul_alpha_channel(a, m);
       *dst = fn(*dst, sr, sg, sb, sa);
       dst++;
       mask++;

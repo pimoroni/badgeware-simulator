@@ -157,8 +157,8 @@ extern "C" {
       type_vec2,
       MP_QSTR_vec2,
       MP_TYPE_FLAG_NONE,
-      print, (const void*)vec2_print,
       make_new, (const void *)vec2_new,
+      print, (const void*)vec2_print,
       binary_op, (const void *)vec2_binary_op,
       attr, (const void *)vec2_attr,
       locals_dict, &vec2_locals_dict

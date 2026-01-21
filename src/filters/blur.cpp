@@ -1,5 +1,3 @@
-
-
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -8,10 +6,7 @@
 #include "../picovector.hpp"
 #include "../image.hpp"
 
-// char __attribute__((aligned(4))) PicoVector_working_buffer[working_buffer_size];
-
 namespace picovector {
-
 
   // One-pole lowpass step: y += (x - y) * k
   // k is Q16: 0..65535 ~ 0..(almost 1.0)

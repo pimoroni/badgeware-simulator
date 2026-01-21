@@ -8,14 +8,16 @@
 
 namespace picovector {
 
-  struct brush_t {
+  class brush_t {
+  public:
     virtual span_func_t span_func() = 0;
     virtual masked_span_func_t masked_span_func() = 0;
   };
 
   void color_brush_span_func(image_t *target, brush_t *brush, int x, int y, int w);
   void color_brush_masked_span_func(image_t *target, brush_t *brush, int x, int y, int w, uint8_t *mask);
-  struct color_brush_t : public brush_t {
+  class color_brush_t : public brush_t {
+  public:
     color_t c;
 
     color_brush_t(const color_t& c);
@@ -23,7 +25,7 @@ namespace picovector {
     masked_span_func_t masked_span_func();
   };
 
-  struct pattern_brush_t : public brush_t {
+  class pattern_brush_t : public brush_t {
   public:
     uint8_t p[8];
     color_t c1;
@@ -35,7 +37,7 @@ namespace picovector {
     masked_span_func_t masked_span_func();
   };
 
-  struct image_brush_t : public brush_t {
+  class image_brush_t : public brush_t {
   public:
     image_t *src;
     mat3_t inverse_transform;
