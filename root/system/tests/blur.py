@@ -2,7 +2,6 @@ import math, random
 
 def update():
   screen.pen = color.rgb(150, 190, 160)
-  screen.pen = color.rgb(255, 255, 255)
   #screen.pen = color.rgb(255, 255, 255)
 
   random.seed(1)
@@ -15,8 +14,7 @@ def update():
     star.transform = mat3().translate(80, 60).scale(15).rotate(io.ticks / 10)
     screen.shape(star)
 
-
   b = math.sin(io.ticks / 500) * 2 + 2
-#  screen.blur(b)
+  screen.blur(b)
 
   screen.text(f"blur radius: {b:.2f}", 50, 100)

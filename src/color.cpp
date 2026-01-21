@@ -7,7 +7,12 @@ namespace picovector {
     uint8_t gp = (g * a + 128) >> 8;
     uint8_t bp = (b * a + 128) >> 8;
     uint8_t ap = a;
-    _p = __builtin_bswap32((rp << 24) | (gp << 16) | (bp << 8) | ap);
+    uint8_t *p = (uint8_t*)&_p;
+    p[0] = rp;
+    p[1] = gp;
+    p[2] = bp;
+    p[3] = ap;
+    //_p = __builtin_bswap32((rp << 24) | (gp << 16) | (bp << 8) | ap);
   }
 
   rgb_color_t::rgb_color_t(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : _r(r), _g(g), _b(b), _a(a) {
