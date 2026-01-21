@@ -121,9 +121,6 @@ def update():
       if map_value(x, y) == 1:
         screen.rectangle(sp.x, sp.y, size, size)
 
-  # cast rays for player sight
-  # for fova in range(-player.fov / 2, player.fov / 2):
-  #   algorithm.dda(player.pos, player.vector(offset = fova), dda_cb)
   d_proj = (screen.width / 2) / math.tan(player.fov * (math.pi / 180) / 2)
 
   result = algorithm.dda(player.pos, player.angle, player.fov, 160, 20, world_map_flags, MAP_SIZE_X, MAP_SIZE_Y)
@@ -145,10 +142,9 @@ def update():
 
         screen.rectangle(i, 60 - (height / 2), 1, height)
 
-        # screen.pen = color.rgb(255, 255, 255)
-        # sip = gtom(ip)
-        # screen.pen = color.rgb(255, 255, 255, b)
-        # screen.put(sip)
+        screen.pen = color.rgb(255, 255, 255)
+        sip = gtom(ip)
+        screen.pen = color.rgb(255, 255, 255, b)
+        screen.put(sip)
 
         break
-

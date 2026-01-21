@@ -29,9 +29,7 @@ extern "C" {
     int width = mp_obj_get_int(args[6]);
     int height = mp_obj_get_int(args[7]);
 
-
-    mp_obj_t *result = new mp_obj_t[rays + 1];
-    //mp_obj_t result = mp_obj_new_list(rays, NULL);
+    mp_obj_t *result = new mp_obj_t[rays];
 
     for(int i = 0; i < rays; i++) {
       float offset = float((i - (rays / 2.0f)) / (rays / 2.0f)) * fov / 2.0f;
@@ -55,7 +53,7 @@ extern "C" {
         if(data[(gy * width) + gx] > 0) {
 
           mp_obj_t items[6] = {
-            mp_obj_new_int(step),
+            mp_obj_new_int(data[(gy * width) + gx]),
             MP_OBJ_FROM_PTR(cb_p),
             MP_OBJ_FROM_PTR(cb_g),
             mp_obj_new_int(edge),
@@ -64,6 +62,10 @@ extern "C" {
           };
 
           mp_obj_list_append(ray, mp_obj_new_tuple(6, items));
+
+          if(data[(gy * width) + gx] >= 128) {
+            return false;
+          }
         }
 
         step++;
@@ -72,7 +74,6 @@ extern "C" {
       });
 
       result[i] = ray;
-      //mp_obj_list_append(result, ray);
     }
 
     return mp_obj_new_tuple(rays, result);
