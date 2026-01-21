@@ -145,9 +145,10 @@ namespace picovector {
 
   void image_t::brush(brush_t *brush) {
     this->_brush = brush;
-    this->_pixel_func = brush->get_pixel_func(this);
-    this->_span_func = brush->get_span_func(this);
-    this->_mask_span_func = brush->get_mask_span_func(this);
+    this->_span_func = brush->span_func();
+    this->_masked_span_func = brush->masked_span_func();
+    // this->_span_func = brush->get_span_func(this);
+    // this->_mask_span_func = brush->get_mask_span_func(this);
   }
 
   font_t* image_t::font() {
@@ -215,9 +216,9 @@ namespace picovector {
       uint8_t *dst = (uint8_t *)t->ptr(tr.x, tr.y + i);
       uint8_t *src = (uint8_t *)this->ptr(sxo, syo + i);
       if(this->_has_palette) {
-        _span_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], tr.w, this->_alpha);
+        //_span_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], tr.w, this->_alpha);
       }else{
-        _span_blit_rgba_rgba(dst, src, tr.w, this->_alpha);
+        //_span_blit_rgba_rgba(dst, src, tr.w, this->_alpha);
       }
     }
   }
@@ -260,7 +261,7 @@ namespace picovector {
           src = (uint8_t *)this->ptr(tx, ty);
         }
 
-        blend_rgba_rgba(dst, src[0], src[1], src[2], src[3]);
+        *dst = target->_blend_func(*dst, src[0], src[1], src[2], src[3]);
       }
     }
   }
@@ -319,9 +320,9 @@ namespace picovector {
       int32_t step = int(srcstepx * 65536.0f);
 
       if(this->_has_palette) {
-        _span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
+        //_span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
       }else{
-        _span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
+        //_span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
       }
 
       srcy += srcstepy;
@@ -365,9 +366,9 @@ namespace picovector {
       int32_t step = int(srcstepx * 65536.0f);
 
       if(this->_has_palette) {
-        _span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
+        //_span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
       }else{
-        _span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
+        //_span_scale_blit_rgba_rgba(dst, src, x, step, abs(ctr.w), this->_alpha);
       }
 
       srcy += srcstepy;
@@ -386,9 +387,9 @@ namespace picovector {
 
   void image_t::rectangle(rect_t r) {
     r = r.intersection(_clip);
+    span_func_t fn = this->_span_func;
     for(int y = r.y; y < r.y + r.h; y++) {
-      this->_span_func(this, this->_brush, r.x, y, r.w);
-      //this->_brush->render_span(this, r.x, y, r.w);
+      fn(this, this->_brush, r.x, y, r.w);
     }
   }
 
@@ -404,11 +405,24 @@ namespace picovector {
       w = _clip.x + _clip.w - x;
     }
     this->_span_func(this, this->_brush, x, y, w);
-    //this->_brush->render_span(this, x, y, w);
+  }
+
+  void image_t::masked_span(int x, int y, int w, uint8_t *mask) {
+    if(y < _clip.y || y >= _clip.y + _clip.h) return;
+    if(x + w < 0 || x >= _clip.x + _clip.w) return;
+
+    if(x < 0) {
+      w += x; x = 0;
+    }
+
+    if(x + w >= _clip.x + _clip.w) {
+      w = _clip.x + _clip.w - x;
+    }
+
+    this->_masked_span_func(this, this->_brush, x, y, w, mask);
   }
 
   void image_t::circle(const vec2_t &p, const int &r) {
-
     rect_t b = rect_t(p.x - r, p.y - r, r * 2, r * 2);
     if(!b.intersects(_clip)) return;
 
@@ -479,7 +493,7 @@ namespace picovector {
     int32_t w1row = orient2d(p3, p1, tl) + bias1;
     int32_t w2row = orient2d(p1, p2, tl) + bias2;
 
-    pixel_func_t pf = this->_pixel_func;
+    span_func_t fn = this->_span_func;
 
     for (int32_t y = 0; y < b.h; y++) {
       int32_t w0 = w0row;
@@ -490,7 +504,7 @@ namespace picovector {
       int yo = b.y + y;
       for (int32_t x = 0; x < b.w; x++) {
         if ((w0 | w1 | w2) >= 0) {
-          pf(this, this->_brush, xo, yo);
+          fn(this, this->_brush, xo, yo, 1);
         }
 
         xo++;
@@ -531,10 +545,10 @@ namespace picovector {
     int sy = y0 < y1 ? 1 : -1;
     int err = dx + dy;
 
-    pixel_func_t pf = this->_pixel_func;
+    span_func_t fn = this->_span_func;
 
     while(true) {
-        pf(this, this->_brush, x0, y0);
+        fn(this, this->_brush, x0, y0, 1);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy) {err += dy; x0 += sx;}
@@ -549,11 +563,11 @@ namespace picovector {
   void image_t::put(int x, int y) {
     x = max(int(_clip.x), min(x, int(_clip.x + _clip.w - 1)));
     y = max(int(_clip.y), min(y, int(_clip.y + _clip.h - 1)));
-    this->_pixel_func(this, this->_brush, x, y);
+    this->_span_func(this, this->_brush, x, y, 1);
   }
 
   void image_t::put_unsafe(int x, int y) {
-    this->_pixel_func(this, this->_brush, x, y);
+    this->_span_func(this, this->_brush, x, y, 1);
     //this->_brush->render_span(this, x, y, 1);
   }
 

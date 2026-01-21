@@ -464,7 +464,7 @@ def update_backlight():
 
 
 def update_screen_builtins():
-    for key in ("clear", "rectangle", "line", "circle", "triangle", "get", "put", "width", "height"):
+    for key in ("clear", "rectangle", "line", "circle", "triangle", "put", "width", "height"):
         setattr(builtins, key, getattr(screen, key))
 
 
