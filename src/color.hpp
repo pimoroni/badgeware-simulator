@@ -37,8 +37,15 @@ namespace picovector {
     uint8_t a() const { return _a; }
   };
 
-  // class oklch_color_t : color_t {
-  //   float l, c, h, a;
-  // };
+  class oklch_color_t : public color_t {
+    float _l, _c, _h, _a;
+
+  public:
+    oklch_color_t(uint8_t l, uint8_t c, uint8_t h, uint8_t a);
+    uint8_t l() const { return _l; }
+    uint8_t c() const { return _c; }
+    uint8_t h() const { return _h; }
+    uint8_t a() const { return _a; }
+  };
 
 }

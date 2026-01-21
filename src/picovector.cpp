@@ -184,6 +184,8 @@ namespace picovector {
 
     rect_t clip = target->clip();
 
+    masked_span_func_t fn = target->_masked_span_func;
+
     //printf("- shape bounds %d, %d (%d x %d)\n", sbx, sby, sbw, sbh);
     //printf("- clip bounds %d, %d (%d x %d)\n", int(clip.x), int(clip.y), int(clip.w), int(clip.h));
 
@@ -248,7 +250,8 @@ namespace picovector {
 
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          target->masked_span(sx + rbx, sy + ty, rbw, p);
+
+          fn(target, brush, sx + rbx, sy + ty, rbw, p);
           //sf(target, brush, sx + rbx, sy + ty, rbw, (uint8_t*)p);
         }
       }
@@ -317,6 +320,8 @@ namespace picovector {
 
     rect_t clip = target->clip();
 
+    masked_span_func_t fn = target->_masked_span_func;
+
     //printf("- shape bounds %d, %d (%d x %d)\n", sbx, sby, sbw, sbh);
     //printf("- clip bounds %d, %d (%d x %d)\n", int(clip.x), int(clip.y), int(clip.w), int(clip.h));
 
@@ -382,7 +387,7 @@ namespace picovector {
 
           // render tile span
           p = &tile_buffer[ty * TILE_WIDTH + rbx];
-          target->masked_span(sx + rbx, sy + ty, rbw, p);
+          fn(target, brush, sx + rbx, sy + ty, rbw, p);
         }
       }
     }

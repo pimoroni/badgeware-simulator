@@ -11,21 +11,19 @@ uint32_t _g(const uint32_t c) {return (c >> 8) & 0xffu;}
 static inline __attribute__((always_inline))
 uint32_t _b(const uint32_t c) {return (c >> 16) & 0xffu;}
 static inline __attribute__((always_inline))
-uint32_t _a(const uint32_t c) {return c >> 24;}
+uint32_t _a(const uint32_t c) {return (c >> 24) & 0xffu;}
 
 
 typedef uint32_t (*blend_func_t)(uint32_t dst, uint32_t r, uint32_t g, uint32_t b, uint32_t a);
 
 static inline uint32_t blend_func_over(uint32_t dst, uint32_t r, uint32_t g, uint32_t b, uint32_t a) {
-//      r &= 0xFFu; g &= 0xFFu; b &= 0xFFu; a &= 0xFFu;
-
     if (a == 0u)   return dst;
-    if (a == 255u) return r | (g << 8) | (b << 16) | 0xFF000000u;
+    if (a == 255u) return r | (g << 8) | (b << 16) | 0xff000000u;
 
-    uint32_t dr =  dst        & 0xFFu;
-    uint32_t dg = (dst >>  8) & 0xFFu;
-    uint32_t db = (dst >> 16) & 0xFFu;
-    uint32_t da = (dst >> 24) & 0xFFu;
+    uint32_t dr =  dst        & 0xffu;
+    uint32_t dg = (dst >>  8) & 0xffu;
+    uint32_t db = (dst >> 16) & 0xffu;
+    uint32_t da = (dst >> 24) & 0xffu;
 
     uint32_t inva = 255u - a;
 

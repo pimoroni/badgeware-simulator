@@ -35,8 +35,7 @@ extern "C" {
     int h = (int)mp_obj_get_float(args[2]);
     int a = n_args > 3 ? (int)mp_obj_get_float(args[3]) : 255;
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
-    ///color->c = oklch(l, c, h, a);
-    // TODO: fix this
+    color->c = new oklch_color_t(l, c, h, a);
     return MP_OBJ_FROM_PTR(color);
   })
 

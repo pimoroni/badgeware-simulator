@@ -2,33 +2,34 @@ import math
 
 screen.antialias = image.X4
 
+stroke = 0.25
+
+i = 0.5
+f = 100
+t = 180
+
+shapes = [
+  shape.rectangle(-1, -1, 2, 2),
+  shape.rectangle(-1, -1, 2, 2).stroke(stroke),
+  shape.circle(0, 0, 1),
+  shape.circle(0, 0, 1).stroke(stroke),
+  shape.star(0, 0, 5, i, 1),
+  shape.star(0, 0, 5, i, 1).stroke(stroke),
+  shape.squircle(0, 0, 1),
+  shape.squircle(0, 0, 1).stroke(stroke),
+  shape.pie(0, 0, 1, f, t),
+  shape.pie(0, 0, 1, f, t).stroke(stroke),
+  shape.arc(0, 0, i, 1, f, t),
+  shape.arc(0, 0, i, 1, f, t).stroke(stroke),
+  shape.regular_polygon(0, 0, 1, 3),
+  shape.regular_polygon(0, 0, 1, 3).stroke(stroke),
+  shape.line(-0.75, -0.75, 0.75, 0.75, 0.5),
+  shape.line(-0.75, -0.75, 0.75, 0.75, 0.5).stroke(stroke),
+]
+
 def update():
   screen.clear(color.rgb(20, 40, 60))
 
-  i = math.sin(io.ticks / 2000) * 0.2 + 0.5
-  f = math.sin(io.ticks / 1000) * 150
-  t = f + (math.sin(io.ticks / 500) + 1.0) * 50 + 100
-
-  stroke = ((math.sin(io.ticks / 1000) + 1) * 0.05) + 0.1
-
-  shapes = [
-    shape.rectangle(-1, -1, 2, 2),
-    shape.rectangle(-1, -1, 2, 2).stroke(stroke),
-    shape.circle(0, 0, 1),
-    shape.circle(0, 0, 1).stroke(stroke),
-    shape.star(0, 0, 5, i, 1),
-    shape.star(0, 0, 5, i, 1).stroke(stroke),
-    shape.squircle(0, 0, 1),
-    shape.squircle(0, 0, 1).stroke(stroke),
-    shape.pie(0, 0, 1, f, t),
-    shape.pie(0, 0, 1, f, t).stroke(stroke),
-    shape.arc(0, 0, i, 1, f, t),
-    shape.arc(0, 0, i, 1, f, t).stroke(stroke),
-    shape.regular_polygon(0, 0, 1, 3),
-    shape.regular_polygon(0, 0, 1, 3).stroke(stroke),
-    shape.line(-0.75, -0.75, 0.75, 0.75, 0.5),
-    shape.line(-0.75, -0.75, 0.75, 0.75, 0.5).stroke(stroke),
-  ]
 
 
 
