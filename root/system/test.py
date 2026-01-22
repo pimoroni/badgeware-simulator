@@ -25,7 +25,7 @@ def load_test(index):
 
   print(f"loaded example {name} ({round(gc.mem_free() / 1000)}KB free)")
 
-load_test(10)
+load_test(0)
 
 def update():
   global selected, menu_index
@@ -59,7 +59,7 @@ def update():
     name = names[i]
 
     y = 102 + (i * 10) - menu_index * 10
-    alpha = abs(y) / 3
+    alpha = 50
     if i == selected:
       screen.pen = color.rgb(20, 40, 60, 255)
       w, h = screen.measure_text(name)

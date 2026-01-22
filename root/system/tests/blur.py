@@ -2,7 +2,6 @@ import math, random
 
 def update():
   screen.pen = color.rgb(150, 190, 160)
-  #screen.pen = color.rgb(255, 255, 255)
 
   random.seed(1)
 

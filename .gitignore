@@ -2,7 +2,7 @@
 root/secrets.py
 root/state/*
 root/*.*
-root_badgeware/state/*
+root-badgeware/state/*
 screenshots/*.png
 
 # Prerequisites
