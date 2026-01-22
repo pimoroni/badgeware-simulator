@@ -23,7 +23,7 @@ namespace picovector {
   }
 
   void span_blit(image_t *src, image_t *dst, blend_func_t bf, int sx, int sy, int dx, int dy, int w, palette_t palette) {
-    uint32_t *ps = (uint32_t *)src->ptr(sx, sy);
+    uint8_t *ps = (uint8_t *)src->ptr(sx, sy);
     uint32_t *pd = (uint32_t *)dst->ptr(dx, dy);
     uint32_t src_alpha = src->alpha();
 
@@ -55,7 +55,7 @@ namespace picovector {
   }
 
   void span_blit_scale(image_t *src, image_t *dst, blend_func_t bf, fx16_t sx, fx16_t sx_step, fx16_t sy, int dx, int dy, int w, palette_t palette) {
-    uint32_t *ps = (uint32_t *)src->ptr(0, sy >> 16);
+    uint8_t *ps = (uint8_t *)src->ptr(0, sy >> 16);
     uint32_t *pd = (uint32_t *)dst->ptr(dx, dy);
     uint32_t src_alpha = src->alpha();
 

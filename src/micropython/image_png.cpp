@@ -89,73 +89,72 @@ extern "C" {
         }
       } break;
 
-      // case PNG_PIXEL_INDEXED: {
-      //   if(target->has_palette()) {
-      //     for(int i = 0; i < 256; i++) {
-      //       uint32_t c = rgba(
-      //         pDraw->pPalette[i * 3 + 0],
-      //         pDraw->pPalette[i * 3 + 1],
-      //         pDraw->pPalette[i * 3 + 2],
-      //         pDraw->iHasAlpha ? pDraw->pPalette[768 + i] : 255
-      //       );
-      //       target->palette(i, c);
-      //     }
+      case PNG_PIXEL_INDEXED: {
+        if(target->has_palette()) {
+          for(int i = 0; i < 256; i++) {
+            rgb_color_t c(
+              pDraw->pPalette[i * 3 + 0],
+              pDraw->pPalette[i * 3 + 1],
+              pDraw->pPalette[i * 3 + 2],
+              pDraw->iHasAlpha ? pDraw->pPalette[768 + i] : 255
+            );
+            target->palette(i, c._p);
+          }
 
-      //     uint8_t *pdst = (uint8_t *)target->ptr(0, pDraw->y);
-      //     while(w--) {
-      //       *pdst = *psrc;
-      //       pdst++;
-      //       psrc++;
-      //     }
-      //   } else {
-      //     uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
-      //     while(w--) {
-      //       *pdst = rgba(
-      //         pDraw->pPalette[*psrc * 3 + 0],
-      //         pDraw->pPalette[*psrc * 3 + 1],
-      //         pDraw->pPalette[*psrc * 3 + 2],
-      //         pDraw->iHasAlpha ? pDraw->pPalette[768 + *psrc] : 255
-      //       );
-      //       psrc++;
-      //       pdst++;
-      //     }
-      //   }
-      // } break;
+          uint8_t *pdst = (uint8_t *)target->ptr(0, pDraw->y);
+          while(w--) {
+            *pdst = *psrc;
+            pdst++;
+            psrc++;
+          }
+        } else {
+          uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
+          while(w--) {
+            *pdst = rgb_color_t(
+              pDraw->pPalette[*psrc * 3 + 0],
+              pDraw->pPalette[*psrc * 3 + 1],
+              pDraw->pPalette[*psrc * 3 + 2],
+              pDraw->iHasAlpha ? pDraw->pPalette[768 + *psrc] : 255
+            )._p;
+            psrc++;
+            pdst++;
+          }
+        }
+      } break;
+      case PNG_PIXEL_GRAYSCALE: {
+        uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
+        while(w--) {
+          uint8_t src = *psrc;
+          // do something with index here
 
-      // case PNG_PIXEL_GRAYSCALE: {
-      //   uint32_t *pdst = (uint32_t *)target->ptr(0, pDraw->y);
-      //   while(w--) {
-      //     uint8_t src = *psrc;
-      //     // do something with index here
+          switch(pDraw->iBpp) {
+            case 8: {
+              *pdst = rgb_color_t(src, src, src, 255)._p;
+              pdst++;
+            } break;
 
-      //     switch(pDraw->iBpp) {
-      //       case 8: {
-      //         *pdst = rgba(src, src, src);
-      //         pdst++;
-      //       } break;
+            case 4: {
+              int src1 = (src & 0xf0) | ((src & 0xf0) >> 4);
+              int src2 = (src & 0x0f) | ((src & 0x0f) << 4);
+              *pdst = rgb_color_t(src1, src1, src1, 255)._p;
+              pdst++;
+              *pdst = rgb_color_t(src2, src2, src2, 255)._p;
+              pdst++;
+            } break;
 
-      //       case 4: {
-      //         int src1 = (src & 0xf0) | ((src & 0xf0) >> 4);
-      //         int src2 = (src & 0x0f) | ((src & 0x0f) << 4);
-      //         *pdst = rgba(src1, src1, src1);
-      //         pdst++;
-      //         *pdst = rgba(src2, src2, src2);
-      //         pdst++;
-      //       } break;
+            case 1: {
+              for(int i = 0; i < 8; i++) {
+                int v = src & 0b10000000 ? 255 : 0;
+                *pdst = rgb_color_t(v, v, v, 255)._p;
+                pdst++;
+                src <<= 1;
+              }
+            } break;
+          }
 
-      //       case 1: {
-      //         for(int i = 0; i < 8; i++) {
-      //           int v = src & 0b10000000 ? 255 : 0;
-      //           *pdst = rgba(v, v, v);
-      //           pdst++;
-      //           src <<= 1;
-      //         }
-      //       } break;
-      //     }
-
-      //     psrc++;
-      //   }
-      //} break;
+          psrc++;
+        }
+      } break;
 
       default: {
         // TODO: raise file not supported error

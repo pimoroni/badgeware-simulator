@@ -302,7 +302,7 @@ namespace picovector {
 
     for(int y = tr.y; y < tr.y + tr.h; y++) {
       if(this->_has_palette) {
-        //_span_scale_blit_rgba_rgba(dst, src, (uint8_t*)&this->_palette[0], x, step, abs(ctr.w), this->_alpha);
+        span_blit_scale(this, target, bf, srcx, srcstepx, srcy, tr.x, y, tr.w, _palette);
       }else{
         span_blit_scale(this, target, bf, srcx, srcstepx, srcy, tr.x, y, tr.w);
       }
@@ -342,20 +342,19 @@ namespace picovector {
       v += vstep;
 
       if(y >= b.y && y < b.y + b.h) {
-        uint8_t *dst = (uint8_t *)target->ptr(p.x, y);
+        uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
 
         int tx = round(u);
         int ty = round(v);
 
         uint32_t col;
-        uint8_t *src;
         if(this->_has_palette) {
-          src = (uint8_t *)&this->_palette[*(uint8_t *)this->ptr(tx, ty)];
+          col = this->_palette[*(uint8_t *)this->ptr(tx, ty)];
         } else {
-          src = (uint8_t *)this->ptr(tx, ty);
+          col = *((uint32_t *)this->ptr(tx, ty));
         }
 
-        *dst = target->_blend_func(*dst, src[0], src[1], src[2], src[3]);
+        *dst = target->_blend_func(*dst, _r(col), _g(col), _b(col), _a(col));
       }
     }
   }
