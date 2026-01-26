@@ -86,34 +86,12 @@ MPY_BIND_VAR(2, window, {
     return MP_OBJ_FROM_PTR(result);
   })
 
-
-  // MPY_BIND_VAR(2, clip, {
-  //   const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-
-  //   if(mp_obj_is_type(args[1], &type_rect)) {
-  //     const rect_obj_t *rect = (rect_obj_t *)MP_OBJ_TO_PTR(args[1]);
-  //     self->image->clip(rect->rect);
-  //     return mp_const_none;
-  //   }
-
-  //   if(n_args == 5) {
-  //     int x = mp_obj_get_float(args[1]);
-  //     int y = mp_obj_get_float(args[2]);
-  //     int w = mp_obj_get_float(args[3]);
-  //     int h = mp_obj_get_float(args[4]);
-  //     self->image->clip(rect_t(x, y, w, h));
-  //     return mp_const_none;
-  //   }
-
-  //   mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either clip(r) or clip(x, y, w, h)"));
-  // })
-
   MPY_BIND_VAR(2, shape, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
 
     if (mp_obj_is_type(args[1], &type_shape)) {
       const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
-      self->image->draw(shape->shape);
+      self->image->shape(shape->shape);
       return mp_const_none;
     }
 
@@ -123,7 +101,7 @@ MPY_BIND_VAR(2, window, {
       mp_obj_list_get(args[1], &len, &items);
       for(size_t i = 0; i < len; i++) {
         const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(items[i]);
-        self->image->draw(shape->shape);
+        self->image->shape(shape->shape);
       }
       return mp_const_none;
     }
@@ -313,14 +291,25 @@ MPY_BIND_VAR(2, measure_text, {
     return mp_obj_new_tuple(2, result);
   })
 
-MPY_BIND_VAR(9, vspan_tex, {
+MPY_BIND_VAR(9, blit_vspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
     vec2_t p = mp_obj_get_vec2_from_xy(&args[2]);
     int c = mp_obj_get_float(args[4]);
     vec2_t us_vs = mp_obj_get_vec2_from_xy(&args[5]);
     vec2_t ue_ve = mp_obj_get_vec2_from_xy(&args[7]);
-    src->image->vspan_tex(self->image, p, c, us_vs, ue_ve);
+    src->image->blit_vspan(self->image, p, c, us_vs, ue_ve);
+    return mp_const_none;
+  })
+
+MPY_BIND_VAR(9, blit_hspan, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
+    vec2_t p = mp_obj_get_vec2_from_xy(&args[2]);
+    int c = mp_obj_get_float(args[4]);
+    vec2_t us_vs = mp_obj_get_vec2_from_xy(&args[5]);
+    vec2_t ue_ve = mp_obj_get_vec2_from_xy(&args[7]);
+    src->image->blit_hspan(self->image, p, c, us_vs, ue_ve);
     return mp_const_none;
   })
 
@@ -353,14 +342,7 @@ MPY_BIND_VAR(3, blit, {
 
 MPY_BIND_VAR(1, clear, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-
-    // if(n_args == 2) {
-    //   const color_obj_t *color = (color_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    //   self->image->clear(color->c);
-    // }else{
-      self->image->clear();
-//    }
-
+    self->image->clear();
     return mp_const_none;
   })
 
@@ -525,7 +507,6 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR_STATIC(load),
       MPY_BIND_ROM_PTR(load_into),
       MPY_BIND_ROM_PTR(window),
-      //MPY_BIND_ROM_PTR(clip),
 
       // primitives
       MPY_BIND_ROM_PTR(clear),
@@ -533,7 +514,7 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR(line),
       MPY_BIND_ROM_PTR(circle),
       MPY_BIND_ROM_PTR(triangle),
-      MPY_BIND_ROM_PTR(get), // Wont get real pixel value due to premult
+      MPY_BIND_ROM_PTR(get),
       MPY_BIND_ROM_PTR(put),
 
       MPY_BIND_ROM_PTR(blur),
@@ -547,7 +528,8 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR(measure_text),
 
       // blitting
-      MPY_BIND_ROM_PTR(vspan_tex),
+      MPY_BIND_ROM_PTR(blit_vspan),
+      MPY_BIND_ROM_PTR(blit_hspan),
       MPY_BIND_ROM_PTR(blit),
 
       // TODO: Just define these in MicroPython?

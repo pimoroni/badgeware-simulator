@@ -316,26 +316,59 @@ namespace picovector {
     blit(target, _bounds, tr);
   }
 
-
   /*
-    renders a vertical span onto the target image using this image as a
-    texture.
-
-    - p: the starting point of the span on the target
-    - c: the count of pixels to render
-    - uvs: the start coordinate of the texture
-    - uve: the end coordinate of the texture
+    blits a horizontal span of pixels onto the target image using interpolated
+    samples from the source image along a line starting at uv1 and ending at
+    uv2
   */
-  void image_t::vspan_tex(image_t *target, vec2_t p, uint c, vec2_t uvs, vec2_t uve) {
+  void image_t::blit_hspan(image_t *target, vec2_t p, uint c, vec2_t uv1, vec2_t uv2) {
     rect_t b = target->_clip;
     if(p.x < b.x || p.x > b.x + b.w) {
       return;
     }
 
-    float ustep = (uve.x - uvs.x) / float(c);
-    float vstep = (uve.y - uvs.y) / float(c);
-    float u = uvs.x;
-    float v = uvs.y;
+    float ustep = (uv2.x - uv1.x) / float(c);
+    float vstep = (uv2.y - uv1.y) / float(c);
+    float u = uv1.x;
+    float v = uv1.y;
+
+    for(int x = p.y; x < p.y + c; x++) {
+      u += ustep;
+      v += vstep;
+
+      if(x >= b.y && x < b.y + b.h) {
+        uint32_t *dst = (uint32_t *)target->ptr(x, p.y);
+
+        int tx = round(u);
+        int ty = round(v);
+
+        uint32_t col;
+        if(this->_has_palette) {
+          col = this->_palette[*(uint8_t *)this->ptr(tx, ty)];
+        } else {
+          col = *((uint32_t *)this->ptr(tx, ty));
+        }
+
+        *dst = target->_blend_func(*dst, _r(col), _g(col), _b(col), _a(col));
+      }
+    }
+  }
+
+  /*
+    blits a vertical span of pixels onto the target image using interpolated
+    samples from the source image along a line starting at uv1 and ending at
+    uv2
+  */
+  void image_t::blit_vspan(image_t *target, vec2_t p, uint c, vec2_t uv1, vec2_t uv2) {
+    rect_t b = target->_clip;
+    if(p.x < b.x || p.x > b.x + b.w) {
+      return;
+    }
+
+    float ustep = (uv2.x - uv1.x) / float(c);
+    float vstep = (uv2.y - uv1.y) / float(c);
+    float u = uv1.x;
+    float v = uv1.y;
 
     for(int y = p.y; y < p.y + c; y++) {
       u += ustep;
@@ -360,7 +393,7 @@ namespace picovector {
   }
 
 
-  void image_t::draw(shape_t *shape) {
+  void image_t::shape(shape_t *shape) {
     render(shape, this, &shape->transform, _brush);
   }
 
