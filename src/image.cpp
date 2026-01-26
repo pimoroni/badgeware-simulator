@@ -365,30 +365,41 @@ namespace picovector {
       return;
     }
 
-    float ustep = (uv2.x - uv1.x) / float(c);
-    float vstep = (uv2.y - uv1.y) / float(c);
-    float u = uv1.x;
-    float v = uv1.y;
+    fx16_t u = f_to_fx16(uv1.x);
+    fx16_t v = f_to_fx16(uv1.y);
 
-    for(int y = p.y; y < p.y + c; y++) {
-      u += ustep;
-      v += vstep;
+    fx16_t ud = f_to_fx16(uv2.x - uv1.x) / c;
+    fx16_t vd = f_to_fx16(uv2.y - uv1.y) / c;
 
-      if(y >= b.y && y < b.y + b.h) {
-        uint32_t *dst = (uint32_t *)target->ptr(p.x, y);
+    if(p.y < b.y) {
+      u += ud * (b.y - p.y);
+      v += vd * (b.y - p.y);
+      c -= int(b.y - p.y);
+      p.y = b.y;
+    }
 
-        int tx = round(u);
-        int ty = round(v);
+    if(p.y + c > b.y + b.h) {
+      c = b.h - p.y;
+    }
 
-        uint32_t col;
-        if(this->_has_palette) {
-          col = this->_palette[*(uint8_t *)this->ptr(tx, ty)];
-        } else {
-          col = *((uint32_t *)this->ptr(tx, ty));
-        }
+    uint32_t *dst = (uint32_t *)target->ptr(p.x, p.y);
+    int stride = target->_row_stride >> 2;
+    for(int i = 0; i < c; i++) {
+      u += ud;
+      v += vd;
 
-        *dst = target->_blend_func(*dst, _r(col), _g(col), _b(col), _a(col));
+      uint32_t col = *(uint32_t *)this->ptr((u + 32768) >> 16, (v + 32768) >> 16);
+
+      if(this->_has_palette) {
+        col = this->_palette[col];
       }
+
+      if(this->_alpha != 255) {
+        col = _premul_mul_alpha(col, this->_alpha);
+      }
+
+      *dst = target->_blend_func(*dst, _r(col), _g(col), _b(col), _a(col));
+      dst += stride;
     }
   }
 

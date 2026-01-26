@@ -86,10 +86,12 @@ def launch(file):
         fatal_error("Error!", e)
 
 
-if SKIP_CINEMATIC:
-    launch(APP_MENU)
-else:
-    launch(APP_STARTUP)
+# if SKIP_CINEMATIC:
+#     launch(APP_MENU)
+# else:
+#     launch(APP_STARTUP)
+
+launch("/system/apps/raycast")
 
 def update():
     #with debug:

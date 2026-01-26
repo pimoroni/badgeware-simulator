@@ -291,24 +291,24 @@ MPY_BIND_VAR(2, measure_text, {
     return mp_obj_new_tuple(2, result);
   })
 
-MPY_BIND_VAR(9, blit_vspan, {
+MPY_BIND_VAR(6, blit_vspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    vec2_t p = mp_obj_get_vec2_from_xy(&args[2]);
-    int c = mp_obj_get_float(args[4]);
-    vec2_t us_vs = mp_obj_get_vec2_from_xy(&args[5]);
-    vec2_t ue_ve = mp_obj_get_vec2_from_xy(&args[7]);
+    vec2_t p = mp_obj_get_vec2(args[2]);
+    int c = mp_obj_get_float(args[3]);
+    vec2_t us_vs = mp_obj_get_vec2(args[4]);
+    vec2_t ue_ve = mp_obj_get_vec2(args[5]);
     src->image->blit_vspan(self->image, p, c, us_vs, ue_ve);
     return mp_const_none;
   })
 
-MPY_BIND_VAR(9, blit_hspan, {
+MPY_BIND_VAR(6, blit_hspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    vec2_t p = mp_obj_get_vec2_from_xy(&args[2]);
-    int c = mp_obj_get_float(args[4]);
-    vec2_t us_vs = mp_obj_get_vec2_from_xy(&args[5]);
-    vec2_t ue_ve = mp_obj_get_vec2_from_xy(&args[7]);
+    vec2_t p = mp_obj_get_vec2(args[2]);
+    int c = mp_obj_get_float(args[3]);
+    vec2_t us_vs = mp_obj_get_vec2(args[4]);
+    vec2_t ue_ve = mp_obj_get_vec2(args[5]);
     src->image->blit_hspan(self->image, p, c, us_vs, ue_ve);
     return mp_const_none;
   })
