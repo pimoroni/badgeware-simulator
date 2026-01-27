@@ -9,6 +9,9 @@ class Player:
   def set_angle(self, angle):
     self.angle = angle
 
+  def angle_radians(self):
+    return self.angle * math.pi / 180
+
   def vector(self):
     return vec2(
       math.cos((self.angle) * (math.pi / 180)),

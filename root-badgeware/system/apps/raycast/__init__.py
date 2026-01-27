@@ -57,44 +57,38 @@ pen_lut = [color.rgb(20, 40, 60, a) for a in range(256)]
 deg2rad_k = math.pi / 180.0
 
 # hoist commonly used functions
-raycast = algorithm.raycast
-cos = math.cos
-tan = math.tan
 
 lengths = 0
 @native
 def build(rays):
   # cache attrs (attribute lookups are slow in MicroPython)
-  screen_w = screen.width
+  cos = math.cos
 
-  screen_blit_vspan = screen.blit_vspan
-  screen_rect = screen.rectangle
   wall_sprite_w = wall_sprite.width
   wall_sprite_h = wall_sprite.height
   wall_height = 1
-  half_screen_w = screen_w * 0.5
-  half_fov_rad = (player.fov * deg2rad_k) * 0.5
-  d_proj = half_screen_w / tan(half_fov_rad)
 
   player_angle_rad = player.angle * deg2rad_k  # used for cos correction
   d_proj = (screen.width / 2) / math.tan(deg2rad(player.fov) / 2)
   wall_height = 1
+  whdproj = wall_height * d_proj
 
   draws = [None] * (160*3)
 
+  x, y, u, b, perp, height = None, None, None, None, None, None
+  offset, distance, ray_angle = None, None, None
+
   for i in range(160):
-    _, _, _, _, offset, distance, ray_angle = rays[i][0]
+    #_, _, _, _, offset, distance, _ = rays[i][0]
+    ray = rays[i][0]
+    offset = ray[4]
+    distance = ray[5]
 
-    # perp distance (fish-eye correction); ray_angle is assumed radians here.
-    perp = distance * cos(ray_angle - player_angle_rad)
-    if perp < 0.0001:
-        perp = 0.0001
-
-    height = (wall_height * d_proj) / perp
+    height = whdproj / distance
 
     x = i
     y = int(60 - (height * 0.5))
-    u = int(offset * wall_sprite_w)
+    u = offset * wall_sprite_w
 
     # brightness
     b = int(distance * 10)
@@ -104,6 +98,10 @@ def build(rays):
     draws[i * 3 + 0] = ("blit_vspan", wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)
     draws[i * 3 + 1] = ("pen", pen_lut[b])
     draws[i * 3 + 2] = ("rectangle", x, y, 1, height)
+
+    # screen.blit_vspan(wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)
+    # screen.pen = pen_lut[b]
+    # screen.rectangle(x, y, 1, height)
 
   return draws
 
@@ -139,7 +137,7 @@ def update():
     player.pos -= player.vector() * 10 * delta_scale
 
   start = time.ticks_ms()
-  rays = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
+  rays = algorithm.raycast(player.pos, player.angle_radians(), player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
   raycast_time = time.ticks_ms() - start
 
   start = time.ticks_ms()
