@@ -138,6 +138,8 @@ namespace picovector {
       // filters
       void blur(float radius);
       void dither();
+      void onebit();
+      void monochrome();
 
       // blitting
       void blit(image_t *t, const vec2_t p);

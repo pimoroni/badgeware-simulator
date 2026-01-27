@@ -208,6 +208,20 @@ MPY_BIND_VAR(1, dither, {
     return mp_const_none;
   })
 
+
+MPY_BIND_VAR(1, onebit, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    self->image->onebit();
+    return mp_const_none;
+  })
+
+
+MPY_BIND_VAR(1, monochrome, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    self->image->monochrome();
+    return mp_const_none;
+  })
+
 // do we want to allow this with premultiplied alpha?
 // would we undo the multiply and return rgba?
 MPY_BIND_VAR(2, get, {
@@ -608,7 +622,7 @@ MPY_BIND_ATTR(image, {
       qstr name = mp_obj_str_get_qstr(command[0]);
 
       size_t nparameters = ncommand - 1;
-      for(int j = 1; j < ncommand; j++) {
+      for(size_t j = 1; j < ncommand; j++) {
         handler_args[j] = command[j];
       }
 
@@ -693,6 +707,8 @@ MPY_BIND_LOCALS_DICT(image,
 
       MPY_BIND_ROM_PTR(blur),
       MPY_BIND_ROM_PTR(dither),
+      MPY_BIND_ROM_PTR(onebit),
+      MPY_BIND_ROM_PTR(monochrome),
 
       // vector
       MPY_BIND_ROM_PTR(shape),

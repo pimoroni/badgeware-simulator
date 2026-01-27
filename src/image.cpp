@@ -384,7 +384,7 @@ namespace picovector {
 
     uint32_t *dst = (uint32_t *)target->ptr(p.x, p.y);
     int stride = target->_row_stride >> 2;
-    for(int i = 0; i < c; i++) {
+    for(uint i = 0u; i < c; i++) {
       u += ud;
       v += vd;
 
