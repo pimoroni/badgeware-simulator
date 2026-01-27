@@ -608,8 +608,6 @@ MPY_BIND_ATTR(image, {
       qstr name = mp_obj_str_get_qstr(command[0]);
 
       size_t nparameters = ncommand - 1;
-      mp_obj_t parameters = mp_const_none;
-
       for(int j = 1; j < ncommand; j++) {
         handler_args[j] = command[j];
       }
@@ -618,8 +616,9 @@ MPY_BIND_ATTR(image, {
         // if a single value provided, attempt to use that to set an
         // attribute
         mp_obj_t dest[2];
+        dest[0] = MP_OBJ_SENTINEL;
         dest[1] = handler_args[1];
-        image_attr(args[0], name, dest);
+        image_attr(handler_args[0], name, dest);
         if(dest[0] == MP_OBJ_NULL) {
           // attribute was found and set, skip to next command
           continue;

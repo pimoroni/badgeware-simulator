@@ -105,7 +105,6 @@ def build(rays):
     draws[i * 3 + 1] = ("pen", pen_lut[b])
     draws[i * 3 + 2] = ("rectangle", x, y, 1, height)
 
-
   return draws
 
 
