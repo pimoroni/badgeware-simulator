@@ -88,14 +88,14 @@ def build(rays):
 
     x = i
     y = int(60 - (height * 0.5))
-    u = offset * wall_sprite_w
+    u = offset
 
     # brightness
     b = int(distance * 10)
     if b < 0: b = 0
     elif b > 255: b = 255
 
-    draws[i * 3 + 0] = ("blit_vspan", wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)
+    draws[i * 3 + 0] = ("blit_vspan", wall_sprite, x, y, height, u, 0, u, 1)
     draws[i * 3 + 1] = ("pen", pen_lut[b])
     draws[i * 3 + 2] = ("rectangle", x, y, 1, height)
 
