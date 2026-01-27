@@ -1,4 +1,5 @@
 import badgeware
+import micropython
 
 app = __import__("/system/main")
 

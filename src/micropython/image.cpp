@@ -7,6 +7,7 @@ extern "C" {
   #include "py/reader.h"
   #include "py/runtime.h"
 
+
   mp_obj_t image__del__(mp_obj_t self_in) {
     self(self_in, image_obj_t);
     if(self->image) {
@@ -291,16 +292,45 @@ MPY_BIND_VAR(2, measure_text, {
     return mp_obj_new_tuple(2, result);
   })
 
-MPY_BIND_VAR(6, blit_vspan, {
+  // MPY_BIND_VAR(2, shape, {
+  //   const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+
+  //   if (mp_obj_is_type(args[1], &type_shape)) {
+  //     const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(args[1]);
+  //     self->image->shape(shape->shape);
+  //     return mp_const_none;
+  //   }
+
+  //   if (mp_obj_is_type(args[1], &mp_type_list)) {
+  //     size_t len;
+  //     mp_obj_t *items;
+  //     mp_obj_list_get(args[1], &len, &items);
+  //     for(size_t i = 0; i < len; i++) {
+  //       const shape_obj_t *shape = (shape_obj_t *)MP_OBJ_TO_PTR(items[i]);
+  //       self->image->shape(shape->shape);
+  //     }
+  //     return mp_const_none;
+  //   }
+
+  //   mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either shape(s) or shape([s1, s2, s3, ...])"));
+  // })
+
+
+  MPY_BIND_VAR(2, blit_vspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+
+
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
     vec2_t p = mp_obj_get_vec2(args[2]);
     int c = mp_obj_get_float(args[3]);
-    vec2_t us_vs = mp_obj_get_vec2(args[4]);
-    vec2_t ue_ve = mp_obj_get_vec2(args[5]);
-    src->image->blit_vspan(self->image, p, c, us_vs, ue_ve);
+    vec2_t uvs = mp_obj_get_vec2(args[4]);
+    vec2_t uve = mp_obj_get_vec2(args[5]);
+    src->image->blit_vspan(self->image, p, c, uvs, uve);
+
     return mp_const_none;
   })
+
+
 
 MPY_BIND_VAR(6, blit_hspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
@@ -501,6 +531,132 @@ MPY_BIND_ATTR(image, {
     return 0;
   }
 
+  /*
+    takes a list of commands to perform, each command is a tuple containing the
+    method/attribute name and a single argument or tuple of arguments.
+
+    [
+      ("clear"),                          # calling a method with no parameters
+      ("pen", color.blue),                # setting an attribute
+      ("rectangle", (10, 10, 50, 50)),    # calling a raster draw method
+      ("circle", (50, 50, 20)),           # calling another raster draw method
+      "dither"                            # also calling a method with no parameters
+    ]
+  */
+  MPY_BIND_VAR(2, batch, {
+    const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
+    if (!mp_obj_is_type(args[1], &mp_type_list)) {
+      mp_raise_TypeError(MP_ERROR_TEXT("invalid parameters, expected list of draw commands"));
+    }
+
+    // dummy args object we use to call method handlers
+    mp_obj_t handler_args[32];
+    handler_args[0] = args[0]; // set "self" ahead of time
+
+    // get the list of commands
+    size_t ncommands;
+    mp_obj_t *commands;
+    mp_obj_list_get(args[1], &ncommands, &commands);
+
+    for(size_t i = 0; i < ncommands; i++) {
+      // command can either be a tuple with a qstr and parameters, or just a
+      // qstr if the method takes no parameters
+      if(!mp_obj_is_type(commands[i], &mp_type_tuple) && !mp_obj_is_str(commands[i])) {
+        mp_raise_TypeError(MP_ERROR_TEXT("list entries must be tuples (command, parameters) or strings 'command'"));
+      }
+
+      qstr name;
+      mp_obj_t parameters = mp_const_none;
+
+      if(mp_obj_is_type(commands[i], &mp_type_tuple)) {
+        size_t ncommand;
+        mp_obj_t *command;
+        mp_obj_tuple_get(commands[i], &ncommand, &command);
+        name = mp_obj_str_get_qstr(command[0]);
+        if(ncommand > 1) {
+          parameters = command[1];
+        }
+      }else{
+        name = mp_obj_str_get_qstr(commands[i]);
+      }
+
+      size_t nparameters = 0;
+      if(mp_obj_is_type(parameters, &mp_type_tuple)) {
+        // if parameters were passed as a tuple then expand them
+        mp_obj_t *pargs;
+        mp_obj_tuple_get(parameters, &nparameters, &pargs);
+
+        // copy tuple values into handler arguments list
+        for(int j = 0; j < nparameters; j++) {
+          handler_args[j + 1] = pargs[j];
+        }
+      }else if(parameters != mp_const_none){
+        nparameters = 1;
+        handler_args[1] = parameters;
+      }
+
+      if(nparameters == 1) {
+        // if a single value provided, attempt to use that to set an
+        // attribute
+        mp_obj_t dest[2];
+        dest[1] = handler_args[1];
+        image_attr(args[0], name, dest);
+        if(dest[0] == MP_OBJ_NULL) {
+          // attribute was found and set, skip to next command
+          continue;
+        }
+      }
+
+      // handler is also passed reference to "self"
+      size_t nhandler_args = nparameters + 1;
+      switch (name) {
+        case MP_QSTR_clear: {
+          mpy_binding_clear(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_rectangle: {
+          mpy_binding_rectangle(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_line: {
+          mpy_binding_line(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_circle: {
+          mpy_binding_circle(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_triangle: {
+          mpy_binding_triangle(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_put: {
+          mpy_binding_put(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_blur: {
+          mpy_binding_blur(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_dither: {
+          mpy_binding_dither(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_shape: {
+          mpy_binding_shape(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_text: {
+          mpy_binding_text(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_blit_vspan: {
+          mpy_binding_blit_vspan(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_blit_hspan: {
+          mpy_binding_blit_hspan(nhandler_args, handler_args);
+        } break;
+        case MP_QSTR_blit: {
+          mpy_binding_blit(nhandler_args, handler_args);
+        } break;
+
+        default: mp_raise_ValueError(MP_ERROR_TEXT("unknown method"));
+      }
+    }
+
+    return mp_const_none;
+  })
+
 MPY_BIND_LOCALS_DICT(image,
       { MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&image__del___obj) },
 
@@ -531,6 +687,8 @@ MPY_BIND_LOCALS_DICT(image,
       MPY_BIND_ROM_PTR(blit_vspan),
       MPY_BIND_ROM_PTR(blit_hspan),
       MPY_BIND_ROM_PTR(blit),
+
+      MPY_BIND_ROM_PTR(batch),
 
       // TODO: Just define these in MicroPython?
       { MP_ROM_QSTR(MP_QSTR_X4), MP_ROM_INT(antialias_t::X4)},
