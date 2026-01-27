@@ -110,15 +110,11 @@ def render(result):
 
         height = (wall_height * d_proj) / perp
 
-
-        sxy = vec2(i, 60 - (height * 0.5))
-
+        x = i
+        y = int(60 - (height * 0.5))
         u = int(offset * wall_sprite_w)
-        uv1 = vec2(u, 0)
-        uv2 = vec2(u, wall_sprite_h - 1)
 
-
-        wall_blits.append(("blit_vspan", (wall_sprite, sxy, height, uv1, uv2)))
+        wall_blits.append(("blit_vspan", (wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)))
         #screen_blit_vspan(wall_sprite, sxy, height, uv1, uv2)
 
         # brightness
@@ -130,7 +126,7 @@ def render(result):
 
         # If your color.rgb allocates, you can cache a 256-entry LUT (see below).
         wall_blits.append(("pen", (pen_lut[b])))
-        wall_blits.append(("rectangle", (sxy.x, sxy.y, 1, height)))
+        wall_blits.append(("rectangle", (x, y, 1, height)))
 
         break
 

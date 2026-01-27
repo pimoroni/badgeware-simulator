@@ -316,15 +316,32 @@ MPY_BIND_VAR(2, measure_text, {
   // })
 
 
-  MPY_BIND_VAR(2, blit_vspan, {
+  MPY_BIND_VAR(6, blit_vspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-
-
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    vec2_t p = mp_obj_get_vec2(args[2]);
-    int c = mp_obj_get_float(args[3]);
-    vec2_t uvs = mp_obj_get_vec2(args[4]);
-    vec2_t uve = mp_obj_get_vec2(args[5]);
+
+    vec2_t p; // position on screen to start rendering span
+    int c; // height of span
+    vec2_t uvs; // start uv coordinate
+    vec2_t uve; // end uv coordinate
+
+    if(n_args == 6) {
+      p = mp_obj_get_vec2(args[2]);
+      c = mp_obj_get_float(args[3]);
+      uvs = mp_obj_get_vec2(args[4]);
+      uve = mp_obj_get_vec2(args[5]);
+    } else if(n_args == 9) {
+      p.x = mp_obj_get_float(args[2]);
+      p.y = mp_obj_get_float(args[3]);
+      c = mp_obj_get_float(args[4]);
+      uvs.x = mp_obj_get_float(args[5]);
+      uvs.y = mp_obj_get_float(args[6]);
+      uve.x = mp_obj_get_float(args[7]);
+      uve.y = mp_obj_get_float(args[8]);
+    } else {
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either blit_vspan(p, c, uvs, uve) or blit_vspan(x, y, x, uvsx, uvsy, uvex, uvey)"));
+    }
+
     src->image->blit_vspan(self->image, p, c, uvs, uve);
 
     return mp_const_none;
@@ -335,11 +352,31 @@ MPY_BIND_VAR(2, measure_text, {
 MPY_BIND_VAR(6, blit_hspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
-    vec2_t p = mp_obj_get_vec2(args[2]);
-    int c = mp_obj_get_float(args[3]);
-    vec2_t us_vs = mp_obj_get_vec2(args[4]);
-    vec2_t ue_ve = mp_obj_get_vec2(args[5]);
-    src->image->blit_hspan(self->image, p, c, us_vs, ue_ve);
+
+    vec2_t p; // position on screen to start rendering span
+    int c; // height of span
+    vec2_t uvs; // start uv coordinate
+    vec2_t uve; // end uv coordinate
+
+    if(n_args == 6) {
+      p = mp_obj_get_vec2(args[2]);
+      c = mp_obj_get_float(args[3]);
+      uvs = mp_obj_get_vec2(args[4]);
+      uve = mp_obj_get_vec2(args[5]);
+    } else if(n_args == 9) {
+      p.x = mp_obj_get_float(args[2]);
+      p.y = mp_obj_get_float(args[3]);
+      c = mp_obj_get_float(args[4]);
+      uvs.x = mp_obj_get_float(args[5]);
+      uvs.y = mp_obj_get_float(args[6]);
+      uve.x = mp_obj_get_float(args[7]);
+      uve.y = mp_obj_get_float(args[8]);
+    } else {
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either blit_hspan(p, c, uvs, uve) or blit_hspan(x, y, x, uvsx, uvsy, uvex, uvey)"));
+    }
+
+    src->image->blit_hspan(self->image, p, c, uvs, uve);
+
     return mp_const_none;
   })
 
