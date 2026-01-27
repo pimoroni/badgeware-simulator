@@ -63,10 +63,7 @@ tan = math.tan
 
 lengths = 0
 @native
-def render(result):
-  global lengths
-
-
+def build(rays):
   # cache attrs (attribute lookups are slow in MicroPython)
   screen_w = screen.width
 
@@ -83,61 +80,40 @@ def render(result):
   d_proj = (screen.width / 2) / math.tan(deg2rad(player.fov) / 2)
   wall_height = 1
 
-  lengths = 0
-
-  wall_blits = []
+  draws = [None] * (160*3)
 
   for i in range(160):
-    ray = result[i]
+    _, _, _, _, offset, distance, ray_angle = rays[i][0]
 
-    if len(ray) < 1:
-       continue;
+    # perp distance (fish-eye correction); ray_angle is assumed radians here.
+    perp = distance * cos(ray_angle - player_angle_rad)
+    if perp < 0.0001:
+        perp = 0.0001
+
+    height = (wall_height * d_proj) / perp
+
+    x = i
+    y = int(60 - (height * 0.5))
+    u = int(offset * wall_sprite_w)
+
+    # brightness
+    b = int(distance * 10)
+    if b < 0: b = 0
+    elif b > 255: b = 255
+
+    draws[i * 3 + 0] = ("blit_vspan", wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)
+    draws[i * 3 + 1] = ("pen", pen_lut[b])
+    draws[i * 3 + 2] = ("rectangle", x, y, 1, height)
 
 
-    # Most rays will only use the first hit; avoid iterating full ray list if possible.
-    for entry in ray:
-        distance = entry[5]
-        # if distance <= 0:
-        #     break
+  return draws
 
-        offset = entry[4]
-        ray_angle = entry[6]
-
-        # perp distance (fish-eye correction); ray_angle is assumed radians here.
-        perp = distance * cos(ray_angle - player_angle_rad)
-        if perp < 0.0001:
-            perp = 0.0001
-
-        height = (wall_height * d_proj) / perp
-
-        x = i
-        y = int(60 - (height * 0.5))
-        u = int(offset * wall_sprite_w)
-
-        wall_blits.append(("blit_vspan", (wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)))
-        #screen_blit_vspan(wall_sprite, sxy, height, uv1, uv2)
-
-        # brightness
-        b = int(distance * 10)
-        if b < 0:
-            b = 0
-        elif b > 255:
-            b = 255
-
-        # If your color.rgb allocates, you can cache a 256-entry LUT (see below).
-        wall_blits.append(("pen", (pen_lut[b])))
-        wall_blits.append(("rectangle", (x, y, 1, height)))
-
-        break
-
-  screen.batch(wall_blits)
-  #screen_blit_vspan(wall_blits)
 
 frame_times = []
 def update():
   global frame_times
 
-  start = time.ticks_ms()
+  frame_start = time.ticks_ms()
 
   # draw sky and floor
   screen.pen = color.brown
@@ -163,16 +139,32 @@ def update():
   if io.BUTTON_DOWN in io.held:
     player.pos -= player.vector() * 10 * delta_scale
 
-  result = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
+  start = time.ticks_ms()
+  rays = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
+  raycast_time = time.ticks_ms() - start
 
-  render(result)
+  start = time.ticks_ms()
+  draws = build(rays)
+  build_time = time.ticks_ms() - start
 
-  end = time.ticks_ms()
-  duration = max(1, end - start)
-  frame_times.append(duration)
+  start = time.ticks_ms()
+  screen.batch(draws)
+  render_time = time.ticks_ms() - start
+
+  screen.pen = color.rgb(255, 255, 255)
+  screen.text(f"raycast: {raycast_time}ms", 2, 85)
+  screen.text(f"build: {build_time}ms", 2, 95)
+  screen.text(f"render: {render_time}ms", 2, 105)
+
+
+  screen.pen = color.rgb(255, 255, 255)
+
+
+  frame_end = time.ticks_ms()
+  frame_duration = max(1, frame_end - frame_start)
+  frame_times.append(frame_duration)
   frame_times = frame_times[-20:]
 
   fps = round(1000 / (sum(frame_times) / len(frame_times)), 1)
   screen.pen = color.rgb(255, 255, 255)
   screen.text(f"{fps}fps", 2, 0)
-  screen.text(f"{lengths/160}avg", 2, 10)

@@ -347,9 +347,7 @@ MPY_BIND_VAR(2, measure_text, {
     return mp_const_none;
   })
 
-
-
-MPY_BIND_VAR(6, blit_hspan, {
+  MPY_BIND_VAR(6, blit_hspan, {
     const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
     const image_obj_t *src = (image_obj_t *)MP_OBJ_TO_PTR(args[1]);
 
@@ -598,38 +596,22 @@ MPY_BIND_ATTR(image, {
     for(size_t i = 0; i < ncommands; i++) {
       // command can either be a tuple with a qstr and parameters, or just a
       // qstr if the method takes no parameters
-      if(!mp_obj_is_type(commands[i], &mp_type_tuple) && !mp_obj_is_str(commands[i])) {
-        mp_raise_TypeError(MP_ERROR_TEXT("list entries must be tuples (command, parameters) or strings 'command'"));
+      if(!mp_obj_is_type(commands[i], &mp_type_tuple)) {
+        mp_raise_TypeError(MP_ERROR_TEXT("list entries must be tuples in the format (command, parameter1, parameter2, ...)"));
       }
 
-      qstr name;
+      // get the list of commands
+      size_t ncommand;
+      mp_obj_t *command;
+      mp_obj_tuple_get(commands[i], &ncommand, &command);
+
+      qstr name = mp_obj_str_get_qstr(command[0]);
+
+      size_t nparameters = ncommand - 1;
       mp_obj_t parameters = mp_const_none;
 
-      if(mp_obj_is_type(commands[i], &mp_type_tuple)) {
-        size_t ncommand;
-        mp_obj_t *command;
-        mp_obj_tuple_get(commands[i], &ncommand, &command);
-        name = mp_obj_str_get_qstr(command[0]);
-        if(ncommand > 1) {
-          parameters = command[1];
-        }
-      }else{
-        name = mp_obj_str_get_qstr(commands[i]);
-      }
-
-      size_t nparameters = 0;
-      if(mp_obj_is_type(parameters, &mp_type_tuple)) {
-        // if parameters were passed as a tuple then expand them
-        mp_obj_t *pargs;
-        mp_obj_tuple_get(parameters, &nparameters, &pargs);
-
-        // copy tuple values into handler arguments list
-        for(int j = 0; j < nparameters; j++) {
-          handler_args[j + 1] = pargs[j];
-        }
-      }else if(parameters != mp_const_none){
-        nparameters = 1;
-        handler_args[1] = parameters;
+      for(int j = 1; j < ncommand; j++) {
+        handler_args[j] = command[j];
       }
 
       if(nparameters == 1) {
