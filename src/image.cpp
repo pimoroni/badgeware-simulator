@@ -321,7 +321,7 @@ namespace picovector {
     samples from the source image along a line starting at uv1 and ending at
     uv2
   */
-  void image_t::blit_hspan(image_t *target, vec2_t p, uint c, vec2_t uv1, vec2_t uv2) {
+  void image_t::blit_hspan(image_t *target, vec2_t p, int c, vec2_t uv1, vec2_t uv2) {
     rect_t b = target->_clip;
     if(p.x < b.x || p.x > b.x + b.w) {
       return;
@@ -348,7 +348,7 @@ namespace picovector {
     uint32_t th = int(this->_bounds.h - 1);
 
     uint32_t *dst = (uint32_t *)target->ptr(p.x, p.y);
-    for(uint i = 0u; i < c; i++) {
+    for(int i = 0; i < c; i++) {
       u += ud;
       v += vd;
 
@@ -377,7 +377,7 @@ namespace picovector {
     samples from the source image along a line starting at uv1 and ending at
     uv2
   */
-  void image_t::blit_vspan(image_t *target, vec2_t p, uint c, vec2_t uv1, vec2_t uv2) {
+  void image_t::blit_vspan(image_t *target, vec2_t p, int c, vec2_t uv1, vec2_t uv2) {
     rect_t b = target->_clip;
     if(p.x < b.x || p.x > b.x + b.w) {
       return;
@@ -406,7 +406,7 @@ namespace picovector {
     uint32_t *dst = (uint32_t *)target->ptr(p.x, p.y);
 
     uint32_t stride = target->_row_stride >> 2;
-    for(uint i = 0u; i < c; i++) {
+    for(int i = 0; i < c; i++) {
       u += ud;
       v += vd;
 
@@ -611,8 +611,9 @@ namespace picovector {
   }
 
   void image_t::put(int x, int y) {
-    x = max(int(_clip.x), min(x, int(_clip.x + _clip.w - 1)));
-    y = max(int(_clip.y), min(y, int(_clip.y + _clip.h - 1)));
+    if(x < _clip.x || x >= _clip.x + _clip.w || y < _clip.y || y >= _clip.y + _clip.h) {
+      return;
+    }
     this->_span_func(this, this->_brush, x, y, 1);
   }
 

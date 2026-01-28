@@ -95,6 +95,10 @@ extern "C" {
     constexpr size_t DELETE = 0b1 << 29;
 
     switch(attr | action) {
+      case MP_QSTR_p | GET:
+        dest[0] = mp_obj_new_int(self->c->_p);
+        return;
+
       // case MP_QSTR_r | GET:
       //   dest[0] = mp_obj_new_int(get_r(&self->c));
       //   return;

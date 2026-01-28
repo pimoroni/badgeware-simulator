@@ -3,7 +3,7 @@ import math
 import time
 from map import Map
 from player import Player
-
+from texture import atlas, load_texture
 import micropython
 
 def _noop(fn):
@@ -12,16 +12,23 @@ def _noop(fn):
 native = getattr(micropython, "native", _noop)
 viper  = getattr(micropython, "viper",  _noop)
 
+enemy = SpriteSheet("assets/PlayerWalk 48x48.png", 8, 1).animation(0, 0, 8)
+sky_texture = image.load("assets/sky.png")
 wall_sprite = image.load("assets/CONCRETE_4C_SMALL.PNG")
+floor_sprite = image.load("assets/COBBLES_2D.PNG")
+
+load_texture(1, "assets/CONCRETE_4C_SMALL.PNG")
+load_texture(2, "assets/COBBLES_2D.PNG")
+
 size = 2
 
 # grotty way to quickly define the map as a string to make it easy to edit
 world_map = """
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-X       X            X         X
-XXXXXXX X            X         X
-X       X            X         X
-X       X            X         X
+X  !    X            X         X
+XXXXXXX X          ! X  !!!!!  X
+X       X   !   @    X         X
+X   !   X            X         X
 X                    X         X
 X       X                      X
 XXXXXXXXX                      X
@@ -29,12 +36,16 @@ X                              X
 X                              X
 X               XXXXXXXXX      X
 X     XXX       X       X      X
-X     X X           XXXXX      X
-X     X X               X      X
+X     X!X           XXXXX   !  X
+X     X X    !          X      X
 X                       X      X
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 """
 world_map = world_map.strip().split("\n")
+
+
+player_start_pos = None
+sprites = []
 
 # convert "grotty" map into real map object
 map = Map(len(world_map[0]), len(world_map))
@@ -43,125 +54,181 @@ for y in range(map.height):
     v = world_map[y][x]
     map.get_tile(x, y).solid = True if v == "X" else False
 
+    if v == "@":
+      player_start_pos = vec2(x + 0.5, y + 0.5)
+
+    if v == "!":
+      sprites.append(vec2(x + 0.5, y + 0.5))
+
 # convert map data into format used by DDA algorithm to detect intersections
 map_dda_flags = map.build_dda_flags()
 
-player = Player(vec2(16, 8), 0)
+player = Player(player_start_pos, 0, map)
 
-def deg2rad(angle):
-  return angle * (math.pi / 180.0)
-
-pen_lut = [color.rgb(20, 40, 60, a) for a in range(256)]
-
-# precompute degrees->radians once
-deg2rad_k = math.pi / 180.0
-
-# hoist commonly used functions
-
-lengths = 0
-@native
-def build(rays):
-  # cache attrs (attribute lookups are slow in MicroPython)
-  cos = math.cos
-
-  wall_sprite_w = wall_sprite.width
-  wall_sprite_h = wall_sprite.height
-  wall_height = 1
-
-  player_angle_rad = player.angle * deg2rad_k  # used for cos correction
-  d_proj = (screen.width / 2) / math.tan(deg2rad(player.fov) / 2)
-  wall_height = 1
-  whdproj = wall_height * d_proj
-
-  draws = [None] * (160*3)
-
-  x, y, u, b, perp, height = None, None, None, None, None, None
-  offset, distance, ray_angle = None, None, None
-
-  for i in range(160):
-    #_, _, _, _, offset, distance, _ = rays[i][0]
-    ray = rays[i][0]
-    offset = ray[4]
-    distance = ray[5]
-
-    height = whdproj / distance
-
-    x = i
-    y = int(60 - (height * 0.5))
-    u = offset
-
-    # brightness
-    b = int(distance * 10)
-    if b < 0: b = 0
-    elif b > 255: b = 255
-
-    draws[i * 3 + 0] = ("blit_vspan", wall_sprite, x, y, height, u, 0, u, 1)
-    draws[i * 3 + 1] = ("pen", pen_lut[b])
-    draws[i * 3 + 2] = ("rectangle", x, y, 1, height)
-
-    # screen.blit_vspan(wall_sprite, x, y, height, u, 0, u, wall_sprite_h - 1)
-    # screen.pen = pen_lut[b]
-    # screen.rectangle(x, y, 1, height)
-
-  return draws
-
+shade_pen_lut = [color.rgb(20, 40, 60, a) for a in range(256)]
 
 frame_times = []
 def update():
   global frame_times
-
   frame_start = time.ticks_ms()
 
-  # draw sky and floor
-  screen.pen = color.brown
-  screen.rectangle(0, 0, 160, 60)
-  screen.pen = color.taupe
-  screen.rectangle(0, 60, 160, 60)
-
-  # movement scale
-  delta_scale = io.ticks_delta / 1000
-
-  # move player based on button states
-  if io.BUTTON_A in io.held:
-    player.angle -= 90 * delta_scale
-    player.angle %= 360
-
-  if io.BUTTON_C in io.held:
-    player.angle += 90 * delta_scale
-    player.angle %= 360
-
-  if io.BUTTON_UP in io.held:
-    player.pos += player.vector() * 10 * delta_scale
-
-  if io.BUTTON_DOWN in io.held:
-    player.pos -= player.vector() * 10 * delta_scale
+  player.process_inputs()
 
   start = time.ticks_ms()
-  rays = algorithm.raycast(player.pos, player.angle_radians(), player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
+  draw_sky()
+  draw_sky_time = time.ticks_ms() - start
+
+  start = time.ticks_ms()
+  draw_floor()
+  draw_floor_time = time.ticks_ms() - start
+
+  start = time.ticks_ms()
+  rays = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
   raycast_time = time.ticks_ms() - start
 
   start = time.ticks_ms()
-  draws = build(rays)
-  build_time = time.ticks_ms() - start
+  draw_world(rays)
+  draw_world_time = time.ticks_ms() - start
 
   start = time.ticks_ms()
-  screen.batch(draws)
-  render_time = time.ticks_ms() - start
+  draw_sprites()
+  draw_sprites_time = time.ticks_ms() - start
 
+  # draw timing stats
   screen.pen = color.rgb(255, 255, 255)
-  screen.text(f"raycast: {raycast_time}ms", 2, 85)
-  screen.text(f"build: {build_time}ms", 2, 95)
-  screen.text(f"render: {render_time}ms", 2, 105)
+  screen.text(f"raycast: {raycast_time}ms", 2, 65)
+  screen.text(f"sky: {draw_sky_time}ms", 2, 75)
+  screen.text(f"floor: {draw_floor_time}ms", 2, 85)
+  screen.text(f"world: {draw_world_time}ms", 2, 95)
+  screen.text(f"sprites: {draw_sprites_time}ms", 2, 105)
 
-
-  screen.pen = color.rgb(255, 255, 255)
-
-
+  # draw fps counter
   frame_end = time.ticks_ms()
   frame_duration = max(1, frame_end - frame_start)
   frame_times.append(frame_duration)
-  frame_times = frame_times[-20:]
-
-  fps = round(1000 / (sum(frame_times) / len(frame_times)), 1)
-  screen.pen = color.rgb(255, 255, 255)
+  frame_times = frame_times[-60:]
+  fps = round(1000 / (sum(frame_times) / len(frame_times)))
   screen.text(f"{fps}fps", 2, 0)
+
+@native
+def draw_sky():
+  # calculate u texture coordinate for left and right side of sky texture
+  # so that it wraps with a full rotation of the player
+  u0 = ((player.angle - player.fov) / (2 * math.pi))
+  u1 = ((player.angle + player.fov) / (2 * math.pi))
+
+  half_height = int(screen.height / 2)
+
+  for y in range(0, half_height):
+    v = y / half_height
+
+    screen.blit_hspan(sky_texture, 0, y, 160, u0, v, u1, v)
+
+@native
+def draw_floor():
+  # calculate camera frustrum plane relative to player position and direction
+  frustum_width = math.tan(player.fov * 0.5)
+  player_dir = player.vector()
+  plane = vec2(-player_dir.y * frustum_width, player_dir.x * frustum_width)
+
+  half_height = int(screen.height / 2)
+  camera_height = half_height
+
+  # camera frustrum left and right vectors in world space
+  frustrum_left = vec2(player_dir.x - plane.x, player_dir.y - plane.y)
+  frustrum_right = vec2(player_dir.x + plane.x, player_dir.y + plane.y)
+
+  for y in range(half_height + 1, screen.height):
+    # distance in world coordinates to this row on screen
+    distance = camera_height / (y - half_height)
+
+    # floor left and right coordinates in world space for this row
+    floor_left = vec2(
+      player.pos.x + distance * frustrum_left.x,
+      player.pos.y + distance * frustrum_left.y
+    )
+
+    floor_right = vec2(
+      player.pos.x + distance * frustrum_right.x,
+      player.pos.y + distance * frustrum_right.y
+    )
+
+    # select correct texture and mipmap level
+    tex = atlas[2][min(2, int(distance / 2))]
+    screen.blit_hspan(tex, 0, y, 160, floor_left.x, floor_left.y, floor_right.x, floor_right.y)
+
+  # add distance fade effect to floor
+  step = 10
+  for y in range(0, half_height, step):
+    screen.pen = shade_pen_lut[max(0, 200 - int(y * 5))]
+    screen.rectangle(0, y + 60, 160, step)
+
+column_distances = [0] * 160
+
+@native
+def draw_world(rays):
+  global column_distances
+
+  projection_distance = (screen.width / 2) / math.tan(player.fov / 2)
+
+  for x in range(160):
+    offset = rays[x][0][4]
+    distance = rays[x][0][5]
+
+    column_distances[x] = distance
+
+    # calculate height of wall span and y offset on screen
+    height = projection_distance / distance
+    y = int(60 - (height * 0.5))
+
+    # u coordinate of texture is offset of ray intersection with tile
+    u = offset
+
+    # calculate how dark to shade this area, the rounding and multiplying
+    # recreates the "banding" effect seen in the shading in DOOM
+    shade = min(255, round(int(distance / 2.5)) * 20)
+
+    # select texture and mipmap level
+    tex = atlas[1][min(2, int(distance / 5))]
+
+    # draw wall column and shading
+    screen.blit_vspan(tex, x, y, height, u, 0, u, 1)
+    screen.pen = shade_pen_lut[shade]
+    screen.rectangle(x, y, 1, height)
+
+@native
+def draw_sprites():
+  f = enemy.frame(io.ticks / 100)
+
+  frustum_width = math.tan(player.fov * 0.5)
+  player_dir = player.vector()
+  plane = vec2(-player_dir.y * frustum_width, player_dir.x * frustum_width)
+  inverse_determinant = 1.0 / (plane.x * player_dir.y - player_dir.x * plane.y)
+
+  for pos in sprites:
+    p = pos - player.pos # relative to player
+    p = vec2(            # transform into camera space
+      inverse_determinant * (player_dir.y * p.x - player_dir.x * p.y),
+      inverse_determinant * (-plane.y * p.x + plane.x * p.y)
+    )
+
+    # sprite behind camera, skip
+    if p.y <= 0:
+      continue
+
+    # calculate screen coordinates for sprite (width, height, x, y)
+    sw = abs((int)(screen.height / p.y))
+    sh = abs((int)(screen.height / p.y))
+    sx = (int)((screen.width / 2) * (1 + p.x / p.y)) - (sw / 2)
+    sy = -sh / 2 + screen.height / 2
+
+    # blit the sprite in columns, checking for depth against world
+    for x in range(sw):
+      if (sx + x) < 0 or (sx + x) >= screen.width:
+        continue
+
+      if p.y >= column_distances[int(sx + x)]:
+        continue
+
+      u = x / sw
+      screen.blit_vspan(f, sx + x, sy, sh, u, 0, u, 1)

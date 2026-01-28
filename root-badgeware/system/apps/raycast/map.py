@@ -18,7 +18,7 @@ class Map:
   def get_tile(self, x, y):
     if x < 0 or x >= self.width: return None
     if y < 0 or y >= self.height: return None
-    return self.tiles[x][y]
+    return self.tiles[int(x)][int(y)]
 
   # converts map tile data into a compact representation used by the dda
   # algorithm

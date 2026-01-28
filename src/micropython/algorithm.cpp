@@ -72,8 +72,7 @@ extern "C" {
 
     mp_obj_t *result = new mp_obj_t[rays];
 
-    float fov_rad = fov * (M_PI / 180.0f);
-    float d_proj = (screen_width * 0.5f) / tanf(fov_rad * 0.5f);
+    float d_proj = (screen_width * 0.5f) / tanf(fov * 0.5f);
 
     for(int i = 0; i < rays; i++) {
       float x = (i + 0.5f) * (screen_width / (float)rays); // column center in pixels

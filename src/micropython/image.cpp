@@ -233,7 +233,8 @@ MPY_BIND_VAR(2, get, {
       point = mp_obj_get_vec2_from_xy(&args[1]);
     }
     color_obj_t *color = mp_obj_malloc(color_obj_t, &type_color);
-    color->c->_p = self->image->get(point.x, point.y);
+    uint32_t c = self->image->get(point.x, point.y);
+    color->c = new rgb_color_t(_r(c), _g(c), _b(c), _a(c));
     return MP_OBJ_FROM_PTR(color);
   })
 
