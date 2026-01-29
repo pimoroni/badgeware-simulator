@@ -321,17 +321,17 @@ namespace picovector {
     samples from the source image along a line starting at uv1 and ending at
     uv2
   */
-  void image_t::blit_hspan(image_t *target, vec2_t p, int c, vec2_t uv1, vec2_t uv2) {
+  void image_t::blit_hspan(image_t *target, vec2_t p, int c, vec2_t uv0, vec2_t uv1) {
     rect_t b = target->_clip;
     if(p.x < b.x || p.x > b.x + b.w) {
       return;
     }
 
-    fx16_t u = f_to_fx16(uv1.x);
-    fx16_t v = f_to_fx16(uv1.y);
+    fx16_t u = f_to_fx16(uv0.x);
+    fx16_t v = f_to_fx16(uv0.y);
 
-    fx16_t ud = f_to_fx16(uv2.x - uv1.x) / c;
-    fx16_t vd = f_to_fx16(uv2.y - uv1.y) / c;
+    fx16_t ud = f_to_fx16(uv1.x - uv0.x) / c;
+    fx16_t vd = f_to_fx16(uv1.y - uv0.y) / c;
 
     if(p.x < b.x) {
       u += ud * (b.x - p.x);
@@ -377,17 +377,17 @@ namespace picovector {
     samples from the source image along a line starting at uv1 and ending at
     uv2
   */
-  void image_t::blit_vspan(image_t *target, vec2_t p, int c, vec2_t uv1, vec2_t uv2) {
+  void image_t::blit_vspan(image_t *target, vec2_t p, int c, vec2_t uv0, vec2_t uv1) {
     rect_t b = target->_clip;
     if(p.x < b.x || p.x > b.x + b.w) {
       return;
     }
 
-    fx16_t u = f_to_fx16(uv1.x);
-    fx16_t v = f_to_fx16(uv1.y);
+    fx16_t u = f_to_fx16(uv0.x);
+    fx16_t v = f_to_fx16(uv0.y);
 
-    fx16_t ud = f_to_fx16(uv2.x - uv1.x) / c;
-    fx16_t vd = f_to_fx16(uv2.y - uv1.y) / c;
+    fx16_t ud = f_to_fx16(uv1.x - uv0.x) / c;
+    fx16_t vd = f_to_fx16(uv1.y - uv0.y) / c;
 
     if(p.y < b.y) {
       u += ud * (b.y - p.y);
@@ -639,8 +639,4 @@ namespace picovector {
     }
     return *((uint32_t *)ptr(x, y));
   }
-
-
-
-
 }

@@ -14,32 +14,38 @@ viper  = getattr(micropython, "viper",  _noop)
 
 enemy = SpriteSheet("assets/PlayerWalk 48x48.png", 8, 1).animation(0, 0, 8)
 sky_texture = image.load("assets/sky.png")
-wall_sprite = image.load("assets/CONCRETE_4C_SMALL.PNG")
+wall_sprite = image.load("assets/CONCRETE_4C.PNG")
 floor_sprite = image.load("assets/COBBLES_2D.PNG")
 
-load_texture(1, "assets/CONCRETE_4C_SMALL.PNG")
+load_texture(128, "assets/CONCRETE_4A.PNG")
+load_texture(129, "assets/CONCRETE_4C.PNG")
+load_texture(130, "assets/CONCRETE_6A.PNG")
+load_texture(131, "assets/CONCRETE_6B.PNG")
+load_texture(132, "assets/CONCRETE_6C.PNG")
+
+
 load_texture(2, "assets/COBBLES_2D.PNG")
 
 size = 2
 
 # grotty way to quickly define the map as a string to make it easy to edit
 world_map = """
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-X  !    X            X         X
-XXXXXXX X          ! X  !!!!!  X
-X       X   !   @    X         X
-X   !   X            X         X
-X                    X         X
-X       X                      X
-XXXXXXXXX                      X
-X                              X
-X                              X
-X               XXXXXXXXX      X
-X     XXX       X       X      X
-X     X!X           XXXXX   !  X
-X     X X    !          X      X
-X                       X      X
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+################z###############
+#  !    #            #         #
+####### #          ! #  !!!!!  #
+#       z   !   @    #         #
+#   !   #            #         #
+#                    #         #
+#       #                !     #
+#####z###      !               z
+#!                  !  !       #
+#!     !                       #
+#!              #########      #
+z!    #z#       #       #      #
+#!    #!#           #####   !  #
+#!    # #    !          #      #
+#!                      #      #
+################################
 """
 world_map = world_map.strip().split("\n")
 
@@ -52,7 +58,13 @@ map = Map(len(world_map[0]), len(world_map))
 for y in range(map.height):
   for x in range(map.width):
     v = world_map[y][x]
-    map.get_tile(x, y).solid = True if v == "X" else False
+    if v == "#":
+      map.get_tile(x, y).solid = True
+      map.get_tile(x, y).texture_index = 128
+
+    if v == "z":
+      map.get_tile(x, y).solid = True
+      map.get_tile(x, y).texture_index = 130
 
     if v == "@":
       player_start_pos = vec2(x + 0.5, y + 0.5)
@@ -154,7 +166,7 @@ def draw_floor():
     )
 
     # select correct texture and mipmap level
-    tex = atlas[2][min(2, int(distance / 2))]
+    tex = atlas[2][min(4, int(distance / 4))]
     screen.blit_hspan(tex, 0, y, 160, floor_left.x, floor_left.y, floor_right.x, floor_right.y)
 
   # add distance fade effect to floor
@@ -172,6 +184,7 @@ def draw_world(rays):
   projection_distance = (screen.width / 2) / math.tan(player.fov / 2)
 
   for x in range(160):
+    tile_pos = rays[x][0][2]
     offset = rays[x][0][4]
     distance = rays[x][0][5]
 
@@ -188,8 +201,10 @@ def draw_world(rays):
     # recreates the "banding" effect seen in the shading in DOOM
     shade = min(255, round(int(distance / 2.5)) * 20)
 
+    tile = map.get_tile(tile_pos.x, tile_pos.y)
+
     # select texture and mipmap level
-    tex = atlas[1][min(2, int(distance / 5))]
+    tex = atlas[tile.texture_index][min(4, int(distance / 5))]
 
     # draw wall column and shading
     screen.blit_vspan(tex, x, y, height, u, 0, u, 1)

@@ -14,7 +14,7 @@ class Player:
     self.angle += amount * math.pi / 180
 
   def move_by(self, v):
-    radius = 0.5
+    radius = 0.25
     nx = self.pos.x + v.x
     if not self.map.get_tile(nx + radius, self.pos.y).solid and \
        not self.map.get_tile(nx - radius, self.pos.y).solid:

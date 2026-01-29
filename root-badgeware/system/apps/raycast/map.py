@@ -1,6 +1,7 @@
 class MapTile:
   def __init__(self):
     self.solid = False
+    self.texture_id = 0
     pass
 
 class Map:

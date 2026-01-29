@@ -1,4 +1,4 @@
-mipmap_levels = 3
+mipmap_levels = 5
 
 # allocate a texture atlas allowing up to 256 textures with multiple mipmap levels
 atlas = []
@@ -27,7 +27,6 @@ def load_texture(index, src):
     mmh = int(texture.height / 2)
     mipmap = image(mmw, mmh)
 
-    #mipmap.blit(texture, rect(0, 0, texture.width, texture.height), rect(0, 0, mmw, mmh))
     for y in range(mmh):
       for x in range(mmw):
         c0 = texture.get(x * 2 + 0, y * 2 + 0)

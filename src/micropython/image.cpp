@@ -337,27 +337,27 @@ MPY_BIND_VAR(2, measure_text, {
 
     vec2_t p; // position on screen to start rendering span
     int c; // height of span
-    vec2_t uvs; // start uv coordinate
-    vec2_t uve; // end uv coordinate
+    vec2_t uv0; // start uv coordinate
+    vec2_t uv1; // end uv coordinate
 
     if(n_args == 6) {
       p = mp_obj_get_vec2(args[2]);
       c = mp_obj_get_float(args[3]);
-      uvs = mp_obj_get_vec2(args[4]);
-      uve = mp_obj_get_vec2(args[5]);
+      uv0 = mp_obj_get_vec2(args[4]);
+      uv1 = mp_obj_get_vec2(args[5]);
     } else if(n_args == 9) {
       p.x = mp_obj_get_float(args[2]);
       p.y = mp_obj_get_float(args[3]);
       c = mp_obj_get_float(args[4]);
-      uvs.x = mp_obj_get_float(args[5]);
-      uvs.y = mp_obj_get_float(args[6]);
-      uve.x = mp_obj_get_float(args[7]);
-      uve.y = mp_obj_get_float(args[8]);
+      uv0.x = mp_obj_get_float(args[5]);
+      uv0.y = mp_obj_get_float(args[6]);
+      uv1.x = mp_obj_get_float(args[7]);
+      uv1.y = mp_obj_get_float(args[8]);
     } else {
       mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("invalid parameters, expected either blit_vspan(p, c, uvs, uve) or blit_vspan(x, y, x, uvsx, uvsy, uvex, uvey)"));
     }
 
-    src->image->blit_vspan(self->image, p, c, uvs, uve);
+    src->image->blit_vspan(self->image, p, c, uv0, uv1);
 
     return mp_const_none;
   })
