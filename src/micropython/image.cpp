@@ -405,6 +405,12 @@ MPY_BIND_VAR(3, blit, {
         return mp_const_none;
       }
 
+      if(n_args == 4 && mp_obj_is_float(args[2]) && mp_obj_is_float(args[3])) {
+        vec2_t p = mp_obj_get_vec2_from_xy(&args[2]);
+        src->image->blit(self->image, p);
+        return mp_const_none;
+      }
+
       if(n_args == 3 && mp_obj_is_rect(args[2])) {
         src->image->blit(self->image, mp_obj_get_rect(args[2]));
         return mp_const_none;
