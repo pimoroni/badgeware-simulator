@@ -9,13 +9,13 @@ import micropython
 def _noop(fn):
     return fn
 
+mode(DIRTY)
+
 native = getattr(micropython, "native", _noop)
 viper  = getattr(micropython, "viper",  _noop)
 
 enemy = SpriteSheet("assets/PlayerWalk 48x48.png", 8, 1).animation(0, 0, 8)
 sky_texture = image.load("assets/sky.png")
-wall_sprite = image.load("assets/CONCRETE_4C.PNG")
-floor_sprite = image.load("assets/COBBLES_2D.PNG")
 
 load_texture(128, "assets/CONCRETE_4A.PNG")
 load_texture(129, "assets/CONCRETE_4C.PNG")
@@ -49,7 +49,6 @@ z!    #z#       #       #      #
 """
 world_map = world_map.strip().split("\n")
 
-
 player_start_pos = None
 sprites = []
 
@@ -59,21 +58,16 @@ for y in range(map.height):
   for x in range(map.width):
     v = world_map[y][x]
     if v == "#":
-      map.get_tile(x, y).solid = True
-      map.get_tile(x, y).texture_index = 128
+      map.set_tile(x, y, 0b10000000, 128)
 
     if v == "z":
-      map.get_tile(x, y).solid = True
-      map.get_tile(x, y).texture_index = 130
+      map.set_tile(x, y, 0b10000000, 130)
 
     if v == "@":
       player_start_pos = vec2(x + 0.5, y + 0.5)
 
     if v == "!":
       sprites.append(vec2(x + 0.5, y + 0.5))
-
-# convert map data into format used by DDA algorithm to detect intersections
-map_dda_flags = map.build_dda_flags()
 
 player = Player(player_start_pos, 0, map)
 
@@ -95,7 +89,7 @@ def update():
   draw_floor_time = time.ticks_ms() - start
 
   start = time.ticks_ms()
-  rays = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map_dda_flags, map.width, map.height, screen.width)
+  rays = algorithm.raycast(player.pos, player.angle, player.fov, 160, 100, map.flags, map.width, map.height, screen.width)
   raycast_time = time.ticks_ms() - start
 
   start = time.ticks_ms()
@@ -106,18 +100,22 @@ def update():
   draw_sprites()
   draw_sprites_time = time.ticks_ms() - start
 
-  # draw timing stats
-  screen.pen = color.rgb(255, 255, 255)
-  screen.text(f"raycast: {raycast_time}ms", 2, 65)
-  screen.text(f"sky: {draw_sky_time}ms", 2, 75)
-  screen.text(f"floor: {draw_floor_time}ms", 2, 85)
-  screen.text(f"world: {draw_world_time}ms", 2, 95)
-  screen.text(f"sprites: {draw_sprites_time}ms", 2, 105)
-
-  # draw fps counter
   frame_end = time.ticks_ms()
   frame_duration = max(1, frame_end - frame_start)
-  frame_times.append(frame_duration)
+
+  # draw timing stats
+  screen.pen = color.yellow
+  screen.text(f"raycast: {raycast_time}ms", 2, 85)
+  screen.text(f"sky: {draw_sky_time}ms", 2, 95)
+  screen.text(f"floor: {draw_floor_time}ms", 2, 105)
+  screen.text(f"world: {draw_world_time}ms", 82, 85)
+  screen.text(f"sprites: {draw_sprites_time}ms", 82, 95)
+  screen.pen = color.white
+  screen.text(f"total: {frame_duration}ms", 82, 105)
+
+  # draw fps counter
+  ticks = max(1, io.ticks_delta)
+  frame_times.append(ticks)
   frame_times = frame_times[-60:]
   fps = round(1000 / (sum(frame_times) / len(frame_times)))
   screen.text(f"{fps}fps", 2, 0)
@@ -147,27 +145,31 @@ def draw_floor():
   camera_height = half_height
 
   # camera frustrum left and right vectors in world space
-  frustrum_left = vec2(player_dir.x - plane.x, player_dir.y - plane.y)
-  frustrum_right = vec2(player_dir.x + plane.x, player_dir.y + plane.y)
+  frustrum_left_x = player_dir.x - plane.x
+  frustrum_left_y = player_dir.y - plane.y
+  frustrum_right_x = player_dir.x + plane.x
+  frustrum_right_y = player_dir.y + plane.y
 
-  for y in range(half_height + 1, screen.height):
+  screen_height = screen.height
+  blit_hspan = screen.blit_hspan
+
+  for y in range(half_height + 1, screen_height):
     # distance in world coordinates to this row on screen
     distance = camera_height / (y - half_height)
 
     # floor left and right coordinates in world space for this row
-    floor_left = vec2(
-      player.pos.x + distance * frustrum_left.x,
-      player.pos.y + distance * frustrum_left.y
-    )
+    floor_left_x = player.pos.x + distance * frustrum_left_x
+    floor_left_y = player.pos.y + distance * frustrum_left_y
 
-    floor_right = vec2(
-      player.pos.x + distance * frustrum_right.x,
-      player.pos.y + distance * frustrum_right.y
-    )
+    floor_right_x = player.pos.x + distance * frustrum_right_x
+    floor_right_y = player.pos.y + distance * frustrum_right_y
 
     # select correct texture and mipmap level
-    tex = atlas[2][min(4, int(distance / 4))]
-    screen.blit_hspan(tex, 0, y, 160, floor_left.x, floor_left.y, floor_right.x, floor_right.y)
+    tex_id = int(distance / 4)
+    if tex_id > 4: tex_id = 4
+    tex = atlas[2][tex_id]
+
+    blit_hspan(tex, 0, y, 160, floor_left_x, floor_left_y, floor_right_x, floor_right_y)
 
   # add distance fade effect to floor
   step = 10
@@ -183,6 +185,11 @@ def draw_world(rays):
 
   projection_distance = (screen.width / 2) / math.tan(player.fov / 2)
 
+  textures = map.textures
+  map_width = map.width
+  blit_vspan = screen.blit_vspan
+  rectangle = screen.rectangle
+
   for x in range(160):
     tile_pos = rays[x][0][2]
     offset = rays[x][0][4]
@@ -197,19 +204,23 @@ def draw_world(rays):
     # u coordinate of texture is offset of ray intersection with tile
     u = offset
 
-    # calculate how dark to shade this area, the rounding and multiplying
-    # recreates the "banding" effect seen in the shading in DOOM
-    shade = min(255, round(int(distance / 2.5)) * 20)
-
-    tile = map.get_tile(tile_pos.x, tile_pos.y)
+    texture = textures[int(tile_pos.y) * map_width + int(tile_pos.x)]
 
     # select texture and mipmap level
-    tex = atlas[tile.texture_index][min(4, int(distance / 5))]
+    mipmap = int(distance / 5)
+    if mipmap > 4: mipmap = 4
+    tex = atlas[texture][mipmap]
 
     # draw wall column and shading
-    screen.blit_vspan(tex, x, y, height, u, 0, u, 1)
+    blit_vspan(tex, x, y, height, u, 0, u, 1)
+
+    # calculate how dark to shade this area, the rounding and multiplying
+    # recreates the "banding" effect seen in the shading in DOOM
+    shade = round(int(distance / 2.5) * 20)
+
+    if shade > 255: shade = 255
     screen.pen = shade_pen_lut[shade]
-    screen.rectangle(x, y, 1, height)
+    rectangle(x, y, 1, height)
 
 @native
 def draw_sprites():
@@ -219,6 +230,11 @@ def draw_sprites():
   player_dir = player.vector()
   plane = vec2(-player_dir.y * frustum_width, player_dir.x * frustum_width)
   inverse_determinant = 1.0 / (plane.x * player_dir.y - player_dir.x * plane.y)
+
+  screen_width = screen.width
+  screen_height = screen.height
+
+  blit_vspan = screen.blit_vspan
 
   for pos in sprites:
     p = pos - player.pos # relative to player
@@ -232,18 +248,18 @@ def draw_sprites():
       continue
 
     # calculate screen coordinates for sprite (width, height, x, y)
-    sw = abs((int)(screen.height / p.y))
-    sh = abs((int)(screen.height / p.y))
-    sx = (int)((screen.width / 2) * (1 + p.x / p.y)) - (sw / 2)
-    sy = -sh / 2 + screen.height / 2
+    sw = abs((int)(screen_height / p.y))
+    sh = sw # abs((int)(screen_height / p.y))
+    sx = (int)((screen_width / 2) * (1 + p.x / p.y)) - (sw / 2)
+    sy = -sh / 2 + screen_height / 2
 
     # blit the sprite in columns, checking for depth against world
     for x in range(sw):
-      if (sx + x) < 0 or (sx + x) >= screen.width:
+      if (sx + x) < 0 or (sx + x) >= screen_width:
         continue
 
       if p.y >= column_distances[int(sx + x)]:
         continue
 
       u = x / sw
-      screen.blit_vspan(f, sx + x, sy, sh, u, 0, u, 1)
+      blit_vspan(f, sx + x, sy, sh, u, 0, u, 1)

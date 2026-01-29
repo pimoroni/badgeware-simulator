@@ -16,13 +16,13 @@ class Player:
   def move_by(self, v):
     radius = 0.25
     nx = self.pos.x + v.x
-    if not self.map.get_tile(nx + radius, self.pos.y).solid and \
-       not self.map.get_tile(nx - radius, self.pos.y).solid:
+    if not self.map.is_solid(nx + radius, self.pos.y) and \
+       not self.map.is_solid(nx - radius, self.pos.y):
       self.pos.x = nx
 
     ny = self.pos.y + v.y
-    if not self.map.get_tile(self.pos.x, ny + radius).solid and \
-       not self.map.get_tile(self.pos.x, ny - radius).solid:
+    if not self.map.is_solid(self.pos.x, ny + radius) and \
+       not self.map.is_solid(self.pos.x, ny - radius):
       self.pos.y = ny
 
   def process_inputs(self):
