@@ -422,7 +422,7 @@ def mode(mode, force=False):
     # TODO: Mutate the existing screen object?
     font = getattr(getattr(builtins, "screen", None), "font", None)
     brush = getattr(getattr(builtins, "screen", None), "pen", None)
-    resolution = (320, 240) if mode == HIRES else (160, 120)
+    resolution = (320, 240) if mode & HIRES else (160, 120)
     builtins.screen = image(*resolution, framebuffer)
     simulator.resolution(*resolution)
     screen.font = font if font is not None else DEFAULT_FONT
@@ -431,7 +431,7 @@ def mode(mode, force=False):
     return True
 
 
-def run(update, init=None, on_exit=None, auto_clear=True):
+def run(update, init=None, on_exit=None):
     screen.font = DEFAULT_FONT
     screen.clear(BG)
     screen.pen = FG
@@ -441,9 +441,10 @@ def run(update, init=None, on_exit=None, auto_clear=True):
             gc.collect()
         try:
             while True:
-                if auto_clear:
-                    screen.clear(BG)
-                    screen.pen = FG
+                if (_current_mode & DIRTY) == 0:
+                    screen.pen = BG
+                    screen.clear()
+                screen.pen = FG
                 io.poll()
                 if (result := update()) is not None:
                     gc.collect()
@@ -520,7 +521,7 @@ def fatal_error(title, error):
 
     print(f"- ERROR: {error}")
 
-    if _current_mode == LORES:
+    if (_current_mode & HIRES) == 0:
         contents = image(160, 120)
         contents.blit(screen, vec2(0, 0))
         mode(HIRES)
@@ -590,8 +591,8 @@ LIGHT_SENSOR = machine.ADC(0)
 DEFAULT_FONT = rom_font.sins
 ERROR_FONT = rom_font.desert
 
-FG = color.rgb(255, 255, 255)
-BG = color.rgb(20, 40, 60)
+FG = color.white
+BG = color.black
 
 VBUS_DETECT = machine.Pin(0)
 CHARGE_STAT = machine.Pin(1)
@@ -601,8 +602,9 @@ SENSE_1V1 = machine.ADC(32767)
 BAT_MAX = 4.10
 BAT_MIN = 3.00
 
-HIRES = 1
-LORES = 0
+HIRES = 0b0001
+LORES = 0b0000
+DIRTY = 0b0100
 
 conversion_factor = 3.3 / 65536
 
@@ -612,7 +614,7 @@ mode(LORES, True)
 
 
 # Build in some badgeware helpers, so we don't have to "bw.lores" etc
-for k in ("mode", "HIRES", "LORES", "SpriteSheet", "load_font", "rom_font", "text_tokenise", "text_draw"):
+for k in ("mode", "HIRES", "LORES", "DIRTY", "SpriteSheet", "load_font", "rom_font", "text_tokenise", "text_draw"):
     setattr(builtins, k, locals()[k])
 
 
