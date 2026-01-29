@@ -15,17 +15,15 @@ extern "C" {
     return mp_obj_new_bool(result);
   })
 
-  MPY_BIND_STATICMETHOD_VAR(5, dda, {
-    vec2_obj_t *p = (vec2_obj_t *)MP_OBJ_TO_PTR(args[0]);
+  MPY_BIND_STATICMETHOD_VAR(3, dda, {
+    vec2_t point = mp_obj_get_vec2(args[0]);
     float angle = mp_obj_get_float(args[1]);
-    int max = mp_obj_get_int(args[2]);
-    int step = 0;
+    float depth = mp_obj_get_float(args[2]);
 
     mp_obj_t result = mp_obj_new_list(0, NULL);
-    float ray_ang = angle * (M_PI / 180.0f); // radians
-    vec2_t v = vec2_t(cosf(ray_ang), sinf(ray_ang));
+    vec2_t vector = vec2_t(cosf(angle), sinf(angle));
 
-    dda(p->v, v, [&step, &result, &max](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
+    dda(point, vector, [&result, &depth](float hit_x, float hit_y, int gx, int gy, int edge, float offset, float distance) -> bool {
       vec2_obj_t *cb_p = mp_obj_malloc(vec2_obj_t, &type_vec2);
       vec2_obj_t *cb_g = mp_obj_malloc(vec2_obj_t, &type_vec2);
 
@@ -44,9 +42,8 @@ extern "C" {
       };
 
       mp_obj_list_append(result, mp_obj_new_tuple(5, items));
-      step++;
 
-      return step < max;
+      return distance < depth;
     });
 
 
