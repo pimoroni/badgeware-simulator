@@ -47,7 +47,6 @@ namespace picovector {
       // find the glyph
       for(int j = 0; j < this->glyph_count; j++) {
         if(this->glyphs[j].codepoint == uint16_t(c)) {
-          rect_t b = this->glyphs[j].bounds(&transform);
           r.w += float(this->glyphs[j].advance) * (size / 128.0f);
           r.h = size;
         }
