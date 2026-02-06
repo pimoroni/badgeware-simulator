@@ -237,10 +237,10 @@ namespace picovector {
 
   void image_t::blit(image_t *target, const vec2_t p) {
     rect_t sr = _bounds;
-    rect_t tr(p.x, p.y, sr.w, sr.h); // target rect
-
     sr = sr.floor();
-    tr = tr.floor();
+
+    rect_t tr(floorf(p.x), floorf(p.y), sr.w, sr.h); // target rect
+
     clip_blit_rect(sr, _bounds, tr);
     clip_blit_rect(tr, target->_bounds, sr);
     if(sr.w <= 0 || sr.h <= 0 || tr.w <= 0 || tr.h <= 0) {
@@ -415,10 +415,12 @@ namespace picovector {
       uint32_t cv = ((v & 0xffffu) * th) >> 16;
 
       //uint32_t col = *(uint32_t *)this->ptr((u + 32768) >> 16, (v + 32768) >> 16);
-      uint32_t col = *(uint32_t *)this->ptr(cu, cv);
+      uint32_t col;
 
       if(this->_has_palette) {
-        col = this->_palette[col];
+        col = this->_palette[*(uint8_t*)this->ptr(cu, cv)];
+      } else {
+        col = *(uint32_t *)this->ptr(cu, cv);
       }
 
       if(this->_alpha != 255) {
