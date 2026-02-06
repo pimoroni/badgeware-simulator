@@ -39,6 +39,10 @@ extern "C" {
     mp_obj_t fhandle;
   } png_handle_t;
 
+  typedef struct _jpeg_handle_t {
+    mp_obj_t fhandle;
+  } jpeg_handle_t;
+
   typedef struct _font_obj_t {
     mp_obj_base_t base;
     font_t font;
@@ -85,6 +89,10 @@ extern "C" {
   // image.cpp uses pngdec_open_file and pngdec_open_ram from image_png
   extern int pngdec_open_file(image_obj_t &target, const char* path);
   extern int pngdec_open_ram(image_obj_t &target, const void* buffer, const size_t size);
+
+  // ... and jpegdec_open_file and jpegdec_open_ram from image_jpeg
+  extern int jpegdec_open_file(image_obj_t &target, const char* path);
+  extern int jpegdec_open_ram(image_obj_t &target, const void* buffer, const size_t size);
 }
 
 extern rect_t mp_obj_get_rect(mp_obj_t rect_in);
