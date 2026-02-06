@@ -18,8 +18,8 @@ def update():
       int(math.sin(i + io.ticks / 200) * 100 + 240)
     )
     clip = rect(10, 10, 140, 100)
-    algorithm.clip_line(p1, p2, clip)
-    screen.line(p1, p2)
+    if algorithm.clip_line(p1, p2, clip):
+      screen.line(p1, p2)
 
   pen(60, 80, 100, 100)
   screen.line(clip.x, clip.y, clip.x + clip.w, clip.y)

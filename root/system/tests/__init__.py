@@ -4,7 +4,7 @@ import sys
 tests = {}
 for file in os.listdir(__path__):
   file = file.rsplit(".", 1)[0]
-  if not file.startswith("__"):
+  if file and not file.startswith("__"):
     tests[file] = __path__ + "/" + file
 
 setattr(sys.modules[__name__], "tests", tests)

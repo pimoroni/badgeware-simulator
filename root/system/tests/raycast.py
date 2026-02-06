@@ -123,7 +123,7 @@ def update():
 
   d_proj = (screen.width / 2) / math.tan(player.fov * (math.pi / 180) / 2)
 
-  result = algorithm.dda(player.pos, player.angle, player.fov, 160, 20, world_map_flags, MAP_SIZE_X, MAP_SIZE_Y)
+  result = algorithm.raycast(player.pos, math.radians(player.angle), player.fov, 160, 20, world_map_flags, MAP_SIZE_X, MAP_SIZE_Y, screen.width)
 
   for i in range(0, 160):
     ray = result[i]
