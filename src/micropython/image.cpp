@@ -38,24 +38,20 @@ MPY_BIND_NEW(image, {
 MPY_BIND_STATICMETHOD_ARGS1(load, path, {
     const char *s = mp_obj_str_get_str(path);
     image_obj_t *result = mp_obj_malloc_with_finaliser(image_obj_t, &type_image);
-
-    PNG *png = new(PicoVector_working_buffer) PNG();
-    int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
-    bool has_palette = png->getPixelType() == PNG_PIXEL_INDEXED;
-    result->image = new(m_malloc(sizeof(image_t))) image_t(png->getWidth(), png->getHeight(), RGBA8888, has_palette);
-    png->decode((void *)result->image, 0);
-    png->close();
+    result->image = nullptr;
+    int status = pngdec_open_file(*result, mp_obj_str_get_str(path));
+    if(status != 0) {
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("unable to read PNG!"));
+    }
     return MP_OBJ_FROM_PTR(result);
   })
 
 MPY_BIND_CLASSMETHOD_ARGS1(load_into, path, {
     self(self_in, image_obj_t);
-    //const image_obj_t *self = (image_obj_t *)MP_OBJ_TO_PTR(args[0]);
-    PNG *png = new(PicoVector_working_buffer) PNG();
-    int status = png->open(mp_obj_str_get_str(path), pngdec_open_callback, pngdec_close_callback, pngdec_read_callback, pngdec_seek_callback, pngdec_decode_callback);
-    bool has_palette = png->getPixelType() == PNG_PIXEL_INDEXED;
-    png->decode((void *)self->image, 0);
-    png->close();
+    int status = pngdec_open_file(*self, mp_obj_str_get_str(path));
+    if(status != 0) {
+      mp_raise_msg_varg(&mp_type_ValueError, MP_ERROR_TEXT("unable to read PNG!"));
+    }
     return mp_const_none;
   })
 
