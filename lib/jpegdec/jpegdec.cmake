@@ -1,10 +1,11 @@
-add_library(jpegdec
-    ${CMAKE_CURRENT_LIST_DIR}/jpeg.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/JPEGDEC.cpp
-)
+if (NOT DEFINED JPEGDEC_ONCE)
+    set (JPEGDEC_ONCE TRUE)
 
-set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/JPEGDEC.cpp PROPERTIES COMPILE_FLAGS "-Wno-error=unused-function")
+    add_library(jpegdec
+        ${CMAKE_CURRENT_LIST_DIR}/JPEGDEC.cpp
+    )
 
-target_include_directories(jpegdec INTERFACE ${CMAKE_CURRENT_LIST_DIR})
+    set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/JPEGDEC.cpp PROPERTIES COMPILE_FLAGS "-Wno-error=unused-function")
 
-target_link_libraries(jpegdec pico_stdlib)
+    target_include_directories(jpegdec INTERFACE ${CMAKE_CURRENT_LIST_DIR})
+endif() 
