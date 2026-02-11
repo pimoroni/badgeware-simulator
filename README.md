@@ -13,12 +13,12 @@ Simulator for the development of the Picovector graphics API and accompanying ba
 | Up     | Up     |
 | Down   | Down   |
 | Escape | Hot Reload |
-| H      | Screenshot |
+| P      | Screenshot |
 | R      | Continuous Recording |
 
 ## Screenshots
 
-The screenshot hotkey - `h` - takes a single screenshot and saves it to `screenshots/screenshot-<timestamp>.png`
+The screenshot hotkey - `p` - takes a single screenshot and saves it to `screenshots/screenshot-<timestamp>.png`
 
 ### Convert to video
 
