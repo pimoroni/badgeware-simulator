@@ -17,7 +17,6 @@ from urllib.urequest import urlopen
 import math
 
 import network
-from badgeware import SpriteSheet, run
 
 icons = SpriteSheet("ornament01.png", 1, 1)
 ornament = icons.sprite(0, 0)
@@ -71,7 +70,7 @@ def wlan_start():
     global wlan, ticks_start, connected, WIFI_PASSWORD, WIFI_SSID
 
     if ticks_start is None:
-        ticks_start = io.ticks
+        ticks_start = badge.ticks
 
     if connected:
         return True
@@ -89,7 +88,7 @@ def wlan_start():
 
     connected = wlan.isconnected()
 
-    if io.ticks - ticks_start < WIFI_TIMEOUT * 1000:
+    if badge.ticks - ticks_start < WIFI_TIMEOUT * 1000:
         if connected:
             return True
     elif not connected:
@@ -170,11 +169,11 @@ class Snowflake:
         screen.shape(shape.star(self.x, self.y, 5, self.d, self.d - 4))
 
         if self.last_update:
-            time_delta = (io.ticks - self.last_update) / 1000
+            time_delta = (badge.ticks - self.last_update) / 1000
             self.velocity = self.velocity + (self.gravity * time_delta)
             self.y = self.y + self.velocity
 
-        self.last_update = io.ticks
+        self.last_update = badge.ticks
 
     @staticmethod
     def update():
@@ -234,7 +233,7 @@ def update():
     if get_connection_details():
         if wlan_start():
 
-            if io.BUTTON_A in io.held and io.BUTTON_C in io.held:
+            if badge.BUTTON_A in badge.held and badge.BUTTON_C in badge.held:
                 days_remaining = None
                 connected = None
 
@@ -262,7 +261,7 @@ def update():
 
             screen.pen = color.rgb(*STAR_YELLOW)
             star = shape.star(0, 0, 5, 9, 16)
-            star_rotate = math.sin(io.ticks / 1000) * 100
+            star_rotate = math.sin(badge.ticks / 1000) * 100
             star.transform = mat3().translate(screen.width - 20, 25).rotate(star_rotate)
             screen.shape(star)
             screen.pen = color.rgb(0, 0, 0, 100)

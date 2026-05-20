@@ -11,7 +11,6 @@ sys.path.insert(0, APP_DIR)
 
 import ui
 from vpet import Pet
-from badgeware import run, State
 
 pet = Pet(95)  # create pet!
 
@@ -26,7 +25,7 @@ def game_update():
 
     if not pet.is_dead():
         # calculate pet's new stats based on the time since last update
-        seconds = io.ticks_delta / 1000
+        seconds = badge.ticks_delta / 1000
 
         # work out how much pet's stats have reduce since the last frame
         happy_delta = (seconds / happiness_duration) * 100
@@ -37,17 +36,17 @@ def game_update():
         pet.clean(-clean_delta)
 
         # play with pet!
-        if io.BUTTON_A in io.pressed:
+        if BUTTON_A in badge.pressed():
             pet.happy(30)
             pet.do_action("dance")
 
         # feed pet!
-        if io.BUTTON_B in io.pressed:
+        if BUTTON_B in badge.pressed():
             pet.hunger(30)
             pet.do_action("eating")
 
         # clean pet!
-        if io.BUTTON_C in io.pressed:
+        if BUTTON_C in badge.pressed():
             pet.clean(30)
             pet.do_action("dance")
 
@@ -69,7 +68,7 @@ def game_update():
         pet.move_to_center()
 
         # if user pressed button b then reset pet's stats
-        if io.BUTTON_B in io.pressed:
+        if BUTTON_B in badge.pressed():
             pet = Pet(95)
 
 

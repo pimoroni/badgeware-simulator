@@ -1,5 +1,4 @@
 import random
-from badgeware import SpriteSheet
 
 sprites = SpriteSheet("assets/obstacles.png", 2, 1)
 

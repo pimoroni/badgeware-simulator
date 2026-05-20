@@ -1,4 +1,3 @@
-from badgeware import SpriteSheet
 from obstacle import Obstacle
 
 sprites = SpriteSheet("assets/chicken.png", 7, 2)

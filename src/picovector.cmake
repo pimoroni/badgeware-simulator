@@ -1,12 +1,14 @@
 add_library(usermod_picovector INTERFACE)
 
+set(PNGDEC_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/pngdec")
+set(JPEGDEC_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/jpegdec")
+
 find_package(PNGDEC CONFIG REQUIRED)
 find_package(JPEGDEC CONFIG REQUIRED)
 
 list(APPEND SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/micropython/picovector_bindings.c
   ${CMAKE_CURRENT_LIST_DIR}/micropython/picovector.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
   ${CMAKE_CURRENT_LIST_DIR}/picovector.cpp
   ${CMAKE_CURRENT_LIST_DIR}/shape.cpp
   ${CMAKE_CURRENT_LIST_DIR}/font.cpp
@@ -30,7 +32,6 @@ list(APPEND SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image_jpeg.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image_png.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/image.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/micropython/input.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/mat3.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/pixel_font.cpp
   ${CMAKE_CURRENT_LIST_DIR}/micropython/shape.cpp
@@ -56,6 +57,12 @@ set_source_files_properties(
 )
 
 if(DEFINED PICO_BOARD)
+  # Build jpegdec for Pico
+  target_compile_definitions(jpegdec PRIVATE PICO_BUILD)
+
+  # Build picovector for Pico
+  target_compile_definitions(usermod_picovector INTERFACE PICO=1)
+
   set_source_files_properties(
     ${SOURCES}
     PROPERTIES COMPILE_OPTIONS

@@ -9,7 +9,7 @@ import micropython
 def _noop(fn):
     return fn
 
-mode(DIRTY)
+badge.mode(DIRTY)
 
 native = getattr(micropython, "native", _noop)
 viper  = getattr(micropython, "viper",  _noop)
@@ -114,7 +114,7 @@ def update():
   screen.text(f"total: {frame_duration}ms", 82, 105)
 
   # draw fps counter
-  ticks = max(1, io.ticks_delta)
+  ticks = max(1, badge.ticks_delta)
   frame_times.append(ticks)
   frame_times = frame_times[-60:]
   fps = round(1000 / (sum(frame_times) / len(frame_times)))
@@ -224,7 +224,7 @@ def draw_world(rays):
 
 @native
 def draw_sprites():
-  f = enemy.frame(io.ticks / 100)
+  f = enemy.frame(badge.ticks / 100)
 
   frustum_width = math.tan(player.fov * 0.5)
   player_dir = player.vector()

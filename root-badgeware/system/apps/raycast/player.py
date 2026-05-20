@@ -27,21 +27,21 @@ class Player:
 
   def process_inputs(self):
     # scale movement based on last frame time
-    scale = io.ticks_delta / 1000
+    scale = badge.ticks_delta / 1000
 
     turn_speed = 160 * scale # 160 degrees per second
     walk_speed = 5 * scale # 5 world units per second
 
-    if io.BUTTON_A in io.held:
+    if BUTTON_A in badge.held():
       self.turn_by(-turn_speed)
 
-    if io.BUTTON_C in io.held:
+    if BUTTON_C in badge.held():
       self.turn_by(turn_speed)
 
-    if io.BUTTON_UP in io.held:
+    if BUTTON_UP in badge.held():
       self.move_by(self.vector() * walk_speed)
 
-    if io.BUTTON_DOWN in io.held:
+    if BUTTON_DOWN in badge.held():
       self.move_by(self.vector() * -walk_speed)
 
   # return a unit vector representing the players viewing direction

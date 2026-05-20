@@ -445,7 +445,7 @@ def run(update, init=None, on_exit=None):
                     screen.pen = BG
                     screen.clear()
                 screen.pen = FG
-                io.poll()
+                badge.poll()
                 if (result := update()) is not None:
                     gc.collect()
                     return result

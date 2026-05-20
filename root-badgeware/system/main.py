@@ -30,12 +30,12 @@ if HEADLESS:
     BG = color.rgb(20, 30, 40)
     FG = color.rgb(255, 255, 255)
     screen.antialias = Image.X2
-    io.poll()
+    badge.poll()
     t_start = io.ticks
     ss_frame = 0
     def update():
         global ss_frame
-        io.poll()
+        badge.poll()
         screen.pen = BG
         screen.clear()
         screen.pen = FG
@@ -91,7 +91,8 @@ def launch(file):
 # else:
 #     launch(APP_STARTUP)
 
-launch("/system/apps/raycast")
+launch(APP_MENU)
+#launch("/system/apps/raycast")
 
 def update():
     #with debug:
