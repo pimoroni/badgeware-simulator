@@ -21,9 +21,18 @@ active = 0
 MAX_ALPHA = 255
 alpha = 30
 
+launch_app = None
+
 
 def update():
-    global active, apps, alpha
+    global active, apps, alpha, launch_app
+
+    # Do not pass the launch button press into the newly launched app
+    # Bit of a hack on the simulator since we can't block and `poll` for
+    # a new input status without hanging up the UI where input is
+    # actually handled.
+    if launch_app and not badge.pressed() and not badge.held():
+        return launch_app
 
     # process button inputs to switch between apps
     if badge.pressed(BUTTON_C):
@@ -42,7 +51,7 @@ def update():
     apps.activate(active)
 
     if badge.pressed(BUTTON_B):
-        return f"/system/apps/{apps.active.path}"
+        launch_app = f"/system/apps/{apps.active.path}"
 
     ui.draw_background()
 
