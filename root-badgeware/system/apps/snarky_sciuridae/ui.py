@@ -1,9 +1,12 @@
-import math
 
 # load user interface sprites
-icons = SpriteSheet("assets/icons.png", 4, 1)
-arrows = SpriteSheet("assets/arrows.png", 3, 1)
-background_image = image.load("/system/assets/squirrel-sprites/background.png")
+icons = SpriteSheet("assets/ui/icons.png", 4, 1)
+background_day = image.load("assets/background/background_day.png")
+background_dusk = image.load("assets/background/background_dusk.png")
+background_night = image.load("assets/background/background_night.png")
+surround = image.load("assets/ui/tufty_frame_beige.png")
+buttons = SpriteSheet("assets/ui/buttons_48x14.png", 4, 2)
+scanlines = image.load("assets/ui/overlay_scanlines.png")
 
 # load in the font - font sheet generated from
 screen.font = pixel_font.load("/system/assets/fonts/ark.ppf")
@@ -24,43 +27,55 @@ stats_icons = {
 }
 
 # ui outline (contrast) colour
-outline_brush = color.rgb(20, 30, 40, 150)
-outline_brush_bold = color.rgb(20, 30, 40, 200)
+outline_brush = color.rgb(228, 220, 220, 150)
+outline_brush_bold = color.rgb(228, 220, 220, 200)
 
 
 # draw the background scenery
-def background(pet):
+def background():
+    _, _, _, current_hour, _, _, _ = rtc.datetime()
 
-    screen.blit(background_image, vec2(0, 0))
+    if current_hour < 5 or current_hour > 21:
+        background_image = background_night
+    elif current_hour >= 7 and current_hour <= 19:
+        background_image = background_day
+    else:
+        background_image = background_dusk
+
+    screen.blit(background_image, rect(0, 16, 160, 90))
 
 
 # draw the title banner
 def draw_header():
-    screen.pen = outline_brush
-    screen.shape(shape.rounded_rectangle(40, -5, 160 - 80, 18, 3))
+    screen.blit(surround, vec2(0, 0))
 
-    screen.pen = color.rgb(255, 255, 255)
-    center_text("Tufty", 0)
+# draw the scanline overlay
+def draw_scanlines():
+    screen.blit(scanlines, vec2(0, 13))
 
 # draw a user action button with button name and label
 def draw_button(x, y, label, active):
-    width = 50
 
-    # create an animated bounce effect
-    bounce = math.sin(((badge.ticks / 20) - x) / 10) * 2
+    if label == "play":
+        u = 0
+    elif label == "feed":
+        u = 1
+    elif label == "clean":
+        u = 2
+    else:
+        u = 3
 
-    # draw the button label
-    screen.pen = color.rgb(255, 255, 255, 255 if active else 150)
-    shadow_text(label, y + (bounce / 2), x, x + width)
+    if active:
+        v = 1
+    else:
+        v = 0
 
-    # draw the button arrow
-    arrows.sprite(2, 0).alpha = 255 if active else 150
-    screen.blit(arrows.sprite(2, 0), vec2(x + (width / 2) - 4, y + bounce + 10))
+    screen.blit(buttons.sprite(u, v), vec2(x, y))
 
 
 # draw a statistics bar with icon and fill level
 def draw_bar(name, x, y, amount):
-    bar_width = 50
+    bar_width = 44
 
     screen.pen = outline_brush
     screen.shape(shape.rounded_rectangle(x, y, bar_width, 12, 3))

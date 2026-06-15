@@ -27,8 +27,9 @@ class Pet:
     self._position = (80, y + 2)
     self._direction = 1
     self._target = 80
-    self._speed = 0.5
-    self.set_mood("default")
+    self._speed = 3
+    self._notify = False
+    self.set_mood("idle")
 
   def load(self, state):
     self._happy = state.get("happy", 0)
@@ -53,15 +54,15 @@ class Pet:
     else:
       image = Pet._animations[self._mood].frame(round(badge.ticks / 100))
 
-    width, height = image.width * 4, image.height * 4
+    if self._notify:
+      notify_image = Pet._animations["notify"].frame(round(badge.ticks / 4))
+    else:
+      notify_image = None
 
-    # draw pets shadow
-    screen.pen = color.rgb(0, 0, 0, 20)
-    screen.shape(shape.rectangle(x - (width / 2) + 5, y , width - 10, 2))
-    screen.shape(shape.rectangle(x - (width / 2) + 5 + 2, y - 2, width - 10 - 4, 4))
+    width, height = image.width, image.height
 
     # invert pet if they are walking left
-    width *= self._direction
+    width *= -self._direction
 
     # is pet floating?
     floating = math.sin(badge.ticks / 250) * 5 + 5 if self._mood == "dead" else 0
@@ -75,10 +76,9 @@ class Pet:
     image.alpha = alpha
     screen.blit(image, rect(x, y, width, height))
 
-    # draw pets reflection
-    image.alpha = int(alpha * 0.2)
-    screen.blit(image, rect(x, self._position[1] + (floating / 2) + 1, width, -20))
-    image.alpha = 255
+    # draw black cloud
+    if notify_image:
+      screen.blit(notify_image, rect(x, y, width, height))
 
   # set a new target position for pet to move to
   def move_to(self, target):
@@ -92,7 +92,7 @@ class Pet:
 
   # select a random position for pet to move to
   def move_to_random(self):
-    self.move_to(random.randint(90, 130))
+    self.move_to(random.randint(20, 140))
 
   # return the number of seconds since pet moved
   def time_since_last_position_change(self):
@@ -110,6 +110,15 @@ class Pet:
   def do_action(self, action):
     self._action = action
     self._action_changed_at = (badge.ticks / 1000)
+
+  def set_notify(self):
+    self._notify = True
+
+  def unset_notify(self):
+    self._notify = False
+
+  def set_speed(self, speed):
+    self._speed = speed
 
   def current_action(self):
     return self._action
@@ -136,18 +145,22 @@ class Pet:
     x, y = self._position
 
     # if pet isn't at their target position then move towards it
-    if x != self._target and not self._action:
+    if abs(x - self._target) > self._speed and not self._action:
       self._direction = 1 if x > self._target else -1
-      self._position = (x - (self._speed * self._direction), y)
+      x -= (self._speed * self._direction)
+      self._position = (x, y)
+      # if we've reached our destination, cancel out of the run animation
+      if abs(x - self._target) <= self._speed and self._mood == "run":
+        self.random_idle()
 
-    # if pet is performing an action then let it run for 2 seconds and end it
+    # if pet is performing an action then let it run for 4 seconds and end it
     if self._action:
-      if (badge.ticks / 1000) - self._action_changed_at > 2:
+      if (badge.ticks / 1000) - self._action_changed_at > 4:
         self._action = None
 
   # select a random mood for pet
   def random_idle(self):
-    idles = ["dig", "default"]
+    idles = ["dig", "sleep", "idle", "lick", "tail"]
     self.set_mood(random.choice(idles))
 
   # return the number of seconds since pets mood changed
@@ -157,20 +170,24 @@ class Pet:
 # define pets animations and the number of frames
 animations = {
   # actions
-  "dance":    4, # play
-  "eating":   2, # eat
-  "running":  7,
-  "sleep":    4,
-  "dig":      4,
-  "default":  6,
-  "notify":   6,
-  "dead":     6
+  "dance":    6, # play
+  "clean":    11, # clean
+  "eat":      12, # eat
+  "run":      5,
+  "sleep":    12,
+  "dig":      5,
+  "idle":     14,
+  "lick":     4,
+  "tail":     4,
+  "dead":     14,
+  "notify":   4
 
 }
 
+
 # load the spritesheets for pets animations
 for name, frame_count in animations.items():
-  sprites = SpriteSheet(f"/system/assets/squirrel-sprites/{name}.png", frame_count, 1)
+  sprites = SpriteSheet(f"assets/squirrel-sprites/{name}.png", frame_count, 1)
   Pet._animations[name] = sprites.animation()  # noqa: SLF001
 print("done")
 

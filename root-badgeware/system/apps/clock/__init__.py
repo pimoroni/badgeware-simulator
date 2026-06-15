@@ -3,6 +3,8 @@ APP_DIR = "/system/apps/clock"
 
 import sys
 import os
+import wifi
+import secrets
 
 # Standalone bootstrap for finding app assets
 os.chdir(APP_DIR)
@@ -11,15 +13,13 @@ os.chdir(APP_DIR)
 sys.path.insert(0, APP_DIR)
 
 
-from badgeware import run, State, rtc
+from badgeware import State
 import time
 import ntptime
 from daylightsaving import DaylightSavingPolicy, DaylightSaving
-from usermessage import user_message, center_text, bullet_list, stretch_text
-import machine
+from usermessage import user_message, center_text, stretch_text
 from machine import RTC
 import math
-import network
 
 
 # Making classes for which clock is displayed etc, so we can refer to them by name.
@@ -37,14 +37,10 @@ class ClockState:
     FirstRun = 3
 
 
-WIFI_TIMEOUT = 60
-WIFI_PASSWORD = None
-WIFI_SSID = None
-REGION = None
-TIMEZONE = None
-wlan = None
-connected = False
-ticks_start = None
+secrets.require("REGION", "TIMEZONE")
+
+REGION = secrets.REGION
+TIMEZONE = secrets.TIMEZONE
 
 # Setting up default values for the first run, and loading in the state with the
 # user choices if the file's there.
@@ -171,67 +167,9 @@ def update_time(region, timezone):
     dst = DaylightSaving(dstp, stdp)
     t = time.mktime(time.gmtime())
     tm = time.gmtime(dst.localtime(t))
-    if RTC is not None:
-        RTC().datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
-        year, month, day, dow, hour, minute, second, dow = RTC().datetime()
-        rtc.datetime((year, month, day, hour, minute, second, dow))
-
-    return True
-
-
-def _is_valid_details():
-    return all([WIFI_SSID, WIFI_PASSWORD, REGION]) and isinstance(TIMEZONE, int)
-
-
-def get_connection_details():
-    # Get WiFi details from secrets.py.
-
-    global WIFI_PASSWORD, WIFI_SSID, REGION, TIMEZONE
-
-    if _is_valid_details():
-        return True
-
-    try:
-        sys.path.insert(0, "/")
-        from secrets import WIFI_PASSWORD, WIFI_SSID, REGION, TIMEZONE
-        sys.path.pop(0)
-    except ImportError:
-        WIFI_PASSWORD = None
-        WIFI_SSID = None
-        REGION = None
-        TIMEZONE = None
-        return False
-
-    return _is_valid_details()
-
-
-def wlan_start():
-    global wlan, ticks_start, connected, WIFI_PASSWORD, WIFI_SSID
-
-    if ticks_start is None:
-        ticks_start = io.ticks
-
-    if connected:
-        return True
-
-    if wlan is None:
-        wlan = network.WLAN(network.STA_IF)
-        wlan.active(True)
-
-        if wlan.isconnected():
-            return True
-
-        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
-
-        print("Connecting to WiFi...")
-
-    connected = wlan.isconnected()
-
-    if io.ticks - ticks_start < WIFI_TIMEOUT * 1000:
-        if connected:
-            return True
-    elif not connected:
-        return False
+    RTC().datetime((tm[0], tm[1], tm[2], tm[6] + 1, tm[3], tm[4], tm[5], 0))
+    year, month, day, dow, hour, minute, second, dow = RTC().datetime()
+    rtc.datetime((year, month, day, hour, minute, second, dow))
 
     return True
 
@@ -395,14 +333,7 @@ def draw_nixie_clock(currenttime):
     month = calendar_months[currenttime[1]]
     mday = currenttime[2]
 
-    suffix = "th"
-    mday_units = mday % 10
-    if mday_units == 1:
-        suffix = "st"
-    if mday_units == 2:
-        suffix = "nd"
-    if mday_units == 3:
-        suffix = "rd"
+    suffix = "th" if 4 <= mday % 100 <= 20 else {1:"st",2:"nd",3:"rd"}.get(mday % 10, "th")
 
     date = str(mday) + suffix + " " + month + " " + str(year)
 
@@ -739,42 +670,44 @@ def update():
 
     global state, clock_state
 
+    wifi.tick()
+
     # First we check if it's the first time of running, and if so show the intro screen.
     # Any face button press will move it into the regular running mode.
     if clock_state == ClockState.FirstRun:
         intro_screen()
-        if any(x in io.pressed for x in [io.BUTTON_A, io.BUTTON_B, io.BUTTON_C, io.BUTTON_UP, io.BUTTON_DOWN]):
+        if any(x in badge.pressed() for x in [BUTTON_A, BUTTON_B, BUTTON_C, BUTTON_UP, BUTTON_DOWN]):
             clock_state = ClockState.Running
             state["first_run"] = False
             write_settings()
 
     # Next we check if anything's been pressed before choosing what to display.
-    if io.BUTTON_UP in io.pressed:
+    if badge.pressed(BUTTON_UP):
         state["dark_mode"] = not state["dark_mode"]
         write_settings()
         switch_palette()
 
-    if io.BUTTON_DOWN in io.pressed:
+    if badge.pressed(BUTTON_DOWN):
         state["colour_scheme"] += 1
         if state["colour_scheme"] > 8:
             state["colour_scheme"] = 1
         write_settings()
         switch_palette()
 
-    if io.BUTTON_C in io.pressed:
+    if badge.pressed(BUTTON_C):
         state["clock_style"] += 1
         if state["clock_style"] > 4:
             state["clock_style"] = 1
         write_settings()
 
-    if io.BUTTON_A in io.pressed:
+    if badge.pressed(BUTTON_A):
         state["clock_style"] -= 1
         if state["clock_style"] < 1:
             state["clock_style"] = 4
         write_settings()
 
     # If the year in the RTC is 2021 or earlier, we need to sync so it has the same effect as pressing B.
-    if io.BUTTON_B in io.pressed or time.gmtime()[0] <= 2021 and clock_state == ClockState.Running:
+    if badge.pressed(BUTTON_B) or time.gmtime()[0] <= 2021 and clock_state == ClockState.Running:
         user_message("Updating...", ["Updating time", "from NTP server...", "Getting WiFi details..."])
         clock_state = ClockState.ConnectWiFi
 
@@ -797,20 +730,13 @@ def update():
             user_message("Error!", ["Unable to get time", "from NTP server."])
 
     elif clock_state == ClockState.ConnectWiFi:
-        if get_connection_details():
-            if wlan_start():
-                user_message("Updating...", ["Updating time", "from NTP server...", "Getting WiFi details...", "Connecting WiFi...", "Fetching time..."])
-                clock_state = ClockState.UpdateTime
-            else:
-                bullet_list("Connection Failed!", ["""Could not connect\nto the WiFi network.\n:-(""", """Edit 'secrets.py' to\nset WiFi details and\nyour local region.""", """Reload to see your\ncorrect local time!"""])
-        else:
-            bullet_list("Missing Details!", ["""Put your badge into\ndisk mode (tap\nRESET twice)""", """Edit 'secrets.py' to\nset WiFi details and\nyour local region.""", """Reload to see your\ncorrect local time!"""])
-
+        user_message("Please Wait", ["Connecting to WiFi..."])
+        if wifi.connect():
+            clock_state = ClockState.UpdateTime
 
 def on_exit():
     pass
 
 
-# Standalone support for Thonny debugging
-if __name__ == "__main__":
-    run(update, init=init, on_exit=on_exit)
+init()
+run(update)

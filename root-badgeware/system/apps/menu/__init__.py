@@ -5,13 +5,12 @@ sys.path.insert(0, "/system/apps/menu")
 sys.path.insert(0, "/")
 os.chdir("/system/apps/menu")
 
-import math
-
 import ui
 
 from app import Apps
 
-screen.font = pixel_font.load("/system/assets/fonts/ark.ppf")
+title_font = rom_font.ark
+label_font = rom_font.sins
 
 
 # find installed apps and create apps
@@ -27,31 +26,34 @@ def update():
     global active, apps, alpha
 
     # process button inputs to switch between apps
-    if BUTTON_C in badge.pressed():
-        if (active % 3) < 2 and active < len(apps):
+    if badge.pressed(BUTTON_C):
+        if (active % 3) < 2 and active < len(apps) - 1:
             active += 1
-    if BUTTON_A in badge.pressed():
+    if badge.pressed(BUTTON_A):
         if (active % 3) > 0 and active > 0:
             active -= 1
-    if BUTTON_UP in badge.pressed() and active >= 3:
+    if badge.pressed(BUTTON_UP) and active >= 3:
         active -= 3
-    if BUTTON_DOWN in badge.pressed():
+    if badge.pressed(BUTTON_DOWN):
         active += 3
         if active >= len(apps):
             active = len(apps) - 1
 
     apps.activate(active)
 
-    if BUTTON_B in badge.pressed():
+    if badge.pressed(BUTTON_B):
         return f"/system/apps/{apps.active.path}"
 
     ui.draw_background()
+
+    screen.font = title_font
     ui.draw_header()
 
     # draw menu apps
     apps.draw_icons()
 
     # draw label for active menu icon
+    screen.font = label_font
     apps.draw_label()
 
     # draw hints for the active page
@@ -64,6 +66,5 @@ def update():
 
     return None
 
-
-if __name__ == "__main__":
-    badge.run(update)
+# "on_exit" will be called if callable, else returned verbatim by `launch`
+on_exit = run(update).result

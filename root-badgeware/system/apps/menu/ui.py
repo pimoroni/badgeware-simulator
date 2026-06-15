@@ -1,6 +1,7 @@
 import math
 import random
 
+
 black = color.rgb(0, 0, 0)
 background = color.rgb(60, 15, 10)
 phosphor = color.rgb(246, 135, 4)
@@ -86,7 +87,7 @@ def draw_terminal():
 def draw_header():
     # create animated header text
     dots = "." * int(math.sin(badge.ticks / 250) * 2 + 2)
-    label = f"BadgerOS v4.03{dots}"
+    label = f"BadgeOS{dots}"
     pos = (5, 2)
 
     # draw the OS title

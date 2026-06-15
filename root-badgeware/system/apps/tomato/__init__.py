@@ -11,7 +11,7 @@ os.chdir(APP_DIR)
 # Standalone bootstrap for module imports
 sys.path.insert(0, APP_DIR)
 
-from badgeware import run, display, set_case_led, get_case_led
+from badgeware import display
 import time
 
 # Centre points for the display
@@ -139,15 +139,13 @@ class Tomato(object):
         self.time_elapsed = 0
 
     def case_lights_off(self):
-        for led in range(4):
-            set_case_led(led, 0)
+        badge.caselights(0)
 
     def toggle_case_lights(self):
-        if io.ticks - self.last_toggle > 250:
-            for led in range(4):
-                value = 1 - get_case_led(led)
-                set_case_led(led, value)
-            self.last_toggle = io.ticks
+        if badge.ticks - self.last_toggle > 250:
+            lights = [1.0 - light for light in badge.caselights()]
+            badge.caselights(*lights)
+            self.last_toggle = badge.ticks
 
     def update(self):
 
@@ -179,8 +177,6 @@ class Tomato(object):
     # Return the remaining time formatted in a string for displaying with vector text.
     def return_string(self):
         minutes, seconds = divmod(self.current_timer - self.time_elapsed, 60)
-        minutes = int(minutes)
-        seconds = int(seconds)
         return f"{minutes:02d}:{seconds:02d}"
 
 
@@ -197,12 +193,11 @@ def on_exit():
 def update():
     global timer
 
-    if io.BUTTON_B in io.pressed:
+    if badge.pressed(BUTTON_B):
         timer.run()
     timer.draw()
     timer.update()
 
 
-# Standalone support for Thonny debugging
-if __name__ == "__main__":
-    run(update, init=init, on_exit=on_exit)
+init()
+run(update)

@@ -11,6 +11,7 @@ sys.path.insert(0, APP_DIR)
 
 import ui
 from vpet import Pet
+from badgeware import State
 
 pet = Pet(95)  # create pet!
 
@@ -18,6 +19,8 @@ pet = Pet(95)  # create pet!
 happiness_duration = 1800
 hunger_duration = 1200
 cleanliness_duration = 2400
+
+screen.antialias = image.X2
 
 
 def game_update():
@@ -36,23 +39,26 @@ def game_update():
         pet.clean(-clean_delta)
 
         # play with pet!
-        if BUTTON_A in badge.pressed():
+        if badge.pressed(BUTTON_A):
             pet.happy(30)
+            pet.unset_notify()
             pet.do_action("dance")
 
         # feed pet!
-        if BUTTON_B in badge.pressed():
+        if badge.pressed(BUTTON_B):
             pet.hunger(30)
-            pet.do_action("eating")
+            pet.unset_notify()
+            pet.do_action("eat")
 
         # clean pet!
-        if BUTTON_C in badge.pressed():
+        if badge.pressed(BUTTON_C):
             pet.clean(30)
-            pet.do_action("dance")
+            pet.unset_notify()
+            pet.do_action("clean")
 
         # every 20 seconds pet will move to a new location
         if pet.time_since_last_position_change() > 20:
-            pet.set_mood("running")
+            pet.set_mood("run")
             pet.move_to_random()
 
         # every eight seconds pet will select a new idle animation
@@ -61,14 +67,16 @@ def game_update():
 
         # yikes, pet is in a bad way!
         if min(pet.hunger(), pet.happy(), pet.clean()) < 30:
-            pet.set_mood("notify")
+            pet.set_notify()
 
     else:
         pet.set_mood("dead")
+        pet.set_speed(1)
+        pet.unset_notify()
         pet.move_to_center()
 
         # if user pressed button b then reset pet's stats
-        if BUTTON_B in badge.pressed():
+        if badge.pressed(BUTTON_B):
             pet = Pet(95)
 
 
@@ -80,22 +88,24 @@ def update():
     pet.update()
 
     # draw the background scene
-    ui.background(pet)
+    ui.background()
 
     # draw our little friend
     pet.draw()
 
     # draw the user interface elements
     if not pet.is_dead():
-        ui.draw_bar("happy",  2, 41, pet.happy())
-        ui.draw_bar("hunger", 2, 58, pet.hunger())
-        ui.draw_bar("clean",  2, 75, pet.clean())
+        ui.draw_bar("happy",  8, 92, pet.happy())
+        ui.draw_bar("hunger", 58, 92, pet.hunger())
+        ui.draw_bar("clean",  108, 92, pet.clean())
 
-        ui.draw_button(4, 100,  "play", pet.current_action() == "dance")
-        ui.draw_button(55, 100,  "feed", pet.current_action() == "eating")
-        ui.draw_button(106, 100, "clean", pet.current_action() == "dance")
+        ui.draw_button(7, 107,  "play", pet.current_action() == "dance")
+        ui.draw_button(57, 107,  "feed", pet.current_action() == "eat")
+        ui.draw_button(107, 107, "clean", pet.current_action() == "clean")
     else:
-        ui.draw_button(55, 100, "reset", True)
+        ui.draw_button(57, 107, "reset", False)
+
+    ui.draw_scanlines()
 
     ui.draw_header()
 
@@ -116,5 +126,5 @@ def on_exit():
     State.save("badgepet", pet.save())
 
 
-if __name__ == "__main__":
-    run(update, init=init, on_exit=on_exit)
+init()
+run(update)

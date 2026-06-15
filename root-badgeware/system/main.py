@@ -60,7 +60,9 @@ def launch(file):
     global app
     if app is not None:
         print(f"main.py: Tearing down {app.__name__} {sys.modules}")
-        getattr(app, "on_exit", lambda: None)()
+        result = getattr(app, "on_exit", None)
+        if callable(result):
+            result()
         #old_name = app.__name__
         del app
         # Strip out any paths relating to "/system/apps"
@@ -98,6 +100,7 @@ def update():
     #with debug:
     if (result := app.update()) is not None:
         if app.__name__ == APP_MENU:
+            print(f"Launching {result}")
             launch(result)
         elif app.__name__ == APP_STARTUP:
             launch(APP_MENU)

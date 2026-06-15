@@ -1,3 +1,0 @@
-ICON = "help"
-NAME = "BATTERY"
-DESC = "BATTERY TEST"

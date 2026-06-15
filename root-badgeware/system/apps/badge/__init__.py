@@ -1,7 +1,6 @@
 import sys
 import os
 import math
-from badgeware import run, clamp
 
 sys.path.insert(0, "/system/apps/badge")
 os.chdir("/system/apps/badge")
@@ -33,7 +32,7 @@ id_body = shape.rounded_rectangle(0, 0, 140, 100, 7)
 id_outline = shape.rounded_rectangle(0, 0, 140, 100, 7).stroke(2)
 hue = 255
 chroma = 0
-background = color.rgb(255, 255, 255)
+background = color.oklch(255, chroma, hue)
 flip = False
 flip_start = 0
 rear_view = False
@@ -49,11 +48,11 @@ def draw_background():
     cx = CX
 
     y = 0
-    for row in range(12):
+    for _row in range(12):
         x = 0
-        for col in range(16):
+        for _col in range(16):
             dist = math.sqrt((x + 5 - cx) ** 2 + (y + 5 - cy) ** 2)
-            pulse = (math.sin(-io.ticks / 400 + (dist / 6)) / 2) + 0.5
+            pulse = (math.sin(-badge.ticks / 400 + (dist / 6)) / 2) + 0.5
             pulse = 0.8 + (pulse / 2)
             screen.pen = color.rgb(0, 0, 0, 100 * pulse)
             screen.rectangle(x, y, 10, 10)
@@ -107,27 +106,27 @@ def update():
     # ripple effect
     draw_background()
 
-    if io.BUTTON_B in io.pressed:
+    if badge.pressed(BUTTON_B):
         flip = True
-        flip_start = io.ticks
+        flip_start = badge.ticks
         rear_view = not rear_view
 
-    if io.BUTTON_UP in io.held:
+    if badge.held(BUTTON_UP):
+        change_background(h=-5)
+
+    if badge.held(BUTTON_DOWN):
         change_background(h=5)
 
-    if io.BUTTON_DOWN in io.held:
-        change_background(h=5)
-
-    if io.BUTTON_C in io.held:
+    if badge.held(BUTTON_C):
         change_background(c=5)
 
-    if io.BUTTON_A in io.held:
+    if badge.held(BUTTON_A):
         change_background(c=-5)
 
     if flip:
         # create a spin animation that runs over 100ms
         speed = 95
-        frame = io.ticks - flip_start
+        frame = badge.ticks - flip_start
 
         # calculate the width of the tile during this part of the animation
         width = round(math.cos(frame / speed) * 3) / 3
@@ -168,12 +167,16 @@ def update():
             screen.font = small_font
             center_text(id_role, photo_y + 12)
         else:
-            screen.font = large_font
             for account in id_socials.items():
+                screen.font = large_font
+                y_offset = 1
                 screen.pen = color.rgb(100, 100, 100)
                 screen.shape(shape.rounded_rectangle(20, socials_y, 17, 17, 3))
                 screen.blit(account[1]["icon"], vec2(20, socials_y))
-                shadow_text(account[1]["handle"], 40, socials_y)
+                if 15 <= len (account[1]["handle"]):
+                    screen.font = small_font
+                    y_offset = 2
+                shadow_text(account[1]["handle"], 40, socials_y + y_offset)
                 socials_y += 21
 
 
@@ -181,5 +184,4 @@ def on_exit():
     pass
 
 
-if __name__ == "__main__":
-    run(update)
+run(update)

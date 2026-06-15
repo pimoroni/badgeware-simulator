@@ -11,12 +11,11 @@ os.chdir(APP_DIR)
 sys.path.insert(0, APP_DIR)
 
 import math
-from badgeware import run
 import random
 
 # We'll use hight resolution mode for this app!
 screen.pen = color.rgb(0, 0, 0)
-mode(HIRES)
+badge.mode(HIRES)
 
 # center points of the display
 CX, CY = screen.width / 2, screen.height / 2
@@ -50,7 +49,7 @@ class Ball:
         return a.position.x + a.w >= b.position.x and a.position.x <= b.position.x + b.w and a.position.y + a.h >= b.position.y and a.position.y <= b.position.y + b.h
 
     def update(self):
-        for step in range(self.speed):
+        for _step in range(self.speed):
             # new positions
             self.position.x += self.direction.x
             self.position.y += self.direction.y
@@ -98,15 +97,15 @@ class Bat:
         self.offset = 2
         Bat.bats.append(self)
 
-    def _update(self):
+    def bat_update(self):
 
         self.offset = random.randint(0, 5)
 
         if not self.auto:
 
-            if io.BUTTON_UP in io.held:
+            if badge.held(BUTTON_UP):
                 self.position.y -= self.movement
-            if io.BUTTON_DOWN in io.held:
+            if badge.held(BUTTON_DOWN):
                 self.position.y += self.movement
 
             # clamp position to screen bounds
@@ -138,7 +137,7 @@ class Bat:
     @staticmethod
     def update():
         for bat in Bat.bats:
-            bat._update()
+            bat.bat_update()
 
 
 # Called once to initialise your app.
@@ -175,7 +174,7 @@ def intro():
     screen.font = large_font
     center_text("TENNIS", CY - 30)
     # blink button message
-    if int(io.ticks / 500) % 2:
+    if int(badge.ticks / 500) % 2:
         center_text("Press B to start", CY + 20)
 
     # update the position for the bats and ball
@@ -183,7 +182,7 @@ def intro():
     Bat.update()
 
     # if the user presses the B button, we'll set everything for them to take over control of our Player
-    if io.BUTTON_B in io.pressed:
+    if badge.pressed(BUTTON_B):
         state = GameState.PLAYING
 
         # Remove the auto player and create a user controlled on
@@ -244,7 +243,7 @@ def update():
         center_text("Press B to return to menu", CY + 60)
 
         # reset the game
-        if io.BUTTON_B in io.pressed:
+        if badge.pressed(BUTTON_B):
             state = GameState.INTRO
             player.score = 0
             player.auto = True
@@ -256,6 +255,5 @@ def on_exit():
     pass
 
 
-# Standalone support for Thonny debugging
-if __name__ == "__main__":
-    run(update, init=init, on_exit=on_exit)
+init()
+run(update)

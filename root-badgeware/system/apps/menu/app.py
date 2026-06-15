@@ -71,7 +71,7 @@ class App:
             if frame > (speed * 6):
                 self.spin = False
 
-        # transform to the icon position
+        # transform to the icon position (TODO: Fix need to fudge position by .5 pixels for smoother squircle)
         squircle.transform = mat3().translate(self.pos.x + 0.5, self.pos.y + 0.5).scale(width, 1)
 
         # draw the icon shading
@@ -115,7 +115,7 @@ class Apps:
                 return word
             return word[0].upper() + word[1:]
 
-        for path in os.listdir(root):
+        for path in sorted(os.listdir(root)):
             name = " ".join([capitalize(word) for word in path.split("_")])
 
             if is_dir(f"{root}/{path}"):
@@ -133,7 +133,7 @@ class Apps:
 
     def draw_icons(self):
         offset = (self.active_index // 6) * 6
-        for i, app in enumerate(self.apps[offset:offset + 6]):
+        for app in self.apps[offset:offset + 6]:
             app.draw()
 
     def draw_label(self):

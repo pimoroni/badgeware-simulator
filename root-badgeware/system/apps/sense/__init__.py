@@ -13,7 +13,7 @@ sys.path.insert(0, APP_DIR)
 
 import math
 
-from badgeware import run
+from badgeware import fatal_error
 from breakout_bme280 import BreakoutBME280
 from breakout_ltr559 import BreakoutLTR559
 from lsm6ds3 import LSM6DS3, NORMAL_MODE_104HZ
@@ -27,19 +27,23 @@ font_winds = pixel_font.load("/system/assets/fonts/winds.ppf")
 
 screen.antialias = image.X2
 
-motion_sensor = LSM6DS3(I2C(), mode=NORMAL_MODE_104HZ)
+try:
+    motion_sensor = LSM6DS3(I2C(), mode=NORMAL_MODE_104HZ)
+    temperature_sensor = BreakoutBME280(I2C())
+    light_sensor = BreakoutLTR559(I2C())
+except OSError:
+    while True:
+        fatal_error("Error!", "\nNo Multi Sensor Stick detected.\n\nMake sure the Multi Sensor Stick is connected to the I2C port on the back of your badge and run this app again.")
+
 motion_samples = []
-
-temperature_sensor = BreakoutBME280(I2C())
 graph = [25 for val in range(22)]
-last_graph = io.ticks
+last_graph = badge.ticks
 
-light_sensor = BreakoutLTR559(I2C())
 light_samples = []
 LIGHT_MIN = 0
 LIGHT_MAX = 255
 
-# WIndow colours
+# Window colours
 TEMP_COLOUR = (190, 120, 120)
 LIGHT_COLOUR = (200, 200, 120)
 MOVE_COLOUR = (120, 170, 120)
@@ -55,7 +59,7 @@ def centre_text(text, w, y, image=win):
     image.text(text, tx, y)
 
 
-def draw_light(wx, wy, ww, wh):
+def draw_light(_wx, _wy, _ww, _wh):
     global light_samples
 
     win.pen = color.rgb(*LIGHT_COLOUR)
@@ -83,23 +87,23 @@ def draw_light(wx, wy, ww, wh):
 
     cpos = [(10, 10), (30, 50), (100, 60), (130, 10), (70, 0), (70, 100)]
     win.pen = color.rgb(255, 255, 255, avg_lux)
-    for i, pos in enumerate(cpos):
+    for pos in cpos:
         x, y = pos
         win.shape(shape.circle(x, y, diameter + 2))
         win.shape(shape.circle(x, y, diameter).stroke(2))
 
 
-def draw_temperature(wx, wy, ww, wh):
+def draw_temperature(_wx, wy, ww, wh):
     global graph, last_graph
 
     win.pen = color.rgb(*TEMP_COLOUR)
     win.clear()
 
     # add values to the dummy graph animation
-    if io.ticks - last_graph > 10:
-        graph.append(25 + math.sin(io.ticks) * 8)
+    if badge.ticks - last_graph > 10:
+        graph.append(25 + math.sin(badge.ticks) * 8)
         graph = graph[-22:]
-        last_graph = io.ticks
+        last_graph = badge.ticks
 
     # draw the bars for the graph
     for i, t in enumerate(graph):
@@ -137,7 +141,7 @@ def draw_temperature(wx, wy, ww, wh):
     centre_text(pressure_text, cx, cy - 5)
 
 
-def draw_motion(wx, wy, ww, wh):
+def draw_motion(_wx, wy, ww, wh):
     global motion_samples
 
     win.pen = color.rgb(*MOVE_COLOUR)
@@ -250,17 +254,17 @@ class Widget:
     def is_fullscreen():
         return any(view.full_view for view in Widget.widgets)
 
-    def _update(self):
+    def update_widget(self):
 
         if self == Widget.widgets[Widget.selected]:
             # We don't want to overwrite 'selected' if it already has ticks
             if not self.selected:
-                self.selected = io.ticks
+                self.selected = badge.ticks
         else:
             self.selected = False
 
         # A one pixel jump when the icon is initially selected
-        if io.ticks - self.selected < 50:
+        if badge.ticks - self.selected < 50:
             yo = -2
         else:
             yo = 0
@@ -321,26 +325,10 @@ class Widget:
     @staticmethod
     def update():
         for w in Widget.widgets:
-            w._update()
+            w.update_widget()
 
 
-# Called once to initialise your app.
-def init():
-    global sensor
-
-    # Widget setup
-    temp_widget = Widget(w=114, title="Temperature", draw=draw_temperature)
-    light_widget = Widget(w=56, title="Light", draw=draw_light)
-    motion_widget = Widget(w=56, title="Move", draw=draw_motion)
-
-    temp_widget.colour_main = TEMP_COLOUR
-    light_widget.colour_main = LIGHT_COLOUR
-    motion_widget.colour_main = MOVE_COLOUR
-
-
-# Called every frame, update and render as you see fit!
-def update():
-    global sensor
+def draw_background():
 
     screen.pen = color.rgb(0, 0, 0)
     screen.clear()
@@ -368,22 +356,46 @@ def update():
     screen.shape(shape.circle(10, 40, 3))
     screen.shape(shape.circle(10, 100, 3))
 
+
+# Called once to initialise your app.
+def init():
+    global sensor
+
+    # Widget setup
+    temp_widget = Widget(w=114, title="Temperature", draw=draw_temperature)
+    light_widget = Widget(w=56, title="Light", draw=draw_light)
+    motion_widget = Widget(w=56, title="Move", draw=draw_motion)
+
+    temp_widget.colour_main = TEMP_COLOUR
+    light_widget.colour_main = LIGHT_COLOUR
+    motion_widget.colour_main = MOVE_COLOUR
+
+
+# Called every frame, update and render as you see fit!
+def update():
+    global sensor
+
+    draw_background()
+
+    if Widget.is_fullscreen():
+        screen.blur(0.1)
+
     Widget.update()
 
     if not Widget.is_fullscreen():
-        if io.BUTTON_A in io.pressed:
+        if badge.pressed(BUTTON_A):
             if Widget.selected > 0:
                 Widget.selected -= 1
             else:
                 Widget.selected = len(Widget.widgets) - 1
 
-        if io.BUTTON_C in io.pressed:
+        if badge.pressed(BUTTON_C):
             if Widget.selected < len(Widget.widgets) - 1:
                 Widget.selected += 1
             else:
                 Widget.selected = 0
 
-    if io.BUTTON_B in io.pressed:
+    if badge.pressed(BUTTON_B):
         Widget.widgets[Widget.selected].full_view = not Widget.widgets[Widget.selected].full_view
 
 
@@ -392,6 +404,5 @@ def on_exit():
     pass
 
 
-# Standalone support for Thonny debugging
-if __name__ == "__main__":
-    run(update, init=init, on_exit=on_exit)
+init()
+run(update)
