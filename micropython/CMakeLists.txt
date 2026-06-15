@@ -11,14 +11,16 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET 14)
-set(USER_C_MODULES "../src/micropython.cmake")
+set(USER_C_MODULES "../usercmodules.cmake")
 
 get_filename_component(LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/../lib/" ABSOLUTE)
-get_filename_component(SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../src/" ABSOLUTE)
 get_filename_component(USER_C_MODULES ${USER_C_MODULES} ABSOLUTE)
 
-set(PNGDEC_DIR "${SRC_DIR}/lib/pngdec")
-set(JPEGDEC_DIR "${SRC_DIR}/lib/jpegdec")
+include_directories("${LIB_DIR}")
+
+list(APPEND CMAKE_MODULE_PATH "${LIB_DIR}")
+
+set(PICOVECTOR_DIR "${LIB_DIR}/picovector")
 
 # Set build type to reduce firmware size
 if(NOT CMAKE_BUILD_TYPE)

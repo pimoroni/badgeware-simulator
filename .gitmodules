@@ -5,3 +5,6 @@
 [submodule "lib/dmon"]
 	path = lib/dmon
 	url = https://github.com/gadgetoid/dmon
+[submodule "lib/picovector"]
+	path = lib/picovector
+	url = https://github.com/pimoroni/picovector
